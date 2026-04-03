@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Upload Dataset</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="upload.css">
+</head>
+<body class="app-page">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item active" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="simulation.html" class="nav-item" id="nav-simulation"><span class="nav-icon">▶</span> Run Simulation</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div><div class="user-name" id="user-name">Ali B.</div><div class="user-role" id="user-role">Energy Analyst</div></div>
+      <a href="index.html" class="logout-btn" title="Logout">⏻</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div><h2>Upload Dataset</h2><p>Add new energy data files for scenario modeling</p></div>
+      <div class="topbar-right"><span class="badge" id="role-badge">Energy Analyst</span></div>
+    </div>
+
+    <div class="content">
+
+      <div class="upload-zone" id="upload-zone"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div class="upload-icon-wrap"><div class="upload-icon">↑</div></div>
+        <div class="upload-title">Drag and drop your file here</div>
+        <div class="upload-sub">Supports .xlsx, .csv, .json — max 50 MB</div>
+        <input type="file" id="file-input" accept=".xlsx,.csv,.json" style="display:none" onchange="handleFileSelect(event)">
+        <button class="btn-browse" onclick="document.getElementById('file-input').click()">Browse files</button>
+      </div>
+
+      <div class="card" id="upload-progress" style="display:none; margin-bottom:16px;">
+        <div class="card-title">Uploading file...</div>
+        <div class="up-file-row">
+          <div class="up-file-icon">XLS</div>
+          <div class="up-file-info">
+            <div class="up-file-name" id="up-filename">file.xlsx</div>
+            <div class="up-file-size" id="up-filesize">0 KB</div>
+          </div>
+          <div class="up-pct" id="up-pct">0%</div>
+        </div>
+        <div class="up-bar-wrap"><div class="up-bar" id="up-bar"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Uploaded datasets</div><div class="card-sub">Available for scenario modeling</div></div>
+        </div>
+        <table class="u-table">
+          <thead>
+            <tr><th>File name</th><th>Sectors</th><th>Period</th><th>Size</th><th>Uploaded by</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="datasets-table">
+            <tr>
+              <td><div class="ds-name">LEAP_KZ_DEMAND.xlsx</div><div class="ds-sub">Kazakhstan energy demand data</div></td>
+              <td>24 sectors</td><td>2021–2023</td><td>93 KB</td><td>Ali B.</td>
+              <td><span class="ds-status active">● Active</span></td>
+              <td><button class="btn-sm" onclick="previewDataset(this)">Preview</button> <button class="btn-sm red" onclick="deleteDataset(this)">Delete</button></td>
+            </tr>
+            <tr>
+              <td><div class="ds-name">LEAP_KZ_ALL_SECTORS.xlsx</div><div class="ds-sub">All sectors combined</div></td>
+              <td>24 sectors</td><td>2021–2023</td><td>87 KB</td><td>Aliya S.</td>
+              <td><span class="ds-status archived">● Archived</span></td>
+              <td><button class="btn-sm" onclick="previewDataset(this)">Preview</button> <button class="btn-sm red" onclick="deleteDataset(this)">Delete</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card format-guide">
+        <div class="card-title">Expected file format</div>
+        <div class="card-sub">Your Excel file must follow this structure for LEAP compatibility</div>
+        <table class="format-table">
+          <thead><tr><th>Column A</th><th>Column B</th><th>Column D</th><th>Column E</th><th>Column F</th></tr></thead>
+          <tbody>
+            <tr class="header-row"><td>Fuel</td><td>Unit</td><td>2021</td><td>2022</td><td>2023</td></tr>
+            <tr><td>Coking coal</td><td>Terajoule</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>Coal Sub bituminous</td><td>Terajoule</td><td>23709.8</td><td>32102.9</td><td>24124.7</td></tr>
+            <tr><td>Electricity</td><td>Terajoule</td><td>51677.0</td><td>47159.0</td><td>50411.6</td></tr>
+          </tbody>
+        </table>
+        <div class="format-note">Each sector must have its own sheet tab named exactly as in the LEAP model (e.g. <code>ironandsteel</code>, <code>chemical</code>, <code>nonferrous</code>)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="upload.js"></script>
+</body>
+</html>

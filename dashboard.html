@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div>
+        <div class="logo-title">KZLEAP</div>
+        <div class="logo-sub">Energy Platform</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item active">
+        <span class="nav-icon">▦</span> Dashboard
+      </a>
+      <a href="upload.html" class="nav-item" id="nav-upload">
+        <span class="nav-icon">↑</span> Upload Dataset
+      </a>
+
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario">
+        <span class="nav-icon">◈</span> Scenario Builder
+      </a>
+      <a href="simulation.html" class="nav-item" id="nav-simulation">
+        <span class="nav-icon">▶</span> Run Simulation
+      </a>
+      <a href="results.html" class="nav-item">
+        <span class="nav-icon">▰</span> Simulation Results
+      </a>
+
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item">
+        <span class="nav-icon">◻</span> Reports
+      </a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div>
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
+      </div>
+      <a href="index.html" class="logout-btn" title="Logout">⏻</a>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="topbar">
+      <div>
+        <h2>Dashboard</h2>
+        <p>Kazakhstan energy balance overview · 2021–2023</p>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total energy demand</div>
+          <div class="metric-value">1,782 PJ</div>
+          <div class="metric-change down">▼ 3.2% vs 2022</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">CO₂ emissions</div>
+          <div class="metric-value">342 Mt</div>
+          <div class="metric-change down">▼ 1.8% vs 2022</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Renewable share</div>
+          <div class="metric-value">6.4%</div>
+          <div class="metric-change up">▲ 0.9% vs 2022</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active scenarios</div>
+          <div class="metric-value">2</div>
+          <div class="metric-change neutral">BAU · Low Carbon</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card chart-card-wide">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Energy demand by sector (thousand TJ)</div>
+              <div class="card-sub">Historical data 2021–2023 · Kazakhstan</div>
+            </div>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span>2021</span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span>2022</span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span>2023</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="sectorChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card-narrow">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Sector share 2023</div>
+              <div class="card-sub">% of total demand</div>
+            </div>
+          </div>
+          <div class="chart-wrap-sm">
+            <canvas id="pieChart"></canvas>
+          </div>
+          <div class="legend" style="margin-top:12px;flex-wrap:wrap;">
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span>Residential 33%</span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span>Transport 19%</span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span>Industry 16%</span>
+            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span>Other 32%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card" style="flex:1;">
+          <div class="card-title">Iron and Steel — Final Energy Intensity (operational)</div>
+          <div class="card-sub">Real data from LEAP model · 2021–2023</div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span>Electricity</span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span>Heat</span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span>Coal</span>
+            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span>Natural Gas</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="ironChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card" style="flex:1;">
+          <div class="card-title">Model status</div>
+          <div class="card-sub">24 demand sectors · LEAP 25.11.25</div>
+          <div class="status-list">
+            <div class="status-item">
+              <span class="status-dot green"></span>
+              <span>Iron and Steel</span>
+              <span class="status-tag green">Operational</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Chemical</span>
+              <span class="status-tag amber">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Nonferrous</span>
+              <span class="status-tag amber">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Road Transport</span>
+              <span class="status-tag amber">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Residential</span>
+              <span class="status-tag amber">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot gray"></span>
+              <span>+19 more sectors</span>
+              <span class="status-tag gray">Pending</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

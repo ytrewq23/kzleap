@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Scenario Builder</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="scenario.css">
+</head>
+<body class="app-page">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div>
+        <div class="logo-title">KZLEAP</div>
+        <div class="logo-sub">Energy Platform</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-icon">▦</span> Dashboard
+      </a>
+      <a href="upload.html" class="nav-item" id="nav-upload">
+        <span class="nav-icon">↑</span> Upload Dataset
+      </a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item active" id="nav-scenario">
+        <span class="nav-icon">◈</span> Scenario Builder
+      </a>
+      <a href="simulation.html" class="nav-item" id="nav-simulation">
+        <span class="nav-icon">▶</span> Run Simulation
+      </a>
+      <a href="results.html" class="nav-item">
+        <span class="nav-icon">▰</span> Simulation Results
+      </a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item">
+        <span class="nav-icon">◻</span> Reports
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div>
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
+      </div>
+      <a href="index.html" class="logout-btn" title="Logout">⏻</a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Scenario Builder</h2>
+        <p>Configure BAU and Low Carbon scenarios · 2024–2050</p>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Scenario Type Tabs -->
+      <div class="scenario-tabs">
+        <button class="tab-btn active" onclick="switchTab('bau', this)">
+          BAU — Business as Usual
+        </button>
+        <button class="tab-btn" onclick="switchTab('lc', this)">
+          Low Carbon
+        </button>
+      </div>
+
+      <!-- BAU Tab -->
+      <div id="tab-bau" class="tab-content active">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">BAU Scenario settings</div>
+            <div class="card-sub">Business as Usual — no new policies, historical trend continues</div>
+
+            <div class="form-group">
+              <label>Scenario name</label>
+              <input type="text" value="BAU — Kazakhstan 2050" />
+            </div>
+            <div class="form-group">
+              <label>Base year</label>
+              <select><option>2023</option></select>
+            </div>
+            <div class="form-group">
+              <label>Projection period</label>
+              <select><option>2024–2050</option></select>
+            </div>
+            <div class="form-group">
+              <label>Base dataset</label>
+              <select><option>LEAP_KZ_DEMAND.xlsx (2021–2023)</option></select>
+            </div>
+
+            <div class="info-box">
+              <div class="info-title">What BAU assumes:</div>
+              <ul class="info-list">
+                <li>Energy demand grows at historical rate (~2% per year)</li>
+                <li>Coal remains dominant (~70% of electricity generation)</li>
+                <li>No new climate policies introduced</li>
+                <li>Renewable share grows slowly (~1% per year)</li>
+              </ul>
+            </div>
+
+            <button class="btn-primary" onclick="saveScenario('BAU')">Save BAU Scenario</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">BAU growth parameters</div>
+            <div class="card-sub">Based on Kazakhstan historical trends 2010–2023</div>
+
+            <div class="param-row">
+              <div class="param-info">
+                <span class="param-label">Annual energy demand growth</span>
+                <span class="param-source">Source: Bureau of National Statistics KZ</span>
+              </div>
+              <span class="param-value">+2.0% / yr</span>
+            </div>
+            <div class="param-row">
+              <div class="param-info">
+                <span class="param-label">Coal share in electricity</span>
+                <span class="param-source">Source: Ministry of Energy KZ</span>
+              </div>
+              <span class="param-value">70%</span>
+            </div>
+            <div class="param-row">
+              <div class="param-info">
+                <span class="param-label">Renewable energy growth</span>
+                <span class="param-source">Source: KOREM 2023 report</span>
+              </div>
+              <span class="param-value">+1.0% / yr</span>
+            </div>
+            <div class="param-row">
+              <div class="param-info">
+                <span class="param-label">CO₂ emissions growth</span>
+                <span class="param-source">Calculated from demand growth</span>
+              </div>
+              <span class="param-value">+1.8% / yr</span>
+            </div>
+
+            <div class="result-preview">
+              <div class="result-label">Projected CO₂ by 2050 (BAU)</div>
+              <div class="result-value red">487 Mt</div>
+              <div class="result-sub">+42% vs 2023 baseline of 342 Mt</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low Carbon Tab -->
+      <div id="tab-lc" class="tab-content">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">Low Carbon Scenario settings</div>
+            <div class="card-sub">Based on Kazakhstan NDC and Carbon Neutrality Strategy 2060</div>
+
+            <div class="form-group">
+              <label>Scenario name</label>
+              <input type="text" value="Low Carbon — Kazakhstan 2050" />
+            </div>
+            <div class="form-group">
+              <label>Base year</label>
+              <select><option>2023</option></select>
+            </div>
+            <div class="form-group">
+              <label>Projection period</label>
+              <select><option>2024–2050</option></select>
+            </div>
+            <div class="form-group">
+              <label>Policy framework</label>
+              <select>
+                <option>Kazakhstan NDC 2030 (−15% emissions)</option>
+                <option>Carbon Neutrality Strategy 2060</option>
+              </select>
+            </div>
+            <button class="btn-primary" onclick="saveScenario('Low Carbon')">Save Low Carbon Scenario</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Mitigation parameters</div>
+            <div class="card-sub">Adjust policy levers and see impact on CO₂</div>
+
+            <div class="slider-group">
+              <div class="slider-row">
+                <div class="slider-info">
+                  <span class="slider-label">Renewable energy share by 2050</span>
+                  <span class="slider-source">Target: Kazakhstan 2060 Strategy</span>
+                </div>
+                <input type="range" min="10" max="80" value="50" step="1"
+                  oninput="updateSlider(this, 'val-re', '%'); calcCO2()">
+                <span class="slider-val" id="val-re">50%</span>
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-info">
+                  <span class="slider-label">Coal phase-out rate</span>
+                  <span class="slider-source">Annual reduction in coal consumption</span>
+                </div>
+                <input type="range" min="0" max="5" value="2" step="0.1"
+                  oninput="updateSlider(this, 'val-coal', '%/yr'); calcCO2()">
+                <span class="slider-val" id="val-coal">2%/yr</span>
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-info">
+                  <span class="slider-label">Energy efficiency improvement</span>
+                  <span class="slider-source">Annual reduction in energy intensity</span>
+                </div>
+                <input type="range" min="0" max="5" value="1.5" step="0.1"
+                  oninput="updateSlider(this, 'val-eff', '%/yr'); calcCO2()">
+                <span class="slider-val" id="val-eff">1.5%/yr</span>
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-info">
+                  <span class="slider-label">Carbon price ($/tCO₂)</span>
+                  <span class="slider-source">Policy instrument</span>
+                </div>
+                <input type="range" min="0" max="150" value="50" step="1"
+                  oninput="updateSlider(this, 'val-cp', '', '$'); calcCO2()">
+                <span class="slider-val" id="val-cp">$50</span>
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-info">
+                  <span class="slider-label">EV penetration by 2050</span>
+                  <span class="slider-source">Share of electric vehicles in transport</span>
+                </div>
+                <input type="range" min="0" max="100" value="40" step="1"
+                  oninput="updateSlider(this, 'val-ev', '%'); calcCO2()">
+                <span class="slider-val" id="val-ev">40%</span>
+              </div>
+            </div>
+
+            <div class="result-preview green">
+              <div class="result-label">Projected CO₂ by 2050 (Low Carbon)</div>
+              <div class="result-value green" id="co2-result">302 Mt</div>
+              <div class="result-sub" id="co2-reduction">−38% vs BAU · −12% vs 2023 baseline</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved Scenarios -->
+      <div class="card" style="margin-top:0;">
+        <div class="card-title">Saved scenarios</div>
+        <div class="card-sub">Ready for simulation</div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Period</th>
+              <th>Created by</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="scenarios-table">
+            <tr>
+              <td>BAU — Kazakhstan 2050</td>
+              <td><span class="tag blue">BAU</span></td>
+              <td>2024–2050</td>
+              <td>Ali B.</td>
+              <td><span class="tag green">Ready</span></td>
+              <td><a href="results.html" class="link">View results →</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast">Scenario saved successfully!</div>
+
+  <script src="scenario.js"></script>
+</body>
+</html>

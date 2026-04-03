@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Run Simulation</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="simulation.css">
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="simulation.html" class="nav-item active" id="nav-simulation"><span class="nav-icon">▶</span> Run Simulation</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div><div class="user-name" id="user-name">Ali B.</div><div class="user-role" id="user-role">Energy Analyst</div></div>
+      <a href="index.html" class="logout-btn" title="Logout">⏻</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Run Simulation</h2>
+        <p>Execute LEAP calculation engine · BAU and Low Carbon scenarios</p>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Config Card -->
+      <div class="sim-grid">
+        <div class="card">
+          <div class="card-title">Simulation configuration</div>
+          <div class="card-sub">Review settings before running</div>
+
+          <div class="config-item">
+            <span class="config-label">LEAP model</span>
+            <span class="config-value">LEAP 25.11.25 · Kazakhstan</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">Base dataset</span>
+            <span class="config-value">LEAP_KZ_DEMAND.xlsx · 24 sectors</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">Scenarios</span>
+            <span class="config-value">BAU + Low Carbon</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">Projection period</span>
+            <span class="config-value">2024 → 2050</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">Base year</span>
+            <span class="config-value">2023</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">LEAP engine</span>
+            <span class="config-value status-ok">● Connected</span>
+          </div>
+
+          <button class="run-btn" id="run-btn" onclick="startSimulation()">
+            ▶ Run Simulation
+          </button>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="card" id="progress-card">
+          <div class="card-title">Simulation progress</div>
+          <div class="card-sub" id="progress-sub">Ready to run</div>
+
+          <div class="progress-steps" id="progress-steps">
+            <div class="step" id="step-1">
+              <div class="step-dot waiting"></div>
+              <div class="step-info">
+                <div class="step-name">Loading LEAP model</div>
+                <div class="step-desc">Reading LEAP 25.11.25 configuration</div>
+              </div>
+              <div class="step-status" id="s1-status">Waiting</div>
+            </div>
+            <div class="step" id="step-2">
+              <div class="step-dot waiting"></div>
+              <div class="step-info">
+                <div class="step-name">Loading dataset</div>
+                <div class="step-desc">Reading LEAP_KZ_DEMAND.xlsx</div>
+              </div>
+              <div class="step-status" id="s2-status">Waiting</div>
+            </div>
+            <div class="step" id="step-3">
+              <div class="step-dot waiting"></div>
+              <div class="step-info">
+                <div class="step-name">Calculating BAU scenario</div>
+                <div class="step-desc">Energy demand · Emissions · 2024–2050</div>
+              </div>
+              <div class="step-status" id="s3-status">Waiting</div>
+            </div>
+            <div class="step" id="step-4">
+              <div class="step-dot waiting"></div>
+              <div class="step-info">
+                <div class="step-name">Calculating Low Carbon scenario</div>
+                <div class="step-desc">Applying mitigation measures · 2024–2050</div>
+              </div>
+              <div class="step-status" id="s4-status">Waiting</div>
+            </div>
+            <div class="step" id="step-5">
+              <div class="step-dot waiting"></div>
+              <div class="step-info">
+                <div class="step-name">Saving results</div>
+                <div class="step-desc">Storing results to database</div>
+              </div>
+              <div class="step-status" id="s5-status">Waiting</div>
+            </div>
+          </div>
+
+          <div class="progress-bar-wrap" id="progress-bar-wrap" style="display:none;">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+
+          <div id="done-msg" style="display:none;" class="done-msg">
+            ✓ Simulation complete! <a href="results.html">View results →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEAP Integration Note -->
+      <div class="card info-card">
+        <div class="info-icon">ℹ</div>
+        <div>
+          <div class="info-title">About LEAP integration</div>
+          <div class="info-text">
+            This simulation uses the LEAP COM API to communicate with the LEAP 25.11.25 desktop application installed on this machine.
+            The Python backend calls <code>win32com.client.Dispatch("LEAP.LEAPApplication")</code> to trigger calculations and retrieve results.
+            LEAP must be installed and the model file must be accessible for the simulation to run.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="simulation.js"></script>
+</body>
+</html> 
