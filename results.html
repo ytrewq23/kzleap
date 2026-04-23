@@ -55,48 +55,55 @@
     <div class="topbar">
       <div>
         <h2>Simulation Results</h2>
-        <p>BAU vs Low Carbon · Kazakhstan · 2021–2050</p>
+        <p>BAU · Moderate Transition · Deep Decarbonization · Kazakhstan · 2021–2060</p>
       </div>
       <div class="topbar-right">
+        <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
         <span class="badge" id="role-badge">Energy Analyst</span>
+        <button onclick="openLP()" class="btn-outline" style="background:#1D9E75;color:#fff;border-color:#1D9E75;">⚡ LP Optimization</button>
         <a href="reports.html" class="btn-outline">Export Report →</a>
       </div>
     </div>
 
     <div class="content">
 
+      <div id="loading-msg" style="text-align:center;padding:12px;color:#666;font-size:13px;display:none;">
+        ⏳ Loading data from KZLEAP backend...
+      </div>
+
       <div class="metrics-grid">
-        <div class="metric-card">
+        <div class="metric-card" id="card-baseline">
           <div class="metric-label">Baseline CO₂ (2023)</div>
-          <div class="metric-value">342 Mt</div>
-          <div class="metric-change neutral">Historical baseline</div>
+          <div class="metric-value">242 Mt</div>
+          <div class="metric-change neutral">Historical baseline · IEA</div>
         </div>
-        <div class="metric-card">
+        <div class="metric-card" id="card-bau">
           <div class="metric-label">BAU projection (2050)</div>
-          <div class="metric-value" style="color:#D85A30;">487 Mt</div>
-          <div class="metric-change down">▲ +42% vs baseline</div>
+          <div class="metric-value" style="color:#D85A30;">—</div>
+          <div class="metric-change down">Loading...</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Low Carbon (2050)</div>
-          <div class="metric-value" style="color:#0F6E56;">302 Mt</div>
-          <div class="metric-change up">▼ −38% vs BAU</div>
+        <div class="metric-card" id="card-dd">
+          <div class="metric-label">Deep Decarbonization (2050)</div>
+          <div class="metric-value" style="color:#0F6E56;">—</div>
+          <div class="metric-change up">Loading...</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">CO₂ avoided by 2050</div>
-          <div class="metric-value" style="color:#0F6E56;">185 Mt</div>
-          <div class="metric-change up">Per year vs BAU</div>
+        <div class="metric-card" id="card-avoided">
+          <div class="metric-label">CO₂ avoided by 2050 (DD vs BAU)</div>
+          <div class="metric-value" style="color:#0F6E56;">—</div>
+          <div class="metric-change up">Loading...</div>
         </div>
       </div>
 
       <div class="card" style="margin-bottom:16px;">
         <div class="card-header">
           <div>
-            <div class="card-title">CO₂ emissions forecast 2021–2050</div>
-            <div class="card-sub">BAU vs Low Carbon scenario · Million tonnes (Mt)</div>
+            <div class="card-title">CO₂ emissions forecast 2021–2060</div>
+            <div class="card-sub">BAU · Moderate Transition · Deep Decarbonization · Mt CO₂ · with NDC targets</div>
           </div>
           <div class="scenario-legend">
             <span class="sc-badge bau">BAU</span>
-            <span class="sc-badge lc">Low Carbon</span>
+            <span class="sc-badge" style="background:#FEF3CD;color:#7C5200;">MT</span>
+            <span class="sc-badge lc">DD</span>
           </div>
         </div>
         <div class="chart-wrap" style="height:260px;">
@@ -106,8 +113,8 @@
 
       <div class="charts-row" style="margin-bottom:16px;">
         <div class="card" style="flex:1;">
-          <div class="card-title">Energy demand forecast (PJ)</div>
-          <div class="card-sub">Total final energy consumption · BAU vs Low Carbon</div>
+          <div class="card-title">Electricity generation forecast (TWh)</div>
+          <div class="card-sub">Total generation · BAU · MT · DD</div>
           <div class="chart-wrap" style="height:200px;">
             <canvas id="energyChart"></canvas>
           </div>
@@ -136,9 +143,10 @@
           <thead>
             <tr>
               <th>Year</th>
-              <th>BAU (Mt CO₂)</th>
-              <th>Low Carbon (Mt CO₂)</th>
-              <th>Difference (Mt)</th>
+              <th style="color:#378ADD;">BAU (Mt CO₂)</th>
+              <th style="color:#B07C10;">MT (Mt CO₂)</th>
+              <th style="color:#0F6E56;">DD (Mt CO₂)</th>
+              <th>DD vs BAU (Mt)</th>
               <th>Reduction (%)</th>
             </tr>
           </thead>
@@ -147,6 +155,89 @@
         </table>
       </div>
 
+    </div>
+  </div>
+
+  <!-- LP Modal -->
+  <div id="lp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;width:780px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:28px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.2);">
+
+      <button onclick="closeLP()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#666;">✕</button>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:700;color:#1a2b4a;margin-bottom:4px;">⚡ LP Optimization — Least-Cost Electricity Mix</div>
+        <div style="font-size:12px;color:#888;">Linear programming (PuLP/CBC solver) finds the cheapest generation mix that meets projected demand</div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+        <div>
+          <label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Scenario</label>
+          <select id="lp-scenario" style="font-size:13px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;">
+            <option value="BAU">BAU</option>
+            <option value="MT" selected>MT — Moderate Transition</option>
+            <option value="DD">DD — Deep Decarbonization</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Target year</label>
+          <select id="lp-year" style="font-size:13px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;">
+            <option value="2030">2030</option>
+            <option value="2035" selected>2035</option>
+            <option value="2040">2040</option>
+            <option value="2050">2050</option>
+            <option value="2060">2060</option>
+          </select>
+        </div>
+        <div style="align-self:flex-end;">
+          <button onclick="runLP()" id="lp-run-btn" style="padding:8px 20px;background:#1D9E75;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;">▶ Run LP</button>
+        </div>
+      </div>
+
+      <div id="lp-loading" style="display:none;text-align:center;padding:24px;color:#666;font-size:13px;">⏳ Solving LP optimization...</div>
+      <div id="lp-error" style="display:none;padding:12px;background:#fff3f3;border-radius:8px;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
+
+      <div id="lp-results" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
+          <div style="background:#f0faf6;border:1px solid #c8e8da;border-radius:8px;padding:12px;">
+            <div style="font-size:10px;color:#666;margin-bottom:3px;">Total generation</div>
+            <div style="font-size:18px;font-weight:700;color:#0F6E56;" id="lp-gen">—</div>
+            <div style="font-size:10px;color:#888;">TWh</div>
+          </div>
+          <div style="background:#f0faf6;border:1px solid #c8e8da;border-radius:8px;padding:12px;">
+            <div style="font-size:10px;color:#666;margin-bottom:3px;">System cost</div>
+            <div style="font-size:18px;font-weight:700;color:#0F6E56;" id="lp-cost">—</div>
+            <div style="font-size:10px;color:#888;">Billion USD/yr</div>
+          </div>
+          <div style="background:#fff5f0;border:1px solid #f0c8b0;border-radius:8px;padding:12px;">
+            <div style="font-size:10px;color:#666;margin-bottom:3px;">CO₂ from power</div>
+            <div style="font-size:18px;font-weight:700;color:#D85A30;" id="lp-co2">—</div>
+            <div style="font-size:10px;color:#888;">Mt CO₂</div>
+          </div>
+          <div style="background:#f0faf6;border:1px solid #c8e8da;border-radius:8px;padding:12px;">
+            <div style="font-size:10px;color:#666;margin-bottom:3px;">RE share</div>
+            <div style="font-size:18px;font-weight:700;color:#1D9E75;" id="lp-re">—</div>
+            <div style="font-size:10px;color:#888;">% of generation</div>
+          </div>
+        </div>
+
+        <div style="font-size:12px;font-weight:600;color:#444;margin-bottom:8px;">Generation mix by technology</div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Technology</th>
+              <th>Generation (TWh)</th>
+              <th>Share (%)</th>
+              <th>New capacity (GW)</th>
+              <th>CO₂ (Mt)</th>
+            </tr>
+          </thead>
+          <tbody id="lp-tbody"></tbody>
+        </table>
+
+        <div style="margin-top:16px;height:200px;">
+          <canvas id="lpChart"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 
