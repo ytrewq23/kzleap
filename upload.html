@@ -45,9 +45,11 @@
         <div class="upload-icon-wrap"><div class="upload-icon">↑</div></div>
         <div class="upload-title">Drag and drop your file here</div>
         <div class="upload-sub">Supports .xlsx, .csv, .json — max 50 MB</div>
-        <input type="file" id="file-input" accept=".xlsx,.csv,.json" style="display:none" onchange="handleFileSelect(event)">
+        <input type="file" id="file-input" accept=".csv" style="display:none">
         <button class="btn-browse" onclick="document.getElementById('file-input').click()">Browse files</button>
       </div>
+
+      <div id="upload-result" style="display:none;"></div>
 
       <div class="card" id="upload-progress" style="display:none; margin-bottom:16px;">
         <div class="card-title">Uploading file...</div>
@@ -68,7 +70,7 @@
         </div>
         <table class="u-table">
           <thead>
-            <tr><th>File name</th><th>Sectors</th><th>Period</th><th>Size</th><th>Uploaded by</th><th>Status</th><th></th></tr>
+            <tr><th>File name</th><th>Source</th><th>Date</th><th>Uploaded by</th><th>Summary</th><th>Status</th></tr>
           </thead>
           <tbody id="datasets-table">
             <tr>
