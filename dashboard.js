@@ -1,93 +1,221 @@
+const BACKEND = 'http://localhost:8000';
 
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
-
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 const badgeStyles = {
   analyst:     { bg: '#e1f5ee', color: '#085041', text: 'Energy Analyst' },
   researcher:  { bg: '#eeedfe', color: '#3C3489', text: 'Researcher' },
   policymaker: { bg: '#faece7', color: '#712B13', text: 'Policymaker' },
 };
-
 document.getElementById('user-name').textContent = user.name;
 document.getElementById('user-role').textContent = badgeStyles[user.role].text;
 document.getElementById('user-avatar').textContent = user.name.split(' ').map(n => n[0]).join('');
 document.getElementById('user-avatar').style.background = avatarColors[user.role];
-
 const badge = document.getElementById('role-badge');
 badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
-
-const access = {
-  analyst:     ['nav-upload', 'nav-scenario', 'nav-simulation'],
-  researcher:  ['nav-upload', 'nav-scenario'],
-  policymaker: [],
-};
-
 ['nav-upload', 'nav-scenario', 'nav-simulation'].forEach(id => {
   const el = document.getElementById(id);
-  if (el && !access[user.role].includes(id)) {
-    el.classList.add('locked');
-  }
+  const access = { analyst: true, researcher: true, policymaker: false };
+  if (el && !access[user.role]) el.classList.add('locked');
 });
 
-new Chart(document.getElementById('sectorChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Residential', 'Road transport', 'Commercial', 'Iron & Steel', 'Nonferrous', 'Mining', 'Chemical'],
-    datasets: [
-      { label: '2021', data: [635, 302, 235, 162, 139, 83, 37], backgroundColor: '#378ADD' },
-      { label: '2022', data: [577, 295, 292, 156, 135, 75, 37], backgroundColor: '#1D9E75' },
-      { label: '2023', data: [582, 342, 250, 139, 121, 71, 47], backgroundColor: '#D85A30' },
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { font: { size: 11 }, maxRotation: 30 } },
-      y: { ticks: { callback: v => v + 'k', font: { size: 11 } } }
+async function loadDashboard() {
+  let co2Data = null, wbData = null;
+
+  try {
+    const dsRes = await fetch(`${BACKEND}/api/datasets`);
+    if (dsRes.ok) {
+      const datasets = await dsRes.json();
+
+      const owidKey = Object.keys(datasets).find(k => datasets[k].source === 'owid');
+      if (owidKey) {
+        const co2Res = await fetch(`${BACKEND}/api/datasets/${encodeURIComponent(owidKey)}/co2`);
+        if (co2Res.ok) co2Data = await co2Res.json();
+      }
+
+      const wbKey = Object.keys(datasets).find(k => datasets[k].source === 'worldbank');
+      if (wbKey) {
+        const wbRes = await fetch(`${BACKEND}/api/datasets/${encodeURIComponent(wbKey)}/co2`);
+        if (wbRes.ok) wbData = await wbRes.json();
+      }
+    }
+  } catch {}
+
+  let hist = null;
+  try {
+    const res = await fetch(`${BACKEND}/api/historical`);
+    if (res.ok) hist = await res.json();
+  } catch {}
+
+  renderAll(co2Data, wbData, hist);
+}
+
+function renderAll(co2Data, wbData, hist) {
+  let co2Years, co2Values;
+
+  if (co2Data && co2Data.years && co2Data.years.length > 0) {
+    co2Years  = co2Data.years;
+    co2Values = co2Data.values;
+    showDataBadge('co2-source', 'Our World in Data (uploaded)');
+  } else if (hist) {
+    const pairs = hist.years.map((y,i) => [y, hist.co2[i]]).filter(p => p[1] != null);
+    co2Years  = pairs.map(p => p[0]);
+    co2Values = pairs.map(p => p[1]);
+    showDataBadge('co2-source', 'Built-in data (IEA)');
+  } else {
+    co2Years  = [1990,2000,2010,2015,2020,2023];
+    co2Values = [290, 140, 230, 250, 235, 242];
+  }
+
+  let gdpYears = [], gdpValues = [];
+  if (wbData && wbData.indicators) {
+    const gdpInd = wbData.indicators.find(i => i.code === 'NY.GDP.MKTP.CD');
+    if (gdpInd) {
+      const pairs = Object.entries(gdpInd.data)
+        .map(([y,v]) => [+y, v/1e9])
+        .filter(p => p[0] >= 1990)
+        .sort((a,b) => a[0]-b[0]);
+      gdpYears  = pairs.map(p => p[0]);
+      gdpValues = pairs.map(p => Math.round(p[1]*10)/10);
     }
   }
-});
 
-new Chart(document.getElementById('pieChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Residential', 'Transport', 'Industry', 'Other'],
-    datasets: [{
-      data: [33, 19, 16, 32],
-      backgroundColor: ['#378ADD', '#1D9E75', '#D85A30', '#7F77DD'],
-      borderWidth: 0
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } }
-  }
-});
-
-new Chart(document.getElementById('ironChart'), {
-  type: 'line',
-  data: {
-    labels: ['2021', '2022', '2023'],
-    datasets: [
-      { label: 'Electricity', data: [51.7, 47.2, 50.4], borderColor: '#378ADD', tension: 0.3, borderWidth: 2, fill: false },
-      { label: 'Heat',        data: [28.4, 22.9, 21.0], borderColor: '#1D9E75', tension: 0.3, borderWidth: 2, fill: false },
-      { label: 'Coal',        data: [23.7, 32.1, 24.1], borderColor: '#D85A30', tension: 0.3, borderWidth: 2, fill: false },
-      { label: 'Natural Gas', data: [14.4, 15.2, 12.1], borderColor: '#7F77DD', tension: 0.3, borderWidth: 2, fill: false },
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: { ticks: { callback: v => v + 'k TJ', font: { size: 11 } } },
-      x: { ticks: { font: { size: 11 } } }
+  let reYears = [], reValues = [];
+  if (wbData && wbData.indicators) {
+    const reInd = wbData.indicators.find(i => i.code === 'EG.ELC.RNEW.ZS');
+    if (reInd) {
+      const pairs = Object.entries(reInd.data)
+        .map(([y,v]) => [+y, v])
+        .filter(p => p[0] >= 1990)
+        .sort((a,b) => a[0]-b[0]);
+      reYears  = pairs.map(p => p[0]);
+      reValues = pairs.map(p => Math.round(p[1]*10)/10);
     }
   }
-});
+
+  const lastCO2 = co2Values[co2Values.length - 1] || 242;
+  const ndcTarget = 246.5;
+  const ndcGap = Math.round(lastCO2 - ndcTarget);
+  const lastYear = co2Years[co2Years.length - 1] || 2023;
+
+  setKPI('kpi-co2',  Math.round(lastCO2) + ' Mt',
+    `CO₂ ${lastYear} · Source: ${co2Data ? 'Our World in Data' : 'IEA'}`);
+  setKPI('kpi-elec', '115 TWh', 'Electricity 2023 · KEGOC');
+  setKPI('kpi-tpes', '85 Mtoe', 'Total primary energy 2023 · IEA');
+  setKPI('kpi-ndc',
+    (ndcGap > 0 ? '+' : '') + ndcGap + ' Mt',
+    ndcGap > 0 ? 'Above NDC 2030 target (−15% vs 1990)' : '✓ Below NDC target');
+
+  const ndc = 246.5;
+  const colors = co2Values.map(v => v > ndc ? '#D85A30' : '#1D9E75');
+
+  renderChart('sectorChart', {
+    type: 'bar',
+    data: {
+      labels: co2Years,
+      datasets: [
+        {
+          label: 'CO₂ emissions (Mt)',
+          data: co2Values,
+          backgroundColor: colors,
+          borderRadius: 3,
+        },
+        {
+          label: 'NDC −15% target (246 Mt)',
+          data: co2Years.map(() => ndc),
+          type: 'line',
+          borderColor: '#B07C10',
+          borderWidth: 1.5,
+          borderDash: [5,4],
+          pointRadius: 0,
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, labels: { font: { size: 10 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' Mt CO₂' } }
+      },
+      scales: {
+        x: { ticks: { font: { size: 10 }, maxRotation: 45 } },
+        y: { min: 0, ticks: { callback: v => v + ' Mt', font: { size: 10 } } }
+      }
+    }
+  });
+
+  const mix = hist?.elec_mix_2023 || { coal:61, gas:24, hydro:10, wind:3.5, solar:1.5 };
+  renderChart('pieChart', {
+    type: 'doughnut',
+    data: {
+      labels: ['Coal', 'Gas', 'Hydro', 'Wind', 'Solar'],
+      datasets: [{ data: [mix.coal, mix.gas, mix.hydro, mix.wind, mix.solar],
+        backgroundColor: ['#4a4a6a','#378ADD','#5BB8F5','#1D9E75','#F5A623'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed + '%' } }
+      }
+    }
+  });
+
+  if (gdpYears.length > 0) {
+    renderChart('ironChart', {
+      type: 'line',
+      data: {
+        labels: gdpYears,
+        datasets: [{
+          label: 'GDP (Billion USD)',
+          data: gdpValues,
+          borderColor: '#7F77DD',
+          backgroundColor: 'rgba(127,119,221,0.08)',
+          tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.y + 'B' } }
+        },
+        scales: {
+          y: { ticks: { callback: v => '$' + v + 'B', font: { size: 10 } } },
+          x: { ticks: { font: { size: 10 }, maxRotation: 45 } }
+        }
+      }
+    });
+    const titleEl = document.querySelector('#ironChart')?.closest('.card')?.querySelector('.card-title');
+    if (titleEl) titleEl.textContent = 'GDP 1990–2023 (World Bank data)';
+    const subEl = document.querySelector('#ironChart')?.closest('.card')?.querySelector('.card-sub');
+    if (subEl) subEl.textContent = 'Kazakhstan · Billion USD · Source: World Bank WDI (uploaded)';
+  }
+}
+
+function renderChart(id, config) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+  new Chart(el, config);
+}
+
+function setKPI(id, value, sub) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = el.querySelector('.metric-value');
+  const s = el.querySelector('.metric-change');
+  if (v) v.textContent = value;
+  if (s) s.textContent = sub;
+}
+
+function showDataBadge(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+loadDashboard();
