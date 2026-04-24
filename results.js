@@ -311,9 +311,7 @@ async function runLP() {
   const year     = document.getElementById('lp-year').value;
   const btn      = document.getElementById('lp-run-btn');
 
-  // Clean state
-  document.getElementById('lp-loading').style.display = 'block';
-  document.getElementById('lp-results').style.display = 'none';
+  document.getElementById('lp-spinner').style.display = 'flex';
   document.getElementById('lp-error').style.display   = 'none';
   btn.disabled    = true;
   btn.textContent = '⏳ Running...';
@@ -325,7 +323,7 @@ async function runLP() {
 
     if (data.error) throw new Error(data.error);
 
-    document.getElementById('lp-loading').style.display = 'none';
+    document.getElementById('lp-spinner').style.display = 'none';
     document.getElementById('lp-results').style.display = 'block';
     btn.disabled    = false;
     btn.textContent = '▶ Run LP';
@@ -358,6 +356,8 @@ async function runLP() {
     const colors = techs.map(t => TECH_COLORS[t]);
     const labels = techs.map(t => TECH_LABELS[t]);
 
+    const yMax = Math.ceil(data.demand_twh * 1.15 / 50) * 50;
+
     if (lpChart) lpChart.destroy();
     lpChart = new Chart(document.getElementById('lpChart'), {
       type: 'bar',
@@ -378,14 +378,14 @@ async function runLP() {
           tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + ' TWh' } }
         },
         scales: {
-          y: { ticks: { callback: v => v + ' TWh', font: { size: 10 } } },
+          y: { min: 0, max: yMax, ticks: { callback: v => v + ' TWh', font: { size: 10 } } },
           x: { ticks: { font: { size: 11 } }, grid: { display: false } }
         }
       }
     });
 
   } catch (err) {
-    document.getElementById('lp-loading').style.display = 'none';
+    document.getElementById('lp-spinner').style.display = 'none';
     document.getElementById('lp-error').style.display   = 'block';
     document.getElementById('lp-error').textContent     = '✗ LP failed: ' + err.message + '. Make sure backend is running at localhost:8000.';
     btn.disabled    = false;
