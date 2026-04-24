@@ -69,25 +69,25 @@
     <div class="content">
 
       <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-label">Total energy demand</div>
-          <div class="metric-value">1,782 PJ</div>
-          <div class="metric-change down">▼ 3.2% vs 2022</div>
+        <div class="metric-card" id="kpi-co2">
+          <div class="metric-label">CO₂ emissions (2023)</div>
+          <div class="metric-value">242 Mt</div>
+          <div class="metric-change down">CO₂ 2023 · +5% vs 2020</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">CO₂ emissions</div>
-          <div class="metric-value">342 Mt</div>
-          <div class="metric-change down">▼ 1.8% vs 2022</div>
+        <div class="metric-card" id="kpi-elec">
+          <div class="metric-label">Electricity generation (2023)</div>
+          <div class="metric-value">115 TWh</div>
+          <div class="metric-change up">+7% vs 2020 · KEGOC</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Renewable share</div>
-          <div class="metric-value">6.4%</div>
-          <div class="metric-change up">▲ 0.9% vs 2022</div>
+        <div class="metric-card" id="kpi-tpes">
+          <div class="metric-label">Total primary energy (2023)</div>
+          <div class="metric-value">85 Mtoe</div>
+          <div class="metric-change neutral">IEA Kazakhstan 2023</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Active scenarios</div>
-          <div class="metric-value">2</div>
-          <div class="metric-change neutral">BAU · Low Carbon</div>
+        <div class="metric-card" id="kpi-ndc">
+          <div class="metric-label">Gap to NDC 2030 target</div>
+          <div class="metric-value" style="color:#D85A30;">+5 Mt</div>
+          <div class="metric-change down">Above −15% vs 1990 target</div>
         </div>
       </div>
 
@@ -95,8 +95,8 @@
         <div class="card chart-card-wide">
           <div class="card-header">
             <div>
-              <div class="card-title">Energy demand by sector (thousand TJ)</div>
-              <div class="card-sub">Historical data 2021–2023 · Kazakhstan</div>
+              <div class="card-title">CO₂ emissions history 1990–2023</div>
+              <div class="card-sub">Kazakhstan · Mt CO₂ · with NDC 2030 target line · Source: IEA, BNS KZ</div>
             </div>
           </div>
           <div class="legend">
@@ -112,8 +112,8 @@
         <div class="card chart-card-narrow">
           <div class="card-header">
             <div>
-              <div class="card-title">Sector share 2023</div>
-              <div class="card-sub">% of total demand</div>
+              <div class="card-title">Electricity fuel mix 2023</div>
+              <div class="card-sub">Share by source · Source: KEGOC, KOREM</div>
             </div>
           </div>
           <div class="chart-wrap-sm">
@@ -130,8 +130,8 @@
 
       <div class="charts-row">
         <div class="card" style="flex:1;">
-          <div class="card-title">Iron and Steel — Final Energy Intensity (operational)</div>
-          <div class="card-sub">Real data from LEAP model · 2021–2023</div>
+          <div class="card-title">Electricity generation 1990–2023</div>
+          <div class="card-sub">Kazakhstan · TWh · Source: IEA, KEGOC</div>
           <div class="legend">
             <span class="legend-item"><span class="dot" style="background:#378ADD"></span>Electricity</span>
             <span class="legend-item"><span class="dot" style="background:#1D9E75"></span>Heat</span>
