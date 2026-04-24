@@ -1,27 +1,15 @@
-"""
-KZLEAP — Dataset Parser
-Supports:
-  - Our World in Data CSV (Entity, Code, Year, value)
-  - World Bank CSV (Country Name, Indicator Name, Indicator Code, 1960..2024)
-"""
-
 import io
 import csv
 from typing import Dict, List, Optional
 
 def parse_owid_csv(content: str) -> Dict:
-    """
-    Our World in Data format:
-    Entity, Code, Year, Annual CO₂ emissions
-    Kazakhstan, KAZ, 1990, 290000000
-    """
+
     reader = csv.DictReader(io.StringIO(content))
     rows = list(reader)
 
     if not rows:
         return {"error": "Empty file"}
 
-    # Detect value column (not Entity/Code/Year)
     cols = reader.fieldnames or []
     value_col = next((c for c in cols if c not in ('Entity','Code','Year')), None)
     if not value_col:
@@ -33,7 +21,6 @@ def parse_owid_csv(content: str) -> Dict:
             year = int(row['Year'])
             val  = float(row[value_col]) if row[value_col] else None
             if val is not None and 1990 <= year <= 2024:
-                # OWID CO2 is in tonnes — convert to Mt
                 if 'CO' in value_col or 'emission' in value_col.lower():
                     val = round(val / 1_000_000, 1)
                 result[year] = val
@@ -50,14 +37,8 @@ def parse_owid_csv(content: str) -> Dict:
 
 
 def parse_worldbank_csv(content: str) -> Dict:
-    """
-    World Bank format (wide):
-    Country Name, Country Code, Indicator Name, Indicator Code, 1960, 1961, ..., 2023
-    Kazakhstan, KAZ, GDP (current US$), NY.GDP.MKTP.CD, , , ..., 288400000000
-    """
     lines = content.splitlines()
 
-    # Skip metadata rows at top (lines without proper columns)
     data_start = 0
     for i, line in enumerate(lines):
         if line.startswith('Country Name') or line.startswith('"Country Name"'):
@@ -71,7 +52,6 @@ def parse_worldbank_csv(content: str) -> Dict:
     if not rows:
         return {"error": "No data rows found"}
 
-    # Find year columns
     fieldnames = reader.fieldnames or []
     year_cols = []
     for f in fieldnames:
@@ -111,16 +91,13 @@ def parse_worldbank_csv(content: str) -> Dict:
 
 
 def parse_csv_auto(content: str, filename: str = '') -> Dict:
-    """Auto-detect format and parse."""
     first_line = content.splitlines()[0] if content else ''
 
-    # OWID: has Entity, Code, Year columns
     if 'Entity' in first_line and 'Year' in first_line:
         result = parse_owid_csv(content)
         result['filename'] = filename
         return result
 
-    # World Bank: has Country Name, Indicator Name
     if 'Country Name' in first_line or '"Country Name"' in content[:500]:
         result = parse_worldbank_csv(content)
         result['filename'] = filename
@@ -130,10 +107,6 @@ def parse_csv_auto(content: str, filename: str = '') -> Dict:
 
 
 def extract_energy_indicators(wb_parsed: Dict) -> Dict:
-    """
-    Extract key energy indicators from World Bank parsed data.
-    Returns clean dict ready for dashboard.
-    """
     if wb_parsed.get('source') != 'worldbank':
         return {}
 
