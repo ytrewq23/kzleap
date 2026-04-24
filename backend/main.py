@@ -20,8 +20,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
 class ScenarioRunRequest(BaseModel):
-    scenario: str = "BAU"       # BAU / MT / DD
+    scenario: str = "BAU"     
     start_year: int = 2024
     end_year: int = 2060
 
@@ -33,18 +35,20 @@ class LPRequest(BaseModel):
     co2_budget_mt: Optional[float] = None
     nuclear_available_gw: float = 0.0
 
+
+
 @app.get("/")
 def root():
     return {"platform": "KZLEAP", "version": "1.0", "status": "running"}
 
+
 @app.get("/api/historical")
 def historical_data():
-    """Kazakhstan historical energy data 1990–2023."""
     return get_historical_data()
+
 
 @app.get("/api/scenarios")
 def list_scenarios():
-    """Available scenarios with descriptions."""
     return {
         k: {
             "name": v["name"],
@@ -56,21 +60,21 @@ def list_scenarios():
         for k, v in SCENARIOS.items()
     }
 
+
 @app.post("/api/run")
 def run_forecast(req: ScenarioRunRequest):
-    """Run LEAP energy accounting for a scenario."""
     if req.scenario not in SCENARIOS:
         raise HTTPException(400, f"Unknown scenario '{req.scenario}'. Use: BAU, MT, DD")
     return run_scenario(req.scenario, req.start_year, req.end_year)
 
+
 @app.get("/api/compare")
 def compare_all():
-    """Run all 3 scenarios and return comparison data."""
     return compare_scenarios()
+
 
 @app.post("/api/optimize")
 def optimize_electricity(req: LPRequest):
-    """LP optimization for least-cost electricity mix."""
     if req.scenario not in SCENARIOS:
         raise HTTPException(400, f"Unknown scenario '{req.scenario}'")
     return run_lp_optimization(
@@ -82,12 +86,11 @@ def optimize_electricity(req: LPRequest):
         nuclear_available_gw=req.nuclear_available_gw,
     )
 
+
 @app.get("/api/optimize/quick/{scenario}/{year}")
 def quick_optimize(scenario: str, year: int):
-    """Quick LP optimization for a scenario and year with auto-calculated demand."""
     if scenario not in SCENARIOS:
         raise HTTPException(400, f"Unknown scenario")
-    
     data = run_scenario(scenario, year, year)
     demand = data["electricity"][0] if data["electricity"] else 130.0
 
@@ -103,6 +106,71 @@ def quick_optimize(scenario: str, year: int):
         nuclear_available_gw=nuc_gw,
     )
 
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+from fastapi import UploadFile, File
+from data_parser import parse_csv_auto, extract_energy_indicators
+
+uploaded_datasets = {}
+
+@app.post("/api/upload")
+async def upload_dataset(file: UploadFile = File(...)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(400, "Only CSV files supported")
+
+    content = (await file.read()).decode('utf-8', errors='replace')
+    parsed = parse_csv_auto(content, file.filename)
+
+    if 'error' in parsed:
+        raise HTTPException(422, parsed['error'])
+
+    dataset_id = file.filename.replace(' ', '_')
+    uploaded_datasets[dataset_id] = parsed
+
+    summary = {}
+    if parsed.get('source') == 'worldbank':
+        energy = extract_energy_indicators(parsed)
+        uploaded_datasets[dataset_id + '_energy'] = energy
+        summary = {
+            "indicators_found": parsed.get('indicators_found', 0),
+            "energy_indicators": list(energy.keys()),
+        }
+    elif parsed.get('source') == 'owid':
+        summary = {
+            "indicator": parsed.get('indicator'),
+            "years_range": f"{min(parsed['years'])}–{max(parsed['years'])}" if parsed.get('years') else "—",
+            "data_points": len(parsed.get('data', {})),
+        }
+
+    return {
+        "status": "ok",
+        "filename": file.filename,
+        "source": parsed.get('source'),
+        "summary": summary,
+        "dataset_id": dataset_id,
+    }
+
+
+@app.get("/api/datasets")
+def list_datasets():
+    return {
+        k: {
+            "source": v.get("source"),
+            "indicator": v.get("indicator"),
+            "years": v.get("years", [])[:3],
+        }
+        for k, v in uploaded_datasets.items()
+        if not k.endswith('_energy')
+    }
+
+
+@app.get("/api/datasets/{dataset_id}/co2")
+def get_dataset_co2(dataset_id: str):
+    ds = uploaded_datasets.get(dataset_id)
+    if not ds:
+        raise HTTPException(404, "Dataset not found")
+    return ds
