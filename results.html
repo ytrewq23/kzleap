@@ -158,7 +158,6 @@
     </div>
   </div>
 
-  <!-- LP Modal -->
   <div id="lp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:12px;width:780px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:28px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.2);">
 
@@ -193,10 +192,15 @@
         </div>
       </div>
 
-      <div id="lp-loading" style="display:none;text-align:center;padding:24px;color:#666;font-size:13px;">⏳ Solving LP optimization...</div>
       <div id="lp-error" style="display:none;padding:12px;background:#fff3f3;border-radius:8px;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
 
-      <div id="lp-results" style="display:none;">
+      <div id="lp-results" style="display:block;position:relative;min-height:320px;">
+
+        <div id="lp-spinner" style="display:none;position:absolute;inset:0;background:rgba(255,255,255,0.82);border-radius:8px;z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:10px;">
+          <div style="width:32px;height:32px;border:3px solid #d4ede7;border-top-color:#1D9E75;border-radius:50%;animation:lp-spin 0.7s linear infinite;"></div>
+          <div style="font-size:12px;color:#666;">Solving LP...</div>
+        </div>
+        <style>@keyframes lp-spin{to{transform:rotate(360deg)}}</style>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
           <div style="background:#f0faf6;border:1px solid #c8e8da;border-radius:8px;padding:12px;">
             <div style="font-size:10px;color:#666;margin-bottom:3px;">Total generation</div>
