@@ -1,11 +1,12 @@
+const BACKEND = 'http://localhost:8000';
+
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
+const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 const badgeStyles = {
   analyst:     { bg: '#e1f5ee', color: '#085041', text: 'Energy Analyst' },
   researcher:  { bg: '#eeedfe', color: '#3C3489', text: 'Researcher' },
   policymaker: { bg: '#faece7', color: '#712B13', text: 'Policymaker' },
 };
-const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
-
 document.getElementById('user-name').textContent = user.name;
 document.getElementById('user-role').textContent = badgeStyles[user.role].text;
 document.getElementById('user-avatar').textContent = user.name.split(' ').map(n => n[0]).join('');
@@ -15,100 +16,120 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
-const access = { analyst: ['nav-upload','nav-scenario','nav-simulation'], researcher: ['nav-upload','nav-scenario'], policymaker: [] };
-['nav-upload','nav-scenario','nav-simulation'].forEach(id => {
+const access = {
+  analyst:     ['nav-upload', 'nav-scenario', 'nav-simulation'],
+  researcher:  ['nav-upload', 'nav-scenario'],
+  policymaker: [],
+};
+['nav-upload', 'nav-scenario', 'nav-simulation'].forEach(id => {
   const el = document.getElementById(id);
   if (el && !access[user.role].includes(id)) el.classList.add('locked');
 });
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
+const dropzone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
 
-function handleDragOver(e) {
+dropzone?.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone?.addEventListener('drop', e => {
   e.preventDefault();
-  document.getElementById('upload-zone').classList.add('dragover');
-}
+  dropzone.classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  if (files.length) handleFiles(files);
+});
+dropzone?.addEventListener('click', () => fileInput?.click());
+fileInput?.addEventListener('change', e => { if (e.target.files.length) handleFiles(e.target.files); });
 
-function handleDragLeave(e) {
-  document.getElementById('upload-zone').classList.remove('dragover');
-}
-
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('upload-zone').classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
-}
-
-function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (file) processFile(file);
-}
-
-function processFile(file) {
-  const validTypes = ['.xlsx', '.csv', '.json'];
-  const ext = '.' + file.name.split('.').pop().toLowerCase();
-  if (!validTypes.includes(ext)) {
-    showToast('Invalid file type. Please upload .xlsx, .csv or .json');
-    return;
+async function handleFiles(files) {
+  for (const file of files) {
+    await uploadFile(file);
   }
-  if (file.size > 50 * 1024 * 1024) {
-    showToast('File too large. Maximum size is 50 MB');
+}
+
+async function uploadFile(file) {
+  if (!file.name.endsWith('.csv')) {
+    showResult('error', file.name, 'Only CSV files supported (.csv)');
     return;
   }
 
-  // Show progress
-  const prog = document.getElementById('upload-progress');
-  prog.style.display = 'block';
-  document.getElementById('up-filename').textContent = file.name;
-  document.getElementById('up-filesize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+  showResult('loading', file.name, 'Uploading...');
 
-  let pct = 0;
-  const bar = document.getElementById('up-bar');
-  const pctEl = document.getElementById('up-pct');
-  const interval = setInterval(() => {
-    pct = Math.min(pct + Math.random() * 15, 100);
-    bar.style.width = Math.round(pct) + '%';
-    pctEl.textContent = Math.round(pct) + '%';
-    if (pct >= 100) {
-      clearInterval(interval);
-      setTimeout(() => {
-        prog.style.display = 'none';
-        addToTable(file);
-        showToast('✓ ' + file.name + ' uploaded successfully!');
-      }, 400);
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch(`${BACKEND}/api/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showResult('error', file.name, data.detail || 'Upload failed');
+      return;
     }
-  }, 150);
-}
 
-function addToTable(file) {
-  const tbody = document.getElementById('datasets-table');
-  const row = document.createElement('tr');
-  const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  row.innerHTML = `
-    <td><div class="ds-name">${file.name}</div><div class="ds-sub">Uploaded ${date}</div></td>
-    <td>—</td>
-    <td>—</td>
-    <td>${(file.size / 1024).toFixed(0)} KB</td>
-    <td>${user.name}</td>
-    <td><span class="ds-status active">● Active</span></td>
-    <td><button class="btn-sm" onclick="previewDataset(this)">Preview</button> <button class="btn-sm red" onclick="deleteDataset(this)">Delete</button></td>
-  `;
-  tbody.insertBefore(row, tbody.firstChild);
-}
+    let summary = '';
+    if (data.source === 'owid') {
+      summary = `✓ Our World in Data · ${data.summary.indicator} · ${data.summary.years_range} · ${data.summary.data_points} data points`;
+    } else if (data.source === 'worldbank') {
+      summary = `✓ World Bank · ${data.summary.indicators_found} indicators · Energy indicators: ${data.summary.energy_indicators.join(', ')}`;
+    }
 
-function previewDataset(btn) {
-  const name = btn.closest('tr').querySelector('.ds-name').textContent;
-  showToast('Opening preview for ' + name + '...');
-}
+    showResult('success', file.name, summary, data.dataset_id);
 
-function deleteDataset(btn) {
-  if (confirm('Delete this dataset?')) {
-    btn.closest('tr').remove();
-    showToast('Dataset deleted.');
+    const stored = JSON.parse(sessionStorage.getItem('kzleap_datasets') || '[]');
+    stored.push({ id: data.dataset_id, name: file.name, source: data.source, summary });
+    sessionStorage.setItem('kzleap_datasets', JSON.stringify(stored));
+
+    addToTable(file.name, data.source, summary, data.dataset_id);
+
+  } catch (err) {
+    showResult('error', file.name, 'Backend not running. Start with: python main.py');
   }
 }
+
+function showResult(type, filename, message) {
+  const el = document.getElementById('upload-result');
+  if (!el) return;
+  const colors = { success: '#e1f5ee', error: '#fff3f3', loading: '#f0f4ff' };
+  const icons  = { success: '✓', error: '✗', loading: '⏳' };
+  el.style.display = 'block';
+  el.style.background = colors[type] || '#f5f5f5';
+  el.style.padding = '12px 16px';
+  el.style.borderRadius = '8px';
+  el.style.marginTop = '12px';
+  el.style.fontSize = '13px';
+  el.textContent = `${icons[type]} ${filename}: ${message}`;
+}
+
+function addToTable(name, source, summary, id) {
+  const tbody = document.getElementById('datasets-table');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  const sourceLabel = source === 'owid' ? 'Our World in Data' : 'World Bank WDI';
+  const today = new Date().toLocaleDateString('en-GB');
+  tr.innerHTML = `
+    <td>${name}</td>
+    <td><span class="tag blue">${sourceLabel}</span></td>
+    <td>${today}</td>
+    <td>${user.name}</td>
+    <td style="font-size:11px;color:#666;">${summary}</td>
+    <td><span class="tag green">Ready</span></td>
+  `;
+  tbody.prepend(tr);
+}
+
+async function loadExisting() {
+  try {
+    const res = await fetch(`${BACKEND}/api/datasets`);
+    if (!res.ok) return;
+    const data = await res.json();
+    Object.entries(data).forEach(([id, ds]) => {
+      addToTable(id, ds.source, ds.indicator || '', id);
+    });
+  } catch {}
+}
+
+loadExisting();
