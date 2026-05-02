@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f0f4f8; }
+    .admin-container { max-width: 900px; margin: 40px auto; padding: 24px; }
+    h1 { color: #1a2b4a; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    th { background: #f0f4f8; padding: 12px 16px; text-align: left; font-weight: 600; color: #1a2b4a; }
+    td { padding: 12px 16px; border-bottom: 1px solid #eee; }
+    select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; }
+    .btn { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-save { background: #0F6E56; color: white; }
+    .btn-delete { background: #fdecea; color: #c0392b; }
+    .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-pending { background: #fff3cd; color: #856404; }
+    .badge-active { background: #e1f5ee; color: #085041; }
+    .badge-rejected { background: #fdecea; color: #c0392b; }
+    .logout { float: right; color: #666; cursor: pointer; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div>
+      <h1>👤 Admin Panel</h1>
+      <span class="logout" onclick="logout()">← Back to site</span>
+    </div>
+    <p style="color:#666;">Manage users and their roles</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="users-table"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const BACKEND = 'http://localhost:8000';
+    const admin = JSON.parse(sessionStorage.getItem('kzleap_user') || '{}');
+
+    if (!admin.email || admin.role !== 'admin') {
+      window.location.href = 'index.html';
+    }
+
+    async function loadUsers() {
+      const res = await fetch(`${BACKEND}/api/admin/users?admin_email=${admin.email}`);
+      const users = await res.json();
+      const tbody = document.getElementById('users-table');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td><span class="badge badge-${u.status}">${u.status}</span></td>
+          <td>
+            <select id="role-${u.email}">
+              <option value="researcher" ${u.role==='researcher'?'selected':''}>Researcher</option>
+              <option value="analyst" ${u.role==='analyst'?'selected':''}>Analyst</option>
+              <option value="policymaker" ${u.role==='policymaker'?'selected':''}>Policymaker</option>
+              <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn btn-save" onclick="updateRole('${u.email}')">Save</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateRole(email) {
+      const role = document.getElementById(`role-${email}`).value;
+      const res = await fetch(`${BACKEND}/api/admin/update-role`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_email: admin.email, email, role })
+      });
+      if (res.ok) {
+        alert('Role updated!');
+        loadUsers();
+      }
+    }
+
+    function logout() {
+      window.location.href = 'dashboard.html';
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

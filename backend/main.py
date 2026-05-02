@@ -1,18 +1,32 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,Request
+
+
+
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import json
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 from leap_model import run_scenario, get_historical_data, compare_scenarios, SCENARIOS
 from lp_optimizer import run_lp_optimization
+from database import init_db, SessionLocal, User, LoginLog, hash_password
+from datetime import datetime
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
+from database import init_db, SessionLocal, User, LoginLog, hash_password, VerificationCode
 
 app = FastAPI(
     title="KZLEAP API",
     description="Kazakhstan Energy Forecasting Platform — Backend API",
     version="1.0.0",
 )
-
+init_db() 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,7 +47,107 @@ class LPRequest(BaseModel):
     co2_budget_mt: Optional[float] = None
     nuclear_available_gw: float = 0.0
 
-@app.get("/")
+@app.post("/api/login")
+def login(request: Request, data: dict):
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == data.get("email")).first()
+    ip = request.client.host
+    if not user or user.password_hash != hash_password(data.get("password", "")):
+        db.add(LoginLog(email=data.get("email"), ip=ip, success="fail"))
+        db.commit()
+        db.close()
+        raise HTTPException(401, "Invalid email or password")
+    db.add(LoginLog(email=user.email, ip=ip, success="ok"))
+    db.commit()
+    result = {"name": user.name, "role": user.role, "email": user.email, "status": user.status}
+    db.close()
+    return result
+
+from email_service import generate_code, send_verification_email
+
+@app.post("/api/register")
+def register(request: Request, data: dict):
+    db = SessionLocal()
+    existing = db.query(User).filter(User.email == data.get("email")).first()
+    if existing:
+        db.close()
+        raise HTTPException(400, "Email already registered")
+    
+    role = data.get("role", "researcher")
+    status = "active" if role == "researcher" else "pending"
+    
+    new_user = User(
+        email=data.get("email"),
+        name=data.get("name"),
+        role=role,
+        status=status,
+        password_hash=hash_password(data.get("password", ""))
+    )
+    db.add(new_user)
+    db.commit()
+    db.close()
+
+    if role in ["analyst", "policymaker"]:
+        code = generate_code()
+        db2 = SessionLocal()
+        db2.add(VerificationCode(email=data.get("corporate_email"), code=code))
+        db2.commit()
+        db2.close()
+        send_verification_email(data.get("corporate_email"), code, data.get("name"))
+        return {"message": "code_sent", "email": data.get("corporate_email")}
+
+    return {"message": "registered", "role": role}
+
+@app.post("/api/verify-email")
+def verify_email(data: dict):
+    db = SessionLocal()
+    record = db.query(VerificationCode).filter(
+        VerificationCode.email == data.get("email"),
+        VerificationCode.code == data.get("code"),
+        VerificationCode.used == "no"
+    ).first()
+    
+    if not record:
+        db.close()
+        raise HTTPException(400, "Invalid or expired code")
+    
+    record.used = "yes"
+    user = db.query(User).filter(User.email == data.get("user_email")).first()
+    if user:
+        user.status = "active"
+    db.commit()
+    db.close()
+    return {"message": "verified"}
+
+@app.get("/api/admin/users")
+def get_users(admin_email: str):
+    db = SessionLocal()
+    admin = db.query(User).filter(User.email == admin_email).first()
+    if not admin or admin.role != "admin":
+        db.close()
+        raise HTTPException(403, "Access denied")
+    users = db.query(User).all()
+    db.close()
+    return [{"email": u.email, "name": u.name, "role": u.role, "status": u.status} for u in users]
+
+@app.post("/api/admin/update-role")
+def update_role(data: dict):
+    db = SessionLocal()
+    admin = db.query(User).filter(User.email == data.get("admin_email")).first()
+    if not admin or admin.role != "admin":
+        db.close()
+        raise HTTPException(403, "Access denied")
+    user = db.query(User).filter(User.email == data.get("email")).first()
+    if not user:
+        db.close()
+        raise HTTPException(404, "User not found")
+    user.role = data.get("role")
+    user.status = "active"
+    db.commit()
+    db.close()
+    return {"message": "Role updated"}
+
+@app.get("/health")
 def root():
     return {"platform": "KZLEAP", "version": "1.0", "status": "running"}
 
@@ -170,76 +284,9 @@ def get_dataset_co2(dataset_id: str):
         raise HTTPException(404, "Dataset not found")
     return ds
 
-from fastapi.responses import StreamingResponse
-import io, csv
-
-@app.get("/api/export/csv")
-def export_csv():
-    bau = run_scenario("BAU", 2024, 2060)
-    mt  = run_scenario("MT",  2024, 2060)
-    dd  = run_scenario("DD",  2024, 2060)
-
-    output = io.StringIO()
-    writer = csv.writer(output)
-
-    writer.writerow([
-        "Year",
-        "BAU_CO2_Mt", "MT_CO2_Mt", "DD_CO2_Mt",
-        "BAU_Electricity_TWh", "MT_Electricity_TWh", "DD_Electricity_TWh",
-        "BAU_RE_Share_pct", "MT_RE_Share_pct", "DD_RE_Share_pct",
-        "BAU_Coal_Share_pct", "MT_Coal_Share_pct", "DD_Coal_Share_pct",
-        "NDC_Unconditional_Mt", "NDC_Conditional_Mt",
-    ])
-
-    for i, year in enumerate(bau["years"]):
-        writer.writerow([
-            year,
-            bau["co2"][i], mt["co2"][i], dd["co2"][i],
-            bau["electricity"][i], mt["electricity"][i], dd["electricity"][i],
-            bau["renewables_share"][i], mt["renewables_share"][i], dd["renewables_share"][i],
-            bau["coal_share"][i], mt["coal_share"][i], dd["coal_share"][i],
-            246.5, 217.5,
-        ])
-
-    output.seek(0)
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=KZLEAP_Scenarios_2024_2060.csv"}
-    )
 
 
-@app.get("/api/export/summary")
-def export_summary():
-    bau = run_scenario("BAU", 2024, 2060)
-    mt  = run_scenario("MT",  2024, 2060)
-    dd  = run_scenario("DD",  2024, 2060)
 
-    milestones = [2025, 2030, 2035, 2040, 2045, 2050, 2060]
-
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Year", "BAU CO2 (Mt)", "MT CO2 (Mt)", "DD CO2 (Mt)",
-                     "MT vs BAU reduction (Mt)", "DD vs BAU reduction (Mt)",
-                     "DD reduction (%)", "NDC target (Mt)"])
-
-    for i, year in enumerate(bau["years"]):
-        if year not in milestones:
-            continue
-        b, m, d = bau["co2"][i], mt["co2"][i], dd["co2"][i]
-        writer.writerow([
-            year, round(b,1), round(m,1), round(d,1),
-            round(b-m,1), round(b-d,1),
-            round((b-d)/b*100,1),
-            246.5 if year == 2030 else ""
-        ])
-
-    output.seek(0)
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=KZLEAP_Summary.csv"}
-    )
 
 from fastapi.responses import StreamingResponse
 import io, csv as csv_module
@@ -251,7 +298,7 @@ def export_csv():
     years = BAU['years']
 
     output = io.StringIO()
-    writer = csv_module.writer(output)
+    writer = csv_module.writer(output, delimiter=';')
 
     writer.writerow([
         'Year',
@@ -292,7 +339,7 @@ def export_summary():
     milestones = {2025, 2030, 2035, 2040, 2045, 2050, 2060}
 
     output = io.StringIO()
-    writer = csv_module.writer(output)
+    writer = csv_module.writer(output, delimiter=';')
     writer.writerow(['Year', 'BAU_CO2_Mt', 'MT_CO2_Mt', 'DD_CO2_Mt', 'DD_vs_BAU_Mt', 'Reduction_pct'])
 
     for i, year in enumerate(years):
@@ -307,3 +354,6 @@ def export_summary():
         media_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="KZLEAP_Summary.csv"'}
     )
+# Serve frontend
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")

@@ -1,0 +1,3 @@
+backend/.env
+backend/kzleap.db
+backend/__pycache__/

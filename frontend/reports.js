@@ -16,17 +16,41 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
+// Role-based access for reports
+if (user.role === 'researcher') {
+  document.querySelectorAll('.btn-generate').forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+    btn.title = 'Available for Policymaker and Analyst only';
+  });
+  const msg = document.createElement('div');
+  msg.style.cssText = 'background:#fff3cd;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;';
+  msg.textContent = '⚠ Report generation is available for Policymaker and Analyst roles only.';
+  document.querySelector('.content')?.prepend(msg);
+}
+
+// ── CSV export (fix: BOM + semicolon separator for Excel) ──────────────────
 async function exportExcel() {
   showToast('⏳ Generating CSV export...');
   try {
     const res = await fetch(`${BACKEND}/api/export/csv`);
     if (!res.ok) throw new Error('Backend error');
-    const blob = await res.blob();
+    const text = await res.text();
+
+    // Convert comma-separated to semicolon-separated for Excel
+    const lines = text.trim().split('\n');
+    const converted = lines.map(line => line.split(',').join(';')).join('\n');
+
+    // Add BOM so Excel opens in UTF-8 correctly
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + converted], { type: 'text/csv;charset=utf-8;' });
+
     downloadBlob(blob, 'KZLEAP_Scenarios_2024_2060.csv');
     addToHistory('KZLEAP_Scenarios_2024_2060.csv', 'CSV', 'BAU + MT + DD');
     showToast('✓ CSV exported successfully!');
   } catch {
-    showToast('✗ Backend not running. Start with: python main.py');
+    showToast('✗ Backend not running. Start with: uvicorn main:app --reload');
   }
 }
 
@@ -35,7 +59,14 @@ async function exportSummary() {
   try {
     const res = await fetch(`${BACKEND}/api/export/summary`);
     if (!res.ok) throw new Error('Backend error');
-    const blob = await res.blob();
+    const text = await res.text();
+
+    const lines = text.trim().split('\n');
+    const converted = lines.map(line => line.split(',').join(';')).join('\n');
+
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + converted], { type: 'text/csv;charset=utf-8;' });
+
     downloadBlob(blob, 'KZLEAP_Summary.csv');
     addToHistory('KZLEAP_Summary.csv', 'CSV', 'BAU + MT + DD · Milestones');
     showToast('✓ Summary exported!');
@@ -44,6 +75,7 @@ async function exportSummary() {
   }
 }
 
+// ── PDF generation (real save via jsPDF) ───────────────────────────────────
 async function generatePDF() {
   showToast('⏳ Preparing report...');
 
@@ -61,6 +93,7 @@ async function generatePDF() {
   const mt2050  = idx2050 >= 0 ? mt.co2[idx2050]  : 210;
   const dd2050  = idx2050 >= 0 ? dd.co2[idx2050]  : 127;
   const today   = new Date().toLocaleDateString('en-GB', { year:'numeric', month:'long', day:'numeric' });
+  const filename = 'KZLEAP_Full_Report_' + new Date().getFullYear() + '.pdf';
 
   const reportHTML = `
 <!DOCTYPE html>
@@ -68,8 +101,10 @@ async function generatePDF() {
 <head>
   <meta charset="UTF-8">
   <title>KZLEAP — Full Scenario Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
   <style>
-    body { font-family: -apple-system, Arial, sans-serif; margin: 40px; color: #1a2b4a; font-size: 13px; }
+    body { font-family: Arial, sans-serif; margin: 40px; color: #1a2b4a; font-size: 13px; }
     h1 { font-size: 24px; color: #0F6E56; margin-bottom: 4px; }
     h2 { font-size: 16px; border-bottom: 2px solid #e8eef5; padding-bottom: 6px; margin-top: 32px; }
     .meta { color: #666; font-size: 12px; margin-bottom: 32px; }
@@ -84,10 +119,19 @@ async function generatePDF() {
     tr:nth-child(even) td { background: #fafafa; }
     .ndc { color: #0F6E56; font-weight: 600; }
     .footer { margin-top: 48px; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 12px; }
-    @media print { body { margin: 20px; } }
+    .btn-bar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 999; }
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-pdf { background: #0F6E56; color: white; }
+    .btn-print { background: #f0f4f8; color: #1a2b4a; }
+    @media print { .btn-bar { display: none; } }
   </style>
 </head>
 <body>
+  <div class="btn-bar">
+    <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
+    <button class="btn btn-pdf" onclick="savePDF()">⬇ Save PDF</button>
+  </div>
+
   <h1>KZLEAP — Kazakhstan Energy Scenario Report</h1>
   <div class="meta">
     Generated: ${today} · KZLEAP v1.0 · Energy Analyst: ${user.name}<br>
@@ -115,21 +159,9 @@ async function generatePDF() {
   <table>
     <thead><tr><th>Scenario</th><th>CO₂ 2030 (Mt)</th><th>NDC −15% (246 Mt)</th><th>NDC −25% (217 Mt)</th><th>Status</th></tr></thead>
     <tbody>
-      <tr>
-        <td>BAU</td>
-        <td>${bau ? Math.round(bau.co2[bau.years.indexOf(2030)]) : '—'} Mt</td>
-        <td>✗ Above</td><td>✗ Above</td><td>Non-compliant</td>
-      </tr>
-      <tr>
-        <td>Moderate Transition</td>
-        <td>${mt ? Math.round(mt.co2[mt.years.indexOf(2030)]) : '—'} Mt</td>
-        <td class="ndc">✓ Met</td><td>✗ Above</td><td>Partially compliant</td>
-      </tr>
-      <tr>
-        <td>Deep Decarbonization</td>
-        <td>${dd ? Math.round(dd.co2[dd.years.indexOf(2030)]) : '—'} Mt</td>
-        <td class="ndc">✓ Met</td><td class="ndc">✓ Met</td><td>Fully compliant</td>
-      </tr>
+      <tr><td>BAU</td><td>${bau ? Math.round(bau.co2[bau.years.indexOf(2030)]) : '—'} Mt</td><td>✗ Above</td><td>✗ Above</td><td>Non-compliant</td></tr>
+      <tr><td>Moderate Transition</td><td>${mt ? Math.round(mt.co2[mt.years.indexOf(2030)]) : '—'} Mt</td><td class="ndc">✓ Met</td><td>✗ Above</td><td>Partially compliant</td></tr>
+      <tr><td>Deep Decarbonization</td><td>${dd ? Math.round(dd.co2[dd.years.indexOf(2030)]) : '—'} Mt</td><td class="ndc">✓ Met</td><td class="ndc">✓ Met</td><td>Fully compliant</td></tr>
     </tbody>
   </table>
 
@@ -166,16 +198,49 @@ async function generatePDF() {
     Data sources: IEA, KEGOC, BNS Kazakhstan, Our World in Data, World Bank WDI ·
     LP optimization: PuLP/CBC solver
   </div>
+
+  <script>
+    async function savePDF() {
+      const btn = document.querySelector('.btn-pdf');
+      btn.textContent = '⏳ Saving...';
+      btn.disabled = true;
+      try {
+        const { jsPDF } = window.jspdf;
+        const canvas = await html2canvas(document.body, {
+          scale: 2,
+          useCORS: true,
+          ignoreElements: el => el.classList.contains('btn-bar')
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pdfW = pdf.internal.pageSize.getWidth();
+        const pdfH = (canvas.height * pdfW) / canvas.width;
+        const pageH = pdf.internal.pageSize.getHeight();
+        let yOffset = 0;
+        while (yOffset < pdfH) {
+          if (yOffset > 0) pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, -yOffset, pdfW, pdfH);
+          yOffset += pageH;
+        }
+        pdf.save('${filename}');
+        btn.textContent = '✓ Saved!';
+        setTimeout(() => { btn.textContent = '⬇ Save PDF'; btn.disabled = false; }, 2000);
+      } catch(e) {
+        btn.textContent = '✗ Error';
+        btn.disabled = false;
+        console.error(e);
+      }
+    }
+  <\/script>
 </body>
 </html>`;
 
   const win = window.open('', '_blank');
   win.document.write(reportHTML);
   win.document.close();
-  setTimeout(() => win.print(), 500);
 
-  addToHistory('KZLEAP_Full_Report_' + new Date().getFullYear() + '.pdf', 'PDF', 'BAU + MT + DD');
-  showToast('✓ Report opened — use Cmd+P to save as PDF');
+  addToHistory(filename, 'PDF', 'BAU + MT + DD');
+  showToast('✓ Report opened — click "Save PDF" button in the report');
 }
 
 async function generateSummary() {
@@ -199,9 +264,7 @@ function addToHistory(filename, type, scenarios) {
   const tagTextColor = type === 'PDF' ? '#c0392b' : '#1B5E20';
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td>
-      <div style="font-weight:500;">${filename}</div>
-    </td>
+    <td><div style="font-weight:500;">${filename}</div></td>
     <td><span style="background:${tagColor};color:${tagTextColor};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">${type}</span></td>
     <td>${scenarios}</td>
     <td>${user.name}</td>

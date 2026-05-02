@@ -16,6 +16,20 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
+
+// Role-based access for upload
+if (user.role === 'researcher' || user.role === 'policymaker') {
+  const zone = document.getElementById('upload-zone');
+  if (zone) {
+    zone.style.opacity = '0.4';
+    zone.style.pointerEvents = 'none';
+  }
+  const msg = document.createElement('div');
+  msg.style.cssText = 'background:#fff3cd;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;';
+  msg.textContent = '⚠ Upload Dataset is only available for Energy Analysts.';
+  document.querySelector('.content')?.prepend(msg);
+}
+
 const access = {
   analyst:     ['nav-upload', 'nav-scenario', 'nav-simulation'],
   researcher:  ['nav-upload', 'nav-scenario'],

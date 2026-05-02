@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Register</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .register-link { text-align: center; margin-top: 16px; font-size: 13px; color: #666; }
+    .register-link a { color: #0F6E56; text-decoration: none; font-weight: 600; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="logo-icon">KZ</div>
+      <h1 class="logo-title">KZLEAP</h1>
+      <p class="logo-sub">Kazakhstan Energy Forecasting Platform</p>
+    </div>
+
+    <!-- Step 1: Registration form -->
+    <div class="login-card" id="step-register">
+      <h2 class="login-title">Create Account</h2>
+      <p class="login-sub">Fill in your details to get access</p>
+
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="firstname" placeholder="Your first name">
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input type="text" id="lastname" placeholder="Your last name">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Min 6 characters">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="role" onchange="toggleExtraFields()">
+          <option value="researcher">Researcher — instant access</option>
+          <option value="policymaker">Policymaker — email verification required</option>
+          <option value="analyst">Energy Analyst — email verification required</option>
+        </select>
+      </div>
+
+      <div id="extra-fields" class="hidden">
+        <div class="form-group">
+          <label>Organization / Workplace</label>
+          <input type="text" id="workplace" placeholder="e.g. KEGOC, Ministry of Energy">
+        </div>
+        <div class="form-group">
+          <label>Corporate Email</label>
+          <input type="email" id="corporate_email" placeholder="your@company.kz">
+        </div>
+      </div>
+
+      <div id="error-msg" style="display:none;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
+      <div id="success-msg" style="display:none;color:#0F6E56;font-size:13px;margin-bottom:12px;"></div>
+
+      <button class="login-btn" onclick="handleRegister()">Create Account</button>
+
+      <div class="register-link">
+        Already have an account? <a href="index.html">Sign in</a>
+      </div>
+    </div>
+
+    <!-- Step 2: Email verification -->
+    <div class="login-card hidden" id="step-verify">
+      <h2 class="login-title">Verify Your Email</h2>
+      <p class="login-sub" id="verify-subtitle">Enter the 6-digit code sent to your corporate email</p>
+      <div class="form-group">
+        <label>Verification Code</label>
+        <input type="text" id="verify-code" placeholder="000000" maxlength="6" style="font-size:24px;text-align:center;letter-spacing:8px;">
+      </div>
+      <div id="verify-error" style="display:none;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
+      <button class="login-btn" onclick="handleVerify()">Verify & Sign In</button>
+    </div>
+
+  </div>
+
+  <script>
+    const BACKEND = 'http://localhost:8000';
+    let userEmail = '';
+    let corporateEmail = '';
+
+    function toggleExtraFields() {
+      const role = document.getElementById('role').value;
+      const extra = document.getElementById('extra-fields');
+      if (role === 'analyst' || role === 'policymaker') {
+        extra.classList.remove('hidden');
+      } else {
+        extra.classList.add('hidden');
+      }
+    }
+
+    async function handleRegister() {
+      const firstname = document.getElementById('firstname').value.trim();
+      const lastname = document.getElementById('lastname').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const role = document.getElementById('role').value;
+      const workplace = document.getElementById('workplace')?.value.trim() || '';
+      const corporate_email = document.getElementById('corporate_email')?.value.trim() || '';
+      const errorMsg = document.getElementById('error-msg');
+      const successMsg = document.getElementById('success-msg');
+
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+
+      if (!firstname || !lastname || !email || !password) {
+        errorMsg.textContent = 'Please fill in all fields.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+      if (password.length < 6) {
+        errorMsg.textContent = 'Password must be at least 6 characters.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+      if ((role === 'analyst' || role === 'policymaker') && (!workplace || !corporate_email)) {
+        errorMsg.textContent = 'Please fill in workplace and corporate email.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      const name = `${firstname} ${lastname}`;
+      userEmail = email;
+      corporateEmail = corporate_email;
+
+      try {
+        const res = await fetch(`${BACKEND}/api/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, role, workplace, corporate_email })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorMsg.textContent = data.detail || 'Registration failed.';
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        if (data.message === 'code_sent') {
+          document.getElementById('step-register').classList.add('hidden');
+          document.getElementById('step-verify').classList.remove('hidden');
+          document.getElementById('verify-subtitle').textContent = `Enter the 6-digit code sent to ${data.email}`;
+        } else {
+          successMsg.textContent = '✓ Account created! Redirecting...';
+          successMsg.style.display = 'block';
+          setTimeout(() => window.location.href = 'index.html', 1500);
+        }
+
+      } catch {
+        errorMsg.textContent = 'Cannot connect to server.';
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    async function handleVerify() {
+      const code = document.getElementById('verify-code').value.trim();
+      const verifyError = document.getElementById('verify-error');
+      verifyError.style.display = 'none';
+
+      try {
+        const res = await fetch(`${BACKEND}/api/verify-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: corporateEmail, code, user_email: userEmail })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          verifyError.textContent = data.detail || 'Invalid code.';
+          verifyError.style.display = 'block';
+          return;
+        }
+
+        window.location.href = 'index.html';
+
+      } catch {
+        verifyError.textContent = 'Cannot connect to server.';
+        verifyError.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
