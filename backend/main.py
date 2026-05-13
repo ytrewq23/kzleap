@@ -119,6 +119,43 @@ def verify_email(data: dict):
     db.close()
     return {"message": "verified"}
 
+@app.post("/api/forgot-password")
+def forgot_password(data: dict):
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == data.get("email")).first()
+    if not user:
+        db.close()
+        raise HTTPException(404, "Email not found")
+    user_name = user.name
+    user_email = user.email
+    db.close()
+    code = generate_code()
+    db2 = SessionLocal()
+    db2.add(VerificationCode(email=user_email, code=code))
+    db2.commit()
+    db2.close()
+    send_verification_email(user_email, code, user_name)
+    return {"message": "code_sent"}
+
+@app.post("/api/reset-password")
+def reset_password(data: dict):
+    db = SessionLocal()
+    record = db.query(VerificationCode).filter(
+        VerificationCode.email == data.get("email"),
+        VerificationCode.code == data.get("code"),
+        VerificationCode.used == "no"
+    ).first()
+    if not record:
+        db.close()
+        raise HTTPException(400, "Invalid or expired code")
+    record.used = "yes"
+    user = db.query(User).filter(User.email == data.get("email")).first()
+    if user:
+        user.password_hash = hash_password(data.get("password"))
+    db.commit()
+    db.close()
+    return {"message": "password_reset"}
+
 @app.get("/api/admin/users")
 def get_users(admin_email: str):
     db = SessionLocal()

@@ -44,16 +44,29 @@
       </a>
     </nav>
 
-    <div class="sidebar-user">
-      <div class="user-avatar" id="user-avatar">AB</div>
-      <div>
-        <div class="user-name" id="user-name">Ali B.</div>
-        <div class="user-role" id="user-role">Energy Analyst</div>
-      </div>
-      <a href="index.html" class="logout-btn" title="Logout">⏻</a>
-    </div>
+<div class="sidebar-user">
+  <div class="user-avatar" id="user-avatar">AB</div>
+  <div style="flex:1;">
+    <div class="user-name" id="user-name">Ali B.</div>
+    <div class="user-role" id="user-role">Energy Analyst</div>
   </div>
-
+  <button onclick="confirmDelete()" title="Delete Account" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+      <path d="M10 11v6M14 11v6"></path>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+    </svg>
+  </button>
+  <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+      <polyline points="16 17 21 12 16 7"></polyline>
+      <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+  </a>
+</div>
+</div>
   <div class="main">
 
     <div class="topbar">
@@ -186,5 +199,20 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="dashboard.js"></script>
+  <!-- Delete Account Modal -->
+<div id="delete-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;padding:32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <h3 style="margin:0 0 8px;color:#1a2b4a;font-size:18px;">Delete Account</h3>
+    <p style="margin:0 0 20px;color:#666;font-size:14px;">This action cannot be undone. Please enter your password to confirm.</p>
+    <div style="margin-bottom:16px;">
+      <input type="password" id="delete-password" placeholder="Enter your password" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+    </div>
+    <div id="delete-error" style="display:none;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:12px;">
+      <button onclick="closeDeleteModal()" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;">Cancel</button>
+      <button onclick="deleteAccount()" style="flex:1;padding:10px;border:none;border-radius:8px;background:#c0392b;color:white;cursor:pointer;font-size:14px;font-weight:600;">Delete Account</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

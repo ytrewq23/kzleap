@@ -118,11 +118,12 @@
         errorMsg.style.display = 'block';
         return;
       }
-      if (password.length < 6) {
-        errorMsg.textContent = 'Password must be at least 6 characters.';
-        errorMsg.style.display = 'block';
-        return;
-      }
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+if (!passwordRegex.test(password)) {
+  errorMsg.textContent = 'Password must be at least 8 characters, include one uppercase letter, one number, and one special character (!@#$%^&*).';
+  errorMsg.style.display = 'block';
+  return;
+}
       if ((role === 'analyst' || role === 'policymaker') && (!workplace || !corporate_email)) {
         errorMsg.textContent = 'Please fill in workplace and corporate email.';
         errorMsg.style.display = 'block';
