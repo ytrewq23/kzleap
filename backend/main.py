@@ -11,7 +11,7 @@ load_dotenv()
 
 from leap_model import run_scenario, get_historical_data, compare_scenarios, SCENARIOS
 from lp_optimizer import run_lp_optimization
-from database import init_db, SessionLocal, User, LoginLog, VerificationCode, hash_password
+from database import init_db, SessionLocal, User, LoginLog, VerificationCode, Dataset, hash_password
 from email_service import generate_code, send_verification_email
 from datetime import datetime
 
@@ -312,18 +312,47 @@ def compare_demographics():
 from fastapi import UploadFile, File
 from data_parser import parse_csv_auto, extract_energy_indicators
 
+import shutil
+
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 uploaded_datasets = {}
 
 @app.post("/api/upload")
-async def upload_dataset(file: UploadFile = File(...)):
+async def upload_dataset(request: Request, file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
         raise HTTPException(400, "Only CSV files supported")
+    
     content = (await file.read()).decode('utf-8', errors='replace')
     parsed = parse_csv_auto(content, file.filename)
     if 'error' in parsed:
         raise HTTPException(422, parsed['error'])
+    
     dataset_id = file.filename.replace(' ', '_')
+    
+    # Сохраняем файл в папку uploads/
+    file_path = os.path.join(UPLOAD_DIR, dataset_id)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    
+    # Сохраняем в память (для текущей сессии)
     uploaded_datasets[dataset_id] = parsed
+    
+    # Сохраняем метаданные в БД
+    db = SessionLocal()
+    existing = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
+    if not existing:
+        db.add(Dataset(
+            dataset_id=dataset_id,
+            filename=file.filename,
+            source=parsed.get('source'),
+            uploaded_by=request.headers.get('x-user-email', 'unknown'),
+            file_path=file_path,
+        ))
+        db.commit()
+    db.close()
+    
     summary = {}
     if parsed.get('source') == 'worldbank':
         energy = extract_energy_indicators(parsed)
@@ -338,6 +367,7 @@ async def upload_dataset(file: UploadFile = File(...)):
             "years_range": f"{min(parsed['years'])}–{max(parsed['years'])}" if parsed.get('years') else "—",
             "data_points": len(parsed.get('data', {})),
         }
+    
     return {
         "status": "ok",
         "filename": file.filename,
@@ -348,22 +378,63 @@ async def upload_dataset(file: UploadFile = File(...)):
 
 @app.get("/api/datasets")
 def list_datasets():
-    return {
-        k: {
-            "source": v.get("source"),
-            "indicator": v.get("indicator"),
-            "years": v.get("years", [])[:3],
+    db = SessionLocal()
+    datasets = db.query(Dataset).all()
+    db.close()
+    return [
+        {
+            "dataset_id": d.dataset_id,
+            "filename": d.filename,
+            "source": d.source,
+            "uploaded_by": d.uploaded_by,
+            "uploaded_at": d.uploaded_at.strftime("%Y-%m-%d %H:%M") if d.uploaded_at else "",
         }
-        for k, v in uploaded_datasets.items()
-        if not k.endswith('_energy')
-    }
+        for d in datasets
+    ]
 
 @app.get("/api/datasets/{dataset_id}/co2")
 def get_dataset_co2(dataset_id: str):
-    ds = uploaded_datasets.get(dataset_id)
-    if not ds:
+    # Сначала ищем в памяти
+    if dataset_id in uploaded_datasets:
+        return uploaded_datasets[dataset_id]
+    
+    # Если нет в памяти — загружаем с диска
+    db = SessionLocal()
+    record = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
+    db.close()
+    
+    if not record:
         raise HTTPException(404, "Dataset not found")
-    return ds
+    
+    with open(record.file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    parsed = parse_csv_auto(content, record.filename)
+    uploaded_datasets[dataset_id] = parsed
+    return parsed
+
+@app.delete("/api/datasets/{dataset_id}")
+def delete_dataset(dataset_id: str):
+    db = SessionLocal()
+    record = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
+    if not record:
+        db.close()
+        raise HTTPException(404, "Dataset not found")
+    
+    # Удаляем файл с диска
+    if os.path.exists(record.file_path):
+        os.remove(record.file_path)
+    
+    # Удаляем из БД
+    db.delete(record)
+    db.commit()
+    db.close()
+    
+    # Удаляем из памяти
+    uploaded_datasets.pop(dataset_id, None)
+    uploaded_datasets.pop(dataset_id + '_energy', None)
+    
+    return {"message": "Dataset deleted"}
 
 from fastapi.responses import StreamingResponse
 import io, csv as csv_module
