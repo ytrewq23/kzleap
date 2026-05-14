@@ -1,5 +1,152 @@
+// ── Show custom scenario results ──
+function showCustomResults(data, params, type) {
+  const labels = { MT: 'Moderate Transition', DD: 'Deep Decarbonization', BAU: 'BAU' };
+  const colors = { MT: '#B07C10', DD: '#1D9E75', BAU: '#378ADD' };
+  const color  = colors[type] || '#378ADD';
+
+  showBackendBadge(true);
+
+  // Update page subtitle
+  const sub = document.querySelector('.topbar p');
+  if (sub) sub.textContent = `Custom scenario: ${params.name} · 2024–2060`;
+
+  const years  = data.years;
+  const co2    = data.co2;
+  const elec   = data.electricity;
+  const re     = data.renewables_share;
+  const coal   = data.coal_share;
+
+  // KPI cards
+  const idx2050 = years.indexOf(2050);
+  const co2_2050 = co2[idx2050] || co2[co2.length-1];
+  const co2_2030 = co2[years.indexOf(2030)] || co2[6];
+  const ndc = 246.5;
+
+  setCard('card-baseline', '242 Mt', 'Historical baseline 2023');
+  setCard('card-bau', co2_2050 + ' Mt', `Your scenario 2050`);
+  setCard('card-dd',  co2_2030 + ' Mt', `${co2_2030 <= ndc ? '✓ NDC met' : '✗ Above NDC'} in 2030`);
+  setCard('card-avoided', Math.round(params.renewables_2050) + '%', 'RE share by 2050');
+
+  // CO2 chart
+  if (co2Chart) co2Chart.destroy();
+  co2Chart = new Chart(document.getElementById('co2Chart'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [
+        { label: params.name, data: co2, borderColor: color, backgroundColor: color + '15',
+          tension: 0.3, fill: true, borderWidth: 2.5, pointRadius: 0 },
+        { label: 'NDC −15% (246 Mt)', data: years.map(() => 246.5),
+          type: 'line', borderColor: '#D85A30', borderWidth: 1.5,
+          borderDash: [6,4], pointRadius: 0, fill: false },
+        { label: 'NDC −25% (217 Mt)', data: years.map(() => 217.5),
+          type: 'line', borderColor: '#993C1D', borderWidth: 1.5,
+          borderDash: [6,4], pointRadius: 0, fill: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: true, labels: { font: { size: 11 }, boxWidth: 14 } } },
+      scales: {
+        y: { ticks: { callback: v => v + ' Mt', font: { size: 11 } } },
+        x: { ticks: { font: { size: 11 }, maxTicksLimit: 10 }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Electricity chart
+  if (energyChart) energyChart.destroy();
+  energyChart = new Chart(document.getElementById('energyChart'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{ label: 'Electricity (TWh)', data: elec,
+        borderColor: color, tension: 0.3, borderWidth: 2, pointRadius: 0, fill: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { callback: v => v + ' TWh', font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 }, maxTicksLimit: 6 }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Fuel mix 2050 chart
+  const i50 = idx2050 >= 0 ? idx2050 : coal.length - 1;
+  const fuelData = [
+    Math.round(coal[i50]),
+    Math.round(data.gas_share[i50]),
+    Math.round(data.hydro_share ? data.hydro_share[i50] : 10),
+    Math.round(re[i50]),
+    Math.round(data.nuclear_share ? data.nuclear_share[i50] : 0),
+  ];
+
+  if (fuelChart) fuelChart.destroy();
+  fuelChart = new Chart(document.getElementById('fuelChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Coal', 'Gas', 'Hydro', 'Wind & Solar', 'Nuclear'],
+      datasets: [{ label: '2050 mix', data: fuelData,
+        backgroundColor: ['#4a4a6a','#378ADD','#5BB8F5','#1D9E75','#7F77DD'],
+        borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Demographics charts if available
+  if (data.population && data.population.length > 0) {
+    renderCustomDemoCharts(data, years);
+  }
+
+  // Table
+  buildTable('5', years, co2, co2, co2, { ndc_unconditional_2030: 246.5, ndc_conditional_2030: 217.5 });
+}
+
+function renderCustomDemoCharts(data, years) {
+  const popEl = document.getElementById('demo-pop-chart');
+  if (popEl) {
+    new Chart(popEl, {
+      type: 'line',
+      data: { labels: years, datasets: [
+        { label: 'Population', data: data.population, borderColor: '#1D9E75', borderWidth: 2, pointRadius: 0, fill: false }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        scales: { y: { ticks: { callback: v => v + 'M', font: { size: 10 } } },
+                  x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 } } }
+      }
+    });
+  }
+  const co2pcEl = document.getElementById('demo-co2pc-chart');
+  if (co2pcEl && data.co2_per_capita) {
+    new Chart(co2pcEl, {
+      type: 'line',
+      data: { labels: years, datasets: [
+        { label: 'CO₂/capita', data: data.co2_per_capita, borderColor: '#D85A30', borderWidth: 2, pointRadius: 0, fill: false }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        scales: { y: { ticks: { callback: v => v + ' t', font: { size: 10 } } },
+                  x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 } } }
+      }
+    });
+  }
+}
+
+// KZLEAP — Results Page
+// Fetches real data from Python backend (http://localhost:8000)
+// Falls back to built-in model if backend is offline
+
 const BACKEND = 'http://localhost:8000';
 
+// ── User / role setup ──
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 const badgeStyles = {
@@ -26,8 +173,10 @@ const access = {
   if (el && !access[user.role].includes(id)) el.classList.add('locked');
 });
 
+// ── Chart instances (kept for later destroy on re-render) ──
 let co2Chart, energyChart, fuelChart;
 
+// ── Fallback data (if backend offline) ──
 function getFallbackData() {
   const years = [];
   for (let y = 2021; y <= 2060; y++) years.push(y);
@@ -61,6 +210,7 @@ function getFallbackData() {
   };
 }
 
+// ── Fetch from backend ──
 async function loadData() {
   showLoading(true);
   try {
@@ -89,7 +239,21 @@ function showBackendBadge(connected) {
   el.style.color  = connected ? '#0F6E56' : '#B07C10';
 }
 
+// ── Render everything ──
 async function init() {
+  // Check if we have custom scenario results from Scenario Builder
+  const urlParams = new URLSearchParams(window.location.search);
+  const scenarioType = urlParams.get('scenario');
+  const customResults = JSON.parse(sessionStorage.getItem('kzleap_custom_results') || '{}');
+
+  if (scenarioType && customResults[scenarioType]) {
+    // Show custom scenario results
+    const custom = customResults[scenarioType];
+    showCustomResults(custom.results, custom.params, scenarioType);
+    return;
+  }
+
+  // Default: show all 3 scenarios comparison
   const data = await loadData();
 
   const BAU = data.BAU;
@@ -102,6 +266,7 @@ async function init() {
   const mtCO2     = MT.co2;
   const ddCO2     = DD.co2;
 
+  // ── Update metric cards ──
   const bau2050 = bauCO2[years.indexOf(2050)] || bauCO2[bauCO2.length - 1];
   const mt2050  = mtCO2[years.indexOf(2050)]  || mtCO2[mtCO2.length - 1];
   const dd2050  = ddCO2[years.indexOf(2050)]  || ddCO2[ddCO2.length - 1];
@@ -112,6 +277,7 @@ async function init() {
   setCard('card-dd',       dd2050  + ' Mt', `▼ −${Math.round((bau2050-dd2050)/bau2050*100)}% vs BAU`);
   setCard('card-avoided',  avoided + ' Mt', 'Per year vs BAU by 2050');
 
+  // ── NDC reference lines (horizontal) ──
   const ndcLine = (value, label, color) => ({
     type: 'line',
     label,
@@ -124,6 +290,7 @@ async function init() {
     tension: 0,
   });
 
+  // ── CO₂ chart ──
   if (co2Chart) co2Chart.destroy();
   co2Chart = new Chart(document.getElementById('co2Chart'), {
     type: 'line',
@@ -171,6 +338,7 @@ async function init() {
     }
   });
 
+  // ── Energy demand chart ──
   if (energyChart) energyChart.destroy();
   energyChart = new Chart(document.getElementById('energyChart'), {
     type: 'line',
@@ -195,6 +363,7 @@ async function init() {
     }
   });
 
+  // ── Fuel mix 2050 chart ──
   const idx2050 = years.indexOf(2050);
   const fuelLabels = ['Coal', 'Gas', 'Hydro', 'Wind & Solar', 'Nuclear'];
 
@@ -229,6 +398,7 @@ async function init() {
     }
   });
 
+  // ── Table ──
   buildTable('5', years, bauCO2, mtCO2, ddCO2, targets);
 }
 
@@ -241,6 +411,7 @@ function setCard(id, value, sub) {
   if (s) s.textContent = sub;
 }
 
+// ── Results table ──
 let _tableData = null;
 
 function buildTable(filter, years, bauCO2, mtCO2, ddCO2, targets) {
@@ -262,6 +433,7 @@ function buildTable(filter, years, bauCO2, mtCO2, ddCO2, targets) {
     const tr = document.createElement('tr');
     if (milestones.includes(y)) tr.classList.add('milestone');
 
+    // NDC flag for 2030
     let ndcFlag = '';
     if (y === 2030) {
       const t = targets || {};
@@ -288,7 +460,10 @@ function filterTable(mode) {
   if (_tableData) buildTable(mode);
 }
 
+// ── Start ──
 init();
+
+// ── LP Optimization ──
 
 const TECH_COLORS = {
   coal:    '#4a4a6a',
@@ -311,6 +486,7 @@ async function runLP() {
   const year     = document.getElementById('lp-year').value;
   const btn      = document.getElementById('lp-run-btn');
 
+  // Show spinner overlay, keep results visible (no resize)
   document.getElementById('lp-spinner').style.display = 'flex';
   document.getElementById('lp-error').style.display   = 'none';
   btn.disabled    = true;
@@ -328,11 +504,13 @@ async function runLP() {
     btn.disabled    = false;
     btn.textContent = '▶ Run LP';
 
+    // Summary cards
     document.getElementById('lp-gen').textContent  = data.total_gen_twh + ' TWh';
     document.getElementById('lp-cost').textContent = data.total_cost_bn_usd + ' B$';
     document.getElementById('lp-co2').textContent  = data.total_co2_mt + ' Mt';
     document.getElementById('lp-re').textContent   = data.re_share_pct + '%';
 
+    // Table
     const tbody = document.getElementById('lp-tbody');
     tbody.innerHTML = '';
     const mix = data.mix;
@@ -351,11 +529,13 @@ async function runLP() {
       tbody.appendChild(tr);
     });
 
+    // Bar chart
     const techs  = Object.keys(mix).filter(t => mix[t].generation_twh > 0);
     const values = techs.map(t => mix[t].generation_twh);
     const colors = techs.map(t => TECH_COLORS[t]);
     const labels = techs.map(t => TECH_LABELS[t]);
 
+    // Fix Y axis to total demand — same scale across all scenarios/years
     const yMax = Math.ceil(data.demand_twh * 1.15 / 50) * 50;
 
     if (lpChart) lpChart.destroy();
@@ -393,6 +573,9 @@ async function runLP() {
   }
 }
 
+
+
+// ── LP Modal controls ──
 function openLP() {
   const modal = document.getElementById('lp-modal');
   modal.style.display = 'flex';
@@ -405,3 +588,72 @@ function closeLP() {
 document.getElementById('lp-modal')?.addEventListener('click', function(e) {
   if (e.target === this) closeLP();
 });
+
+async function loadDemographics() {
+  try {
+    const res = await fetch(`${BACKEND}/api/compare/demographics`);
+    if (!res.ok) return;
+    const data = await res.json();
+    renderDemoCharts(data);
+  } catch {}
+}
+
+let popChart, co2pcChart, sectorDemoChart;
+
+function renderDemoCharts(data) {
+  const BAU = data.BAU, MT = data.MT, DD = data.DD;
+  const years = BAU.years;
+
+  const popEl = document.getElementById('demo-pop-chart');
+  if (popEl) {
+    if (popChart) popChart.destroy();
+    popChart = new Chart(popEl, {
+      type: 'line',
+      data: { labels: years, datasets: [
+        { label: 'BAU', data: BAU.population, borderColor: '#378ADD', borderWidth: 2, pointRadius: 0, fill: false },
+        { label: 'MT',  data: MT.population,  borderColor: '#B07C10', borderWidth: 2, pointRadius: 0, fill: false },
+        { label: 'DD',  data: DD.population,  borderColor: '#1D9E75', borderWidth: 2, pointRadius: 0, fill: false },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { font: { size: 10 }, boxWidth: 12 } } },
+        scales: { y: { ticks: { callback: v => v + 'M', font: { size: 10 } } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } } }
+      }
+    });
+  }
+
+  const co2pcEl = document.getElementById('demo-co2pc-chart');
+  if (co2pcEl) {
+    if (co2pcChart) co2pcChart.destroy();
+    co2pcChart = new Chart(co2pcEl, {
+      type: 'line',
+      data: { labels: years, datasets: [
+        { label: 'BAU', data: BAU.co2_per_capita, borderColor: '#378ADD', borderWidth: 2, pointRadius: 0, fill: false },
+        { label: 'MT',  data: MT.co2_per_capita,  borderColor: '#B07C10', borderWidth: 2, pointRadius: 0, fill: false },
+        { label: 'DD',  data: DD.co2_per_capita,  borderColor: '#1D9E75', borderWidth: 2, pointRadius: 0, fill: false },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { font: { size: 10 }, boxWidth: 12 } } },
+        scales: { y: { ticks: { callback: v => v + ' t/person', font: { size: 10 } } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } } }
+      }
+    });
+  }
+
+  const secEl = document.getElementById('demo-sector-chart');
+  if (secEl) {
+    if (sectorDemoChart) sectorDemoChart.destroy();
+    sectorDemoChart = new Chart(secEl, {
+      type: 'line',
+      data: { labels: years, datasets: [
+        { label: 'Residential (TWh)', data: BAU.residential_demand, borderColor: '#F5A623', borderWidth: 2, pointRadius: 0, fill: false },
+        { label: 'Industry (TWh)',    data: BAU.industry_demand,    borderColor: '#4a4a6a', borderWidth: 2, pointRadius: 0, fill: false },
+        { label: 'Transport (PJ)',    data: BAU.transport_demand,   borderColor: '#1D9E75', borderWidth: 2, pointRadius: 0, fill: false },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { font: { size: 10 }, boxWidth: 12 } } },
+        scales: { y: { ticks: { font: { size: 10 } } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } } }
+      }
+    });
+  }
+}
+
+window.addEventListener('load', () => setTimeout(loadDemographics, 1200));
