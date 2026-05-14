@@ -39,33 +39,26 @@ def run_lp_optimization(
 
     total = pulp.lpSum(gen[t] for t in techs)
 
-    # 1. Meet demand
     prob += total >= demand_twh * 1.10, "Demand"
 
-    # 2. Capacity limits
     for t in techs:
         p      = TECHNOLOGIES[t]
         base   = nuclear_available_gw if t == "nuclear" else p["existing_gw"]
         max_tw = (base + cap_new[t]) * p["cf"] * 8760 / 1000
         prob  += gen[t] <= max_tw, f"Cap_{t}"
 
-    # 3. RE minimum
     re_techs = ["wind", "solar", "hydro"]
     prob += pulp.lpSum(gen[t] for t in re_techs) >= renewables_target * total, "RE_Min"
 
-    # 4. CO2 budget
     if co2_budget_mt is not None:
         prob += pulp.lpSum(gen[t] * TECHNOLOGIES[t]["co2_factor_t_mwh"] / 1e6 for t in techs) <= co2_budget_mt, "CO2"
 
-    # 5. Hydro expansion limit
     prob += cap_new["hydro"] <= 1.0, "Hydro_Exp"
 
-    # 6. Nuclear policy
     if nuclear_available_gw == 0.0:
         prob += cap_new["nuclear"] == 0, "No_Nuc_New"
         prob += gen["nuclear"]     == 0, "No_Nuc_Gen"
 
-    # 7. Realistic share limits (grid stability)
     prob += gen["solar"]  <= 0.35 * total, "Solar_Max_35pct"
     prob += gen["wind"]   <= 0.25 * total, "Wind_Max_25pct"
     prob += gen["hydro"]  <= 0.15 * total, "Hydro_Max_15pct"
@@ -74,7 +67,6 @@ def run_lp_optimization(
     prob += gen["coal"]   >= 0.10 * total, "Coal_Min_10pct"
     prob += gen["gas"]    >= 0.08 * total, "Gas_Min_8pct"
 
-    # Solve
     prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
     if pulp.LpStatus[prob.status] not in ("Optimal", "Feasible"):
