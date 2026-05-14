@@ -16,7 +16,7 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
-// Role-based access for reports
+
 if (user.role === 'researcher') {
   document.querySelectorAll('.btn-generate').forEach(btn => {
     btn.disabled = true;
