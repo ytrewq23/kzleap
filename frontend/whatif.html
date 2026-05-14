@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — What-If Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --accent: #1D9E75;
+      --accent2: #F5A623;
+      --danger: #D85A30;
+      --dark: #0d1117;
+      --card-bg: #ffffff;
+      --border: #e8ecf0;
+      --text: #1a2332;
+      --sub: #6b7a8d;
+    }
+
+    .whatif-hero {
+      background: linear-gradient(135deg, #0d1117 0%, #1a2332 60%, #0d2e1e 100%);
+      color: #fff;
+      padding: 28px 32px;
+      margin: -24px -24px 24px -24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .whatif-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .whatif-hero h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: #fff;
+    }
+    .whatif-hero p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      margin: 0;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(29,158,117,0.2);
+      border: 1px solid rgba(29,158,117,0.4);
+      color: #4ecba0;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .pulse { width: 6px; height: 6px; background: #4ecba0; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+
+    .whatif-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 16px;
+    }
+
+    .panel-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .panel-sub {
+      font-size: 11px;
+      color: var(--sub);
+      margin-bottom: 16px;
+    }
+
+    .param-section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .param-section:last-child { border-bottom: none; margin-bottom: 0; }
+    .param-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--sub);
+      margin-bottom: 12px;
+    }
+
+    .plant-list { display: flex; flex-direction: column; gap: 8px; }
+    .plant-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .plant-item:hover { border-color: var(--accent); background: #f0faf6; }
+    .plant-item.closed { background: #fff3f0; border-color: #f0c0b0; }
+    .plant-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .plant-cap { font-size: 11px; color: var(--sub); font-family: 'JetBrains Mono', monospace; }
+    .plant-toggle {
+      width: 36px; height: 20px;
+      background: var(--accent);
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .plant-toggle.off { background: #e0e0e0; }
+    .plant-toggle::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px; left: 2px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .plant-toggle.off::after { transform: none; }
+    .plant-toggle:not(.off)::after { transform: translateX(16px); }
+
+    /* Sliders */
+    .wi-slider-row {
+      margin-bottom: 14px;
+    }
+    .wi-slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .wi-slider-label { font-size: 12px; color: var(--text); font-weight: 500; }
+    .wi-slider-val {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--accent);
+      background: #f0faf6;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .wi-slider-sub { font-size: 10px; color: var(--sub); margin-bottom: 4px; }
+    input[type=range].wi {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      accent-color: var(--accent);
+    }
+
+    .results-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .impact-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .impact-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .impact-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+    }
+    .impact-card.danger::before { background: var(--danger); }
+    .impact-card.warn::before   { background: var(--accent2); }
+    .impact-label { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .impact-value {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: 'Sora', sans-serif;
+      color: var(--text);
+    }
+    .impact-value.green { color: var(--accent); }
+    .impact-value.red   { color: var(--danger); }
+    .impact-value.amber { color: var(--accent2); }
+    .impact-delta {
+      font-size: 11px;
+      margin-top: 4px;
+      color: var(--sub);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .chart-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .chart-sub   { font-size: 11px; color: var(--sub); margin-top: 2px; }
+    .chart-tabs  { display: flex; gap: 4px; }
+    .chart-tab {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: #fff;
+      color: var(--sub);
+      transition: all 0.15s;
+    }
+    .chart-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .ndc-track {
+      background: #f0f4f8;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .ndc-track-title { font-size: 11px; font-weight: 600; color: var(--sub); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ndc-bar-wrap { position: relative; height: 24px; background: #e0e7ef; border-radius: 6px; overflow: visible; margin-bottom: 6px; }
+    .ndc-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+      position: relative;
+    }
+    .ndc-bar-label {
+      position: absolute;
+      right: 6px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #fff;
+    }
+    .ndc-marker {
+      position: absolute;
+      top: -4px; bottom: -4px;
+      width: 2px;
+      background: var(--danger);
+      border-radius: 2px;
+    }
+    .ndc-marker-label {
+      position: absolute;
+      top: -18px;
+      left: 4px;
+      font-size: 9px;
+      color: var(--danger);
+      white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .ndc-legend { display: flex; gap: 12px; flex-wrap: wrap; }
+    .ndc-leg-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--sub); }
+    .ndc-leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Investment table */
+    .inv-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .inv-table th { text-align: left; padding: 6px 8px; color: var(--sub); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    .inv-table td { padding: 8px 8px; border-bottom: 1px solid #f0f4f8; }
+    .inv-table tr:last-child td { border-bottom: none; }
+    .inv-bar { height: 6px; background: var(--accent); border-radius: 3px; transition: width 0.4s; }
+
+    /* Run button */
+    .wi-run-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #1D9E75, #0F6E56);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Sora', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 16px;
+      letter-spacing: 0.3px;
+    }
+    .wi-run-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(29,158,117,0.3); }
+    .wi-run-btn:active { transform: translateY(0); }
+    .wi-run-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .info-strip {
+      background: linear-gradient(135deg, #f0faf6, #e8f5ee);
+      border: 1px solid #c8e8da;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #0F6E56;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html"    class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html"   class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="simulation.html" class="nav-item" id="nav-simulation"><span class="nav-icon">▶</span> Run Simulation</a>
+      <a href="results.html"    class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html"     class="nav-item active"><span class="nav-icon">◻</span> What-If Analyzer</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div><div class="user-name" id="user-name">Ali B.</div><div class="user-role" id="user-role">Energy Analyst</div></div>
+      <a href="index.html" class="logout-btn" title="Logout">⏻</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>What-If Analyzer</h2>
+        <p>Real-time policy scenario modeling · Unique to KZLEAP · Not available in standard LEAP</p>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="whatif-hero">
+        <div class="hero-badge"><div class="pulse"></div> Live calculation engine</div>
+        <h2>Interactive What-If Policy Simulator</h2>
+        <p>Adjust parameters and see CO₂ impact instantly · Kazakhstan energy system 2024–2060</p>
+      </div>
+
+      <div class="whatif-grid">
+
+        <div class="card" style="padding:20px;overflow-y:auto;max-height:700px;">
+          <div class="panel-title">Policy parameters</div>
+          <div class="panel-sub">Adjust levers · results update in real-time</div>
+
+          <div class="param-section">
+            <div class="param-section-title">⚫ Coal plant closures</div>
+            <div class="plant-list" id="plant-list">
+              
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-section-title">⚛ Nuclear power plant</div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Commissioning year</span>
+                <span class="wi-slider-val" id="val-nuc-year">2035</span>
+              </div>
+              <div class="wi-slider-sub">Post-referendum NPP · 1.2 GW · Ulken site</div>
+              <input type="range" class="wi" min="2030" max="2045" value="2035" step="1"
+                oninput="document.getElementById('val-nuc-year').textContent=this.value; recalc()">
+            </div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Number of units</span>
+                <span class="wi-slider-val" id="val-nuc-units">1</span>
+              </div>
+              <div class="wi-slider-sub">Each unit = 1.2 GW · VVER-1200 technology</div>
+              <input type="range" class="wi" min="0" max="4" value="1" step="1"
+                oninput="document.getElementById('val-nuc-units').textContent=this.value; recalc()">
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-section-title">Electricity tariff</div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Residential tariff</span>
+                <span class="wi-slider-val" id="val-tariff">21 KZT/kWh</span>
+              </div>
+              <div class="wi-slider-sub">Current: ~21 KZT/kWh · Higher tariff = lower demand</div>
+              <input type="range" class="wi" min="10" max="80" value="21" step="1"
+                oninput="document.getElementById('val-tariff').textContent=this.value+' KZT/kWh'; recalc()">
+            </div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Industrial tariff</span>
+                <span class="wi-slider-val" id="val-ind-tariff">18 KZT/kWh</span>
+              </div>
+              <div class="wi-slider-sub">Price elasticity −0.3 for industry</div>
+              <input type="range" class="wi" min="10" max="70" value="18" step="1"
+                oninput="document.getElementById('val-ind-tariff').textContent=this.value+' KZT/kWh'; recalc()">
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-section-title">Green investment</div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Annual RE investment</span>
+                <span class="wi-slider-val" id="val-re-invest">1.5 B$</span>
+              </div>
+              <div class="wi-slider-sub">Billion USD/yr → new wind & solar capacity</div>
+              <input type="range" class="wi" min="0" max="10" value="1.5" step="0.5"
+                oninput="document.getElementById('val-re-invest').textContent=this.value+' B$'; recalc()">
+            </div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Grid modernization</span>
+                <span class="wi-slider-val" id="val-grid">0.5 B$</span>
+              </div>
+              <div class="wi-slider-sub">Billion USD/yr → enables more RE integration</div>
+              <input type="range" class="wi" min="0" max="5" value="0.5" step="0.25"
+                oninput="document.getElementById('val-grid').textContent=this.value+' B$'; recalc()">
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-section-title">Energy trade (TWh/yr)</div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Export to China</span>
+                <span class="wi-slider-val" id="val-exp-cn">0 TWh</span>
+              </div>
+              <div class="wi-slider-sub">Clean energy corridor · reduces domestic coal use</div>
+              <input type="range" class="wi" min="0" max="30" value="0" step="1"
+                oninput="document.getElementById('val-exp-cn').textContent=this.value+' TWh'; recalc()">
+            </div>
+            <div class="wi-slider-row">
+              <div class="wi-slider-header">
+                <span class="wi-slider-label">Import from Kyrgyzstan</span>
+                <span class="wi-slider-val" id="val-imp-kg">0 TWh</span>
+              </div>
+              <div class="wi-slider-sub">Hydropower import · zero-carbon</div>
+              <input type="range" class="wi" min="0" max="15" value="0" step="1"
+                oninput="document.getElementById('val-imp-kg').textContent=this.value+' TWh'; recalc()">
+            </div>
+          </div>
+
+          <button class="wi-run-btn" onclick="recalc()">⚡ Recalculate Now</button>
+        </div>
+
+        <div class="results-panel">
+
+          <div class="impact-cards">
+            <div class="impact-card">
+              <div class="impact-label">CO₂ avoided by 2050</div>
+              <div class="impact-value green" id="wi-avoided">—</div>
+              <div class="impact-delta" id="wi-avoided-sub">vs BAU baseline</div>
+            </div>
+            <div class="impact-card warn">
+              <div class="impact-label">Total investment needed</div>
+              <div class="impact-value amber" id="wi-invest">—</div>
+              <div class="impact-delta" id="wi-invest-sub">Billion USD cumulative</div>
+            </div>
+            <div class="impact-card">
+              <div class="impact-label">RE share by 2050</div>
+              <div class="impact-value green" id="wi-re">—</div>
+              <div class="impact-delta" id="wi-re-sub">of electricity generation</div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="ndc-track">
+              <div class="ndc-track-title">NDC 2030 progress tracker</div>
+              <div class="ndc-bar-wrap" id="ndc-bar-wrap">
+                <div class="ndc-bar-fill" id="ndc-bar" style="width:83%;background:#D85A30;">
+                  <span class="ndc-bar-label" id="ndc-bar-label">242 Mt</span>
+                </div>
+                <div class="ndc-marker" id="ndc-marker-15" style="left:84.7%">
+                  <div class="ndc-marker-label">−15% (246 Mt)</div>
+                </div>
+                <div class="ndc-marker" id="ndc-marker-25" style="left:74.8%;background:#993C1D;">
+                  <div class="ndc-marker-label" style="color:#993C1D;">−25% (217 Mt)</div>
+                </div>
+              </div>
+              <div class="ndc-legend">
+                <div class="ndc-leg-item"><div class="ndc-leg-dot" style="background:#1D9E75"></div> Below NDC −15%</div>
+                <div class="ndc-leg-item"><div class="ndc-leg-dot" style="background:#F5A623"></div> Between targets</div>
+                <div class="ndc-leg-item"><div class="ndc-leg-dot" style="background:#D85A30"></div> Above NDC target</div>
+              </div>
+              <div style="margin-top:10px;font-size:12px;color:#444;">
+                Projected CO₂ in 2030: <strong id="ndc-co2-val">—</strong>
+                &nbsp;·&nbsp;
+                Status: <strong id="ndc-status-wi">—</strong>
+              </div>
+            </div>
+
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">CO₂ trajectory 2024–2060</div>
+                <div class="chart-sub">Your scenario vs BAU baseline</div>
+              </div>
+              <div class="chart-tabs">
+                <button class="chart-tab active" onclick="switchChart('co2',this)">CO₂</button>
+                <button class="chart-tab" onclick="switchChart('elec',this)">Electricity</button>
+                <button class="chart-tab" onclick="switchChart('invest',this)">Investment</button>
+              </div>
+            </div>
+            <div style="height:200px;"><canvas id="wi-chart"></canvas></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:12px;">Investment breakdown (Billion USD)</div>
+            <table class="inv-table">
+              <thead><tr><th>Technology</th><th>Investment</th><th>New capacity</th><th>Share</th></tr></thead>
+              <tbody id="inv-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="info-strip">
+            <span style="font-size:18px;">💡</span>
+            <div>
+              <strong>KZLEAP What-If Analyzer</strong> — unlike standard LEAP, this tool calculates policy impacts in real-time without rerunning the full model.
+              Results are based on LEAP-methodology energy accounting combined with LP optimization.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="whatif.js"></script>
+</body>
+</html>
