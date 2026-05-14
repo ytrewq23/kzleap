@@ -227,6 +227,55 @@
                 <span class="slider-val" id="val-mt-ev">30%</span>
               </div>
             </div>
+
+              <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee;">
+                <div style="font-size:11px;font-weight:600;color:#666;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Demographic parameters</div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Population growth rate</span>
+                    <span class="slider-source">%/yr · BNS Kazakhstan projection</span>
+                  </div>
+                  <input type="range" min="0.5" max="2.5" value="1.2" step="0.1" class="sl-pop"
+                    oninput="updateSlider(this, 'val-mt-pop', '%/yr')">
+                  <span class="slider-val" id="val-mt-pop">1.2%/yr</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Urbanization rate</span>
+                    <span class="slider-source">%/yr increase in urban population share</span>
+                  </div>
+                  <input type="range" min="0.1" max="1.0" value="0.3" step="0.1" class="sl-urban"
+                    oninput="updateSlider(this, 'val-mt-urban', '%/yr')">
+                  <span class="slider-val" id="val-mt-urban">0.3%/yr</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Working age population by 2050</span>
+                    <span class="slider-source">% aged 15–64 · affects industrial demand</span>
+                  </div>
+                  <input type="range" min="58" max="70" value="64" step="0.5" class="sl-working"
+                    oninput="updateSlider(this, 'val-mt-working', '%')">
+                  <span class="slider-val" id="val-mt-working">64%</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">GDP per capita growth</span>
+                    <span class="slider-source">%/yr · drives energy demand</span>
+                  </div>
+                  <input type="range" min="1" max="6" value="3" step="0.1" class="sl-gdp"
+                    oninput="updateSlider(this, 'val-mt-gdp', '%/yr')">
+                  <span class="slider-val" id="val-mt-gdp">3%/yr</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Income elasticity of energy</span>
+                    <span class="slider-source">Energy demand response to income growth</span>
+                  </div>
+                  <input type="range" min="0.2" max="1.0" value="0.6" step="0.05" class="sl-elasticity"
+                    oninput="updateSlider(this, 'val-mt-elasticity', '')">
+                  <span class="slider-val" id="val-mt-elasticity">0.6</span>
+                </div>
+              </div>
             <div class="result-preview">
               <div class="result-label">Projected CO₂ by 2050</div>
               <div class="result-value" id="co2-result-mt" style="color:#B07C10;">215 Mt</div>
@@ -324,6 +373,55 @@
                 <span class="slider-val" id="val-dd-ev">80%</span>
               </div>
             </div>
+
+              <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee;">
+                <div style="font-size:11px;font-weight:600;color:#666;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Demographic parameters</div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Population growth rate</span>
+                    <span class="slider-source">%/yr · BNS Kazakhstan projection</span>
+                  </div>
+                  <input type="range" min="0.5" max="2.5" value="1.0" step="0.1" class="sl-pop"
+                    oninput="updateSlider(this, 'val-dd-pop', '%/yr')">
+                  <span class="slider-val" id="val-dd-pop">1.0%/yr</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Urbanization rate</span>
+                    <span class="slider-source">%/yr increase in urban population share</span>
+                  </div>
+                  <input type="range" min="0.1" max="1.0" value="0.5" step="0.1" class="sl-urban"
+                    oninput="updateSlider(this, 'val-dd-urban', '%/yr')">
+                  <span class="slider-val" id="val-dd-urban">0.5%/yr</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Working age population by 2050</span>
+                    <span class="slider-source">% aged 15–64 · affects industrial demand</span>
+                  </div>
+                  <input type="range" min="58" max="70" value="63" step="0.5" class="sl-working"
+                    oninput="updateSlider(this, 'val-dd-working', '%')">
+                  <span class="slider-val" id="val-dd-working">63%</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">GDP per capita growth</span>
+                    <span class="slider-source">%/yr · drives energy demand</span>
+                  </div>
+                  <input type="range" min="1" max="6" value="3.5" step="0.1" class="sl-gdp"
+                    oninput="updateSlider(this, 'val-dd-gdp', '%/yr')">
+                  <span class="slider-val" id="val-dd-gdp">3.5%/yr</span>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-info">
+                    <span class="slider-label">Income elasticity of energy</span>
+                    <span class="slider-source">Lower = more efficient economy</span>
+                  </div>
+                  <input type="range" min="0.2" max="1.0" value="0.4" step="0.05" class="sl-elasticity"
+                    oninput="updateSlider(this, 'val-dd-elasticity', '')">
+                  <span class="slider-val" id="val-dd-elasticity">0.4</span>
+                </div>
+              </div>
             <div class="result-preview green">
               <div class="result-label">Projected CO₂ by 2050</div>
               <div class="result-value green" id="co2-result-dd">85 Mt</div>
