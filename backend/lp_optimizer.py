@@ -27,7 +27,7 @@ def run_lp_optimization(
     gen     = {t: pulp.LpVariable(f"gen_{t}",     lowBound=0) for t in techs}
     cap_new = {t: pulp.LpVariable(f"cap_new_{t}", lowBound=0) for t in techs}
 
-    # Objective
+    
     cost_terms = []
     for t in techs:
         p = TECHNOLOGIES[t]
