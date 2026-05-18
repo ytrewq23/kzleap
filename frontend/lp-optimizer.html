@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Energy Mix Optimizer"</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="results.css">
+  <link rel="stylesheet" href="lp-optimizer.css">
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div>
+        <div class="logo-title">KZLEAP</div>
+        <div class="logo-sub">Energy Platform</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item active"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+          <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div style="flex:1;">
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
+      </div>
+      <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Mix Optimizer</h2>
+        <p>Linear programming · Least-cost electricity mix · PuLP/CBC solver</p>
+      </div>
+      <div class="topbar-right">
+        <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="card lp-controls-card">
+          <div class="card-title">Optimization settings</div>
+          <div class="card-sub">Configure scenario and target year, then run the solver</div>
+          <div class="lp-controls-row">
+            <div class="lp-control-group">
+              <label class="lp-label">Scenario</label>
+              <select id="lp-scenario" class="lp-select">
+                <option value="BAU">BAU</option>
+                <option value="MT" selected>MT — Moderate Transition</option>
+                <option value="DD">DD — Deep Decarbonization</option>
+              </select>
+            </div>
+            <div class="lp-control-group">
+              <label class="lp-label">Target year</label>
+              <select id="lp-year" class="lp-select">
+                <option value="2030">2030</option>
+                <option value="2035" selected>2035</option>
+                <option value="2040">2040</option>
+                <option value="2050">2050</option>
+                <option value="2060">2060</option>
+              </select>
+            </div>
+            <div class="lp-control-group lp-control-run">
+              <button onclick="runLP()" id="lp-run-btn" class="lp-run-btn">Run LP</button>
+            </div>
+          </div>
+        </div>
+
+
+
+
+      <div id="lp-error" style="display:none;" class="lp-error-box"></div>
+
+      <div id="lp-results" style="position:relative;">
+        <div id="lp-spinner" style="display:none;" class="lp-spinner-overlay">
+          <div class="lp-spinner-ring"></div>
+          <div class="lp-spinner-label">Solving LP...</div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Total generation</div>
+            <div class="metric-value" id="lp-gen" style="color:#0F6E56;">—</div>
+            <div class="metric-change neutral">TWh</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">System cost</div>
+            <div class="metric-value" id="lp-cost" style="color:#0F6E56;">—</div>
+            <div class="metric-change neutral">Billion USD/yr</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">CO2 from power (operational)</div>
+            <div class="metric-value" id="lp-co2" style="color:#D85A30;">—</div>
+            <div class="metric-change neutral">Mt CO2 · direct emissions only</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">CO2 lifecycle (incl. RE/nuclear)</div>
+            <div class="metric-value" id="lp-co2-lifecycle" style="color:#B07C10;">—</div>
+            <div class="metric-change neutral">Mt CO2 · full lifecycle</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">RE share</div>
+            <div class="metric-value" id="lp-re" style="color:#1D9E75;">—</div>
+            <div class="metric-change neutral">% of generation</div>
+          </div>
+        </div>
+
+        <div class="charts-row" style="margin-bottom:16px;">
+          <div class="card" style="flex:2;">
+            <div class="card-title">Generation mix by technology</div>
+            <div class="card-sub">Optimal allocation · TWh</div>
+            <table class="table" style="margin-top:12px;">
+              <thead>
+                <tr>
+                  <th>Technology</th>
+                  <th>Generation (TWh)</th>
+                  <th>Share (%)</th>
+                  <th>New capacity (GW)</th>
+                  <th>CO2 operational (Mt)</th>
+                  <th>CO2 lifecycle (Mt)</th>
+                </tr>
+              </thead>
+              <tbody id="lp-tbody"></tbody>
+            </table>
+          </div>
+          <div class="card" style="flex:1;">
+            <div class="card-title">Generation breakdown</div>
+            <div class="card-sub">TWh by source</div>
+            <div style="height:260px;margin-top:8px;">
+              <canvas id="lpChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="lp-ai-panel" style="display:none;">
+          <div class="lp-ai-panel-header">
+            <div>
+              <div class="card-title">AI interpretation</div>
+              <div class="card-sub" id="lp-ai-panel-sub">LP result analysis · Claude</div>
+            </div>
+            <button onclick="explainResults()" id="lp-explain-btn" class="lp-explain-btn">Explain results</button>
+          </div>
+          <div id="lp-ai-output" class="lp-ai-output"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes lp-spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="lp-optimizer.js"></script>
+</body>
+</html>
