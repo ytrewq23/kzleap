@@ -22,7 +22,7 @@ function showCustomResults(data, params, type) {
   const co2_2030 = co2[years.indexOf(2030)] || co2[6];
   const ndc = 246.5;
 
-  setCard('card-baseline', '242 Mt', 'Historical baseline 2023');
+  setCard('card-baseline', CFG.base_co2 + ' Mt', `Historical baseline ${CFG.base_year}`);
   setCard('card-bau', co2_2050 + ' Mt', `Your scenario 2050`);
   setCard('card-dd',  co2_2030 + ' Mt', `${co2_2030 <= ndc ? '✓ NDC met' : '✗ Above NDC'} in 2030`);
   setCard('card-avoided', Math.round(params.renewables_2050) + '%', 'RE share by 2050');
@@ -36,10 +36,10 @@ function showCustomResults(data, params, type) {
       datasets: [
         { label: params.name, data: co2, borderColor: color, backgroundColor: color + '15',
           tension: 0.3, fill: true, borderWidth: 2.5, pointRadius: 0 },
-        { label: 'NDC −15% (246 Mt)', data: years.map(() => 246.5),
+        { label: `NDC −15% (${CFG.ndc_unconditional} Mt)`, data: years.map(() => CFG.ndc_unconditional),
           type: 'line', borderColor: '#D85A30', borderWidth: 1.5,
           borderDash: [6,4], pointRadius: 0, fill: false },
-        { label: 'NDC −25% (217 Mt)', data: years.map(() => 217.5),
+        { label: `NDC −25% (${CFG.ndc_conditional} Mt)`, data: years.map(() => CFG.ndc_conditional),
           type: 'line', borderColor: '#993C1D', borderWidth: 1.5,
           borderDash: [6,4], pointRadius: 0, fill: false },
       ]
@@ -140,13 +140,20 @@ function renderCustomDemoCharts(data, years) {
   }
 }
 
-// KZLEAP — Results Page
-// Fetches real data from Python backend (http://localhost:8000)
-// Falls back to built-in model if backend is offline
 
 const BACKEND = 'http://localhost:8000';
 
-// ── User / role setup ──
+let CFG = {
+  base_co2: 242, base_elec: 115, base_tpes: 85,
+  base_year: 2023, ndc_unconditional: 246.5, ndc_conditional: 217.5,
+};
+async function loadConfig() {
+  try {
+    const r = await fetch(`${BACKEND}/api/config`);
+    if (r.ok) CFG = await r.json();
+  } catch {}
+}
+
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 const badgeStyles = {
@@ -173,44 +180,30 @@ const access = {
   if (el && !access[user.role].includes(id)) el.classList.add('locked');
 });
 
-// ── Chart instances (kept for later destroy on re-render) ──
 let co2Chart, energyChart, fuelChart;
 
-// ── Fallback data (if backend offline) ──
 function getFallbackData() {
+  const b  = CFG.base_co2;
+  const el = CFG.base_elec;
   const years = [];
   for (let y = 2021; y <= 2060; y++) years.push(y);
-
-  const bau = years.map(y => {
-    if (y <= 2023) return [2021,245,2022,240,2023,242].includes(y) ? {2021:245,2022:240,2023:242}[y] : 242;
-    return Math.round(242 * Math.pow(1.018, y - 2023));
-  });
-  const mt = years.map(y => {
-    if (y <= 2023) return {2021:245,2022:240,2023:242}[y] || 242;
-    const t = y - 2023;
-    return Math.round(242 * Math.pow(1.005, t) * Math.pow(0.982, t));
-  });
-  const dd = years.map(y => {
-    if (y <= 2023) return {2021:245,2022:240,2023:242}[y] || 242;
-    const t = y - 2023;
-    return Math.round(Math.max(242 * Math.pow(0.958, t), 5));
-  });
-
+  const bau = years.map(y => y <= CFG.base_year ? b : Math.round(b * Math.pow(1.018, y - CFG.base_year)));
+  const mt  = years.map(y => { if (y <= CFG.base_year) return b; const t = y - CFG.base_year; return Math.round(b * Math.pow(1.005, t) * Math.pow(0.982, t)); });
+  const dd  = years.map(y => { if (y <= CFG.base_year) return b; const t = y - CFG.base_year; return Math.round(Math.max(b * Math.pow(0.958, t), 5)); });
   return {
-    BAU: { years, co2: bau, electricity: years.map(y => Math.round(115 * Math.pow(1.018, y-2023))),
-           coal_share: years.map(y => Math.max(61 - (y-2023)*0.3, 45)),
-           renewables_share: years.map(y => Math.min(5 + (y-2023)*0.3, 15)) },
-    MT:  { years, co2: mt,  electricity: years.map(y => Math.round(115 * Math.pow(1.012, y-2023))),
-           coal_share: years.map(y => Math.max(61 - (y-2023)*1.4, 25)),
-           renewables_share: years.map(y => Math.min(5 + (y-2023)*1.4, 40)) },
-    DD:  { years, co2: dd,  electricity: years.map(y => Math.round(115 * Math.pow(1.008, y-2023))),
-           coal_share: years.map(y => Math.max(61 - (y-2023)*2.3, 5)),
-           renewables_share: years.map(y => Math.min(5 + (y-2023)*2.8, 70)) },
-    _targets: { ndc_unconditional_2030: 246.5, ndc_conditional_2030: 217.5, neutrality_2060: 0 },
+    BAU: { years, co2: bau, electricity: years.map(y => Math.round(el * Math.pow(1.018, y - CFG.base_year))),
+           coal_share: years.map(y => Math.max(61 - (y - CFG.base_year)*0.3, 45)),
+           renewables_share: years.map(y => Math.min(5 + (y - CFG.base_year)*0.3, 15)) },
+    MT:  { years, co2: mt,  electricity: years.map(y => Math.round(el * Math.pow(1.012, y - CFG.base_year))),
+           coal_share: years.map(y => Math.max(61 - (y - CFG.base_year)*1.4, 25)),
+           renewables_share: years.map(y => Math.min(5 + (y - CFG.base_year)*1.4, 40)) },
+    DD:  { years, co2: dd,  electricity: years.map(y => Math.round(el * Math.pow(1.008, y - CFG.base_year))),
+           coal_share: years.map(y => Math.max(61 - (y - CFG.base_year)*2.3, 5)),
+           renewables_share: years.map(y => Math.min(5 + (y - CFG.base_year)*2.8, 70)) },
+    _targets: { ndc_unconditional_2030: CFG.ndc_unconditional, ndc_conditional_2030: CFG.ndc_conditional, neutrality_2060: 0 },
   };
 }
 
-// ── Fetch from backend ──
 async function loadData() {
   showLoading(true);
   try {
@@ -253,6 +246,9 @@ async function init() {
     return;
   }
 
+  // Загружаем конфиг (базовые значения из Excel или дефолт)
+  await loadConfig();
+
   // Default: show all 3 scenarios comparison
   const data = await loadData();
 
@@ -272,8 +268,8 @@ async function init() {
   const dd2050  = ddCO2[years.indexOf(2050)]  || ddCO2[ddCO2.length - 1];
   const avoided = Math.round(bau2050 - dd2050);
 
-  setCard('card-baseline', '242 Mt', 'Historical baseline 2023');
-  setCard('card-bau',      bau2050 + ' Mt', `▲ +${Math.round((bau2050-242)/242*100)}% vs baseline`);
+  setCard('card-baseline', CFG.base_co2 + ' Mt', `Historical baseline ${CFG.base_year}`);
+  setCard('card-bau',      bau2050 + ' Mt', `▲ +${Math.round((bau2050 - CFG.base_co2) / CFG.base_co2 * 100)}% vs baseline`);
   setCard('card-dd',       dd2050  + ' Mt', `▼ −${Math.round((bau2050-dd2050)/bau2050*100)}% vs BAU`);
   setCard('card-avoided',  avoided + ' Mt', 'Per year vs BAU by 2050');
 
@@ -465,129 +461,6 @@ init();
 
 // ── LP Optimization ──
 
-const TECH_COLORS = {
-  coal:    '#4a4a6a',
-  gas:     '#378ADD',
-  hydro:   '#5BB8F5',
-  wind:    '#1D9E75',
-  solar:   '#F5A623',
-  nuclear: '#7F77DD',
-};
-
-const TECH_LABELS = {
-  coal: 'Coal', gas: 'Natural Gas', hydro: 'Hydro',
-  wind: 'Wind', solar: 'Solar PV', nuclear: 'Nuclear',
-};
-
-let lpChart = null;
-
-async function runLP() {
-  const scenario = document.getElementById('lp-scenario').value;
-  const year     = document.getElementById('lp-year').value;
-  const btn      = document.getElementById('lp-run-btn');
-
-  // Show spinner overlay, keep results visible (no resize)
-  document.getElementById('lp-spinner').style.display = 'flex';
-  document.getElementById('lp-error').style.display   = 'none';
-  btn.disabled    = true;
-  btn.textContent = '⏳ Running...';
-
-  try {
-    const res = await fetch(`${BACKEND}/api/optimize/quick/${scenario}/${year}`);
-    if (!res.ok) throw new Error('Backend returned ' + res.status);
-    const data = await res.json();
-
-    if (data.error) throw new Error(data.error);
-
-    document.getElementById('lp-spinner').style.display = 'none';
-    document.getElementById('lp-results').style.display = 'block';
-    btn.disabled    = false;
-    btn.textContent = '▶ Run LP';
-
-    // Summary cards
-    document.getElementById('lp-gen').textContent  = data.total_gen_twh + ' TWh';
-    document.getElementById('lp-cost').textContent = data.total_cost_bn_usd + ' B$';
-    document.getElementById('lp-co2').textContent  = data.total_co2_mt + ' Mt';
-    document.getElementById('lp-re').textContent   = data.re_share_pct + '%';
-
-    // Table
-    const tbody = document.getElementById('lp-tbody');
-    tbody.innerHTML = '';
-    const mix = data.mix;
-
-    Object.entries(mix).forEach(([tech, v]) => {
-      if (v.generation_twh === 0 && v.new_capacity_gw === 0) return;
-      const tr = document.createElement('tr');
-      const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${TECH_COLORS[tech]};margin-right:6px;"></span>`;
-      tr.innerHTML = `
-        <td>${dot}${TECH_LABELS[tech]}</td>
-        <td>${v.generation_twh.toFixed(1)}</td>
-        <td>${v.share_pct.toFixed(1)}%</td>
-        <td>${v.new_capacity_gw > 0 ? '+' + v.new_capacity_gw.toFixed(2) : '—'}</td>
-        <td>${v.co2_mt > 0 ? v.co2_mt.toFixed(2) : '0'}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    // Bar chart
-    const techs  = Object.keys(mix).filter(t => mix[t].generation_twh > 0);
-    const values = techs.map(t => mix[t].generation_twh);
-    const colors = techs.map(t => TECH_COLORS[t]);
-    const labels = techs.map(t => TECH_LABELS[t]);
-
-    // Fix Y axis to total demand — same scale across all scenarios/years
-    const yMax = Math.ceil(data.demand_twh * 1.15 / 50) * 50;
-
-    if (lpChart) lpChart.destroy();
-    lpChart = new Chart(document.getElementById('lpChart'), {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: `Optimal mix ${scenario} ${year} (TWh)`,
-          data: values,
-          backgroundColor: colors,
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + ' TWh' } }
-        },
-        scales: {
-          y: { min: 0, max: yMax, ticks: { callback: v => v + ' TWh', font: { size: 10 } } },
-          x: { ticks: { font: { size: 11 } }, grid: { display: false } }
-        }
-      }
-    });
-
-  } catch (err) {
-    document.getElementById('lp-spinner').style.display = 'none';
-    document.getElementById('lp-error').style.display   = 'block';
-    document.getElementById('lp-error').textContent     = '✗ LP failed: ' + err.message + '. Make sure backend is running at localhost:8000.';
-    btn.disabled    = false;
-    btn.textContent = '▶ Run LP';
-  }
-}
-
-
-
-// ── LP Modal controls ──
-function openLP() {
-  const modal = document.getElementById('lp-modal');
-  modal.style.display = 'flex';
-}
-
-function closeLP() {
-  document.getElementById('lp-modal').style.display = 'none';
-}
-
-document.getElementById('lp-modal')?.addEventListener('click', function(e) {
-  if (e.target === this) closeLP();
-});
 
 async function loadDemographics() {
   try {
