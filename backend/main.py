@@ -14,6 +14,7 @@ from lp_optimizer import run_lp_optimization
 from database import init_db, SessionLocal, User, LoginLog, VerificationCode, Dataset, hash_password
 from email_service import generate_code, send_verification_email
 from datetime import datetime
+import httpx
 
 init_db()
 
@@ -310,7 +311,10 @@ def compare_demographics():
     }
 
 from fastapi import UploadFile, File
+from fastapi.responses import FileResponse, StreamingResponse
 from data_parser import parse_csv_auto, extract_energy_indicators
+from excel_parser import parse_kzleap_excel, create_template_excel
+from leap_model import load_excel_data, get_active_dataset_info
 
 import shutil
 
@@ -319,62 +323,132 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 uploaded_datasets = {}
 
+@app.get("/api/template")
+def download_template():
+    """Скачать шаблон Excel-файла KZLEAP_DATA_TEMPLATE.xlsx"""
+    try:
+        excel_bytes = create_template_excel()
+        return StreamingResponse(
+            iter([excel_bytes]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="KZLEAP_DATA_TEMPLATE.xlsx"'},
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Не удалось создать шаблон: {e}")
+
+
+@app.get("/api/active-dataset")
+def active_dataset():
+    """Возвращает информацию об активном датасете (встроенный или из Excel)."""
+    return get_active_dataset_info()
+
+
 @app.post("/api/upload")
 async def upload_dataset(request: Request, file: UploadFile = File(...)):
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(400, "Only CSV files supported")
-    
-    content = (await file.read()).decode('utf-8', errors='replace')
-    parsed = parse_csv_auto(content, file.filename)
-    if 'error' in parsed:
-        raise HTTPException(422, parsed['error'])
-    
-    dataset_id = file.filename.replace(' ', '_')
-    
-    # Сохраняем файл в папку uploads/
-    file_path = os.path.join(UPLOAD_DIR, dataset_id)
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(content)
-    
-    # Сохраняем в память (для текущей сессии)
-    uploaded_datasets[dataset_id] = parsed
-    
-    # Сохраняем метаданные в БД
-    db = SessionLocal()
-    existing = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
-    if not existing:
-        db.add(Dataset(
-            dataset_id=dataset_id,
-            filename=file.filename,
-            source=parsed.get('source'),
-            uploaded_by=request.headers.get('x-user-email', 'unknown'),
-            file_path=file_path,
-        ))
+    file_bytes = await file.read()
+    filename   = file.filename or ""
+
+    # ── Excel (.xlsx / .xls) ─ KZLEAP-формат ─────────────────────────────
+    if filename.lower().endswith((".xlsx", ".xls")):
+        parsed = parse_kzleap_excel(file_bytes, filename)
+        if "error" in parsed:
+            raise HTTPException(422, parsed["error"])
+
+        # Сохраняем файл на диск
+        dataset_id = filename.replace(" ", "_")
+        file_path  = os.path.join(UPLOAD_DIR, dataset_id)
+        with open(file_path, "wb") as f:
+            f.write(file_bytes)
+
+        # Загружаем данные в leap_model (заменяет встроенные константы)
+        load_excel_data(parsed)
+
+        # Сохраняем в память и БД
+        uploaded_datasets[dataset_id] = parsed
+        db = SessionLocal()
+        existing = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
+        if existing:
+            existing.file_path = file_path
+            existing.source    = "kzleap_excel"
+        else:
+            db.add(Dataset(
+                dataset_id   = dataset_id,
+                filename     = filename,
+                source       = "kzleap_excel",
+                uploaded_by  = request.headers.get("x-user-email", "unknown"),
+                file_path    = file_path,
+            ))
         db.commit()
-    db.close()
-    
-    summary = {}
-    if parsed.get('source') == 'worldbank':
-        energy = extract_energy_indicators(parsed)
-        uploaded_datasets[dataset_id + '_energy'] = energy
-        summary = {
-            "indicators_found": parsed.get('indicators_found', 0),
-            "energy_indicators": list(energy.keys()),
+        db.close()
+
+        base_year = parsed.get("base_year")
+        hist_years = sorted(parsed.get("historical_co2", {}).keys())
+
+        return {
+            "status":     "ok",
+            "filename":   filename,
+            "source":     "kzleap_excel",
+            "dataset_id": dataset_id,
+            "summary": {
+                "base_year":       base_year,
+                "base_co2_mt":     parsed.get("base_co2"),
+                "base_elec_twh":   parsed.get("base_elec"),
+                "historical_years": f"{min(hist_years)}–{max(hist_years)}" if hist_years else "—",
+                "scenarios_loaded": list(parsed.get("scenarios", {}).keys()),
+                "message":         "Данные из Excel загружены. Все расчёты теперь используют ваш файл.",
+            },
         }
-    elif parsed.get('source') == 'owid':
-        summary = {
-            "indicator": parsed.get('indicator'),
-            "years_range": f"{min(parsed['years'])}–{max(parsed['years'])}" if parsed.get('years') else "—",
-            "data_points": len(parsed.get('data', {})),
+
+    # ── CSV ─ старый формат (OWID / World Bank) ───────────────────────────
+    if filename.lower().endswith(".csv"):
+        content = file_bytes.decode("utf-8", errors="replace")
+        parsed  = parse_csv_auto(content, filename)
+        if "error" in parsed:
+            raise HTTPException(422, parsed["error"])
+
+        dataset_id = filename.replace(" ", "_")
+        file_path  = os.path.join(UPLOAD_DIR, dataset_id)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        uploaded_datasets[dataset_id] = parsed
+        db = SessionLocal()
+        existing = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
+        if not existing:
+            db.add(Dataset(
+                dataset_id  = dataset_id,
+                filename    = filename,
+                source      = parsed.get("source"),
+                uploaded_by = request.headers.get("x-user-email", "unknown"),
+                file_path   = file_path,
+            ))
+            db.commit()
+        db.close()
+
+        summary = {}
+        if parsed.get("source") == "worldbank":
+            energy = extract_energy_indicators(parsed)
+            uploaded_datasets[dataset_id + "_energy"] = energy
+            summary = {
+                "indicators_found":  parsed.get("indicators_found", 0),
+                "energy_indicators": list(energy.keys()),
+            }
+        elif parsed.get("source") == "owid":
+            summary = {
+                "indicator":   parsed.get("indicator"),
+                "years_range":  f"{min(parsed['years'])}–{max(parsed['years'])}" if parsed.get("years") else "—",
+                "data_points":  len(parsed.get("data", {})),
+            }
+
+        return {
+            "status":     "ok",
+            "filename":   filename,
+            "source":     parsed.get("source"),
+            "summary":    summary,
+            "dataset_id": dataset_id,
         }
-    
-    return {
-        "status": "ok",
-        "filename": file.filename,
-        "source": parsed.get('source'),
-        "summary": summary,
-        "dataset_id": dataset_id,
-    }
+
+    raise HTTPException(400, "Поддерживаемые форматы: .xlsx (KZLEAP-шаблон), .csv (OWID / World Bank)")
 
 @app.get("/api/datasets")
 def list_datasets():
@@ -436,8 +510,35 @@ def delete_dataset(dataset_id: str):
     
     return {"message": "Dataset deleted"}
 
-from fastapi.responses import StreamingResponse
 import io, csv as csv_module
+
+
+@app.get("/api/config")
+def get_config():
+    """
+    Возвращает базовые значения активного датасета.
+    Фронтенд использует эти значения вместо захардкоженных констант.
+    """
+    from leap_model import (
+        _BASE_CO2, _BASE_ELEC, _BASE_TPES, _BASE_POP,
+        BASE_YEAR_1990_CO2, NDC_TARGET_2030_PCT, NDC_CONDITIONAL_2030_PCT,
+        CARBON_NEUTRALITY_YEAR, HISTORICAL_CO2, get_active_dataset_info
+    )
+    base_year = max(HISTORICAL_CO2.keys()) if HISTORICAL_CO2 else 2023
+    ndc_unc = round(BASE_YEAR_1990_CO2 * (1 + NDC_TARGET_2030_PCT / 100), 1)
+    ndc_con = round(BASE_YEAR_1990_CO2 * (1 + NDC_CONDITIONAL_2030_PCT / 100), 1)
+    return {
+        "base_co2":          round(_BASE_CO2, 1),
+        "base_elec":         round(_BASE_ELEC, 1),
+        "base_tpes":         round(_BASE_TPES, 1),
+        "base_pop":          round(_BASE_POP, 2),
+        "base_year":         base_year,
+        "ndc_unconditional": ndc_unc,
+        "ndc_conditional":   ndc_con,
+        "neutrality_year":   CARBON_NEUTRALITY_YEAR,
+        "ndc_base_co2":      round(BASE_YEAR_1990_CO2, 1),
+        "dataset":           get_active_dataset_info(),
+    }
 
 @app.get("/api/export/csv")
 def export_csv():
@@ -578,6 +679,59 @@ def run_custom_scenario(req: CustomScenarioRequest):
         results["transport_demand"].append(round(transport, 1))
 
     return results
+
+class ClaudeRequest(BaseModel):
+    messages: list
+    system: Optional[str] = None
+    max_tokens: int = 1000
+    stream: bool = False
+
+@app.post("/api/claude")
+async def claude_proxy(req: ClaudeRequest, request: Request):
+    api_key = os.getenv("GROQ_API_KEY", "")
+    if not api_key:
+        raise HTTPException(500, "GROQ_API_KEY not set in .env")
+
+    messages = req.messages
+    if req.system:
+        messages = [{"role": "system", "content": req.system}] + list(messages)
+
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "max_tokens": req.max_tokens,
+        "messages": messages,
+        "stream": req.stream,
+    }
+
+    from fastapi.responses import StreamingResponse
+
+    if req.stream:
+        async def event_stream():
+            async with httpx.AsyncClient(timeout=60) as client:
+                async with client.stream(
+                    "POST",
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "content-type": "application/json",
+                    },
+                    json=payload,
+                ) as resp:
+                    async for chunk in resp.aiter_bytes():
+                        yield chunk
+        return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        resp = await client.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "content-type": "application/json",
+            },
+            json=payload,
+        )
+    return resp.json()
+
 
 if __name__ == "__main__":
     import uvicorn
