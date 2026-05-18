@@ -25,6 +25,9 @@
       <a href="whatif.html"     class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
       <div class="nav-section">Output</div>
       <a href="reports.html" class="nav-item active"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+          <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
@@ -79,6 +82,28 @@
           </div>
           <button class="btn-generate" onclick="exportSummary()">Generate PDF</button>
         </div>
+        <div class="report-type-card">
+          <div class="report-icon" style="background:#1a2b4a;color:#fff;">AI</div>
+          <div class="report-info">
+            <div class="report-name">AI Analytical Report</div>
+            <div class="report-desc">Claude-generated narrative · All scenarios · Policy recommendations</div>
+          </div>
+          <button class="btn-generate btn-ai-report" onclick="generateAIReport()">Generate</button>
+        </div>
+      </div>
+
+      <div id="ai-report-panel" style="display:none;" class="card" style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+          <div>
+            <div class="card-title">AI Analytical Report</div>
+            <div class="card-sub" id="ai-report-sub">Generating...</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="copyAIReport()" id="ai-copy-btn" style="padding:7px 16px;background:#f0f4f8;color:#1a2b4a;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Copy text</button>
+            <button onclick="printAIReport()" style="padding:7px 16px;background:#1a2b4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Print / Save PDF</button>
+          </div>
+        </div>
+        <div id="ai-report-output" style="font-size:13px;color:#333;line-height:1.8;white-space:pre-wrap;min-height:60px;"></div>
       </div>
 
       <div class="card">
@@ -99,5 +124,6 @@
 
   <div id="toast" class="toast"></div>
   <script src="reports.js"></script>
+  <script src="ai-report.js"></script>
 </body>
 </html>
