@@ -24,6 +24,11 @@
       <a href="whatif.html"     class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
       <div class="nav-section">Output</div>
       <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item">
+        <span class="nav-icon">⚡</span> Mix Optimizer
+      </a>
+          <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
@@ -44,12 +49,17 @@
         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
         <div class="upload-icon-wrap"><div class="upload-icon">↑</div></div>
         <div class="upload-title">Drag and drop your file here</div>
-        <div class="upload-sub">Supports .xlsx, .csv, .json — max 50 MB</div>
-        <input type="file" id="file-input" accept=".csv" style="display:none">
+        <div class="upload-sub">xlsx — max 50 MB</div>
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none">
         <button class="btn-browse" onclick="document.getElementById('file-input').click()">Browse files</button>
       </div>
 
       <div id="upload-result" style="display:none;"></div>
+
+      <div style="margin: 12px 0; padding: 12px 16px; background:#e8f5e9; border-radius:8px; font-size:13px; display:flex; align-items:center; gap:12px;">
+        <span>Fill out the template with your data and upload it above.</span>
+        <button onclick="downloadTemplate()" style="margin-left:auto; padding:6px 14px; background:#1D6B48; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">Download XLSX Template</button>
+      </div>
 
       <div class="card" id="upload-progress" style="display:none; margin-bottom:16px;">
         <div class="card-title">Uploading file...</div>
