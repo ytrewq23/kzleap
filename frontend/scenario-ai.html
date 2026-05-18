@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Smart Scenario Analysis</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="results.css">
+  <link rel="stylesheet" href="lp-optimizer.css">
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div>
+        <div class="logo-title">KZLEAP</div>
+        <div class="logo-sub">Energy Platform</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+      <a href="scenario-ai.html" class="nav-item active"><span class="nav-icon">◎</span> Smart Analysis</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div style="flex:1;">
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
+      </div>
+      <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Smart Scenario Analysis</h2>
+        <p>Describe a policy goal in plain English — AI runs Energy mix optimizations and compares results</p>
+      </div>
+      <div class="topbar-right">
+        <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">Policy goal</div>
+        <div class="card-sub">Ask any question about Kazakhstan's energy system — the AI will select scenarios, run Energy mix optimizations, and answer with data</div>
+        <div class="sai-input-area">
+          <textarea id="ai-goal-input" class="sai-textarea" placeholder="e.g. What is the cheapest way to reach 50% renewables by 2035?&#10;e.g. How much would it cost to cut CO2 by 40% by 2040?&#10;e.g. Compare BAU and Deep Decarbonization for 2050 electricity costs."></textarea>
+          <div class="sai-actions">
+            <div class="sai-examples">
+              <span class="sai-example-label">Try:</span>
+              <button class="sai-chip" onclick="setExample(this)">Cheapest path to 50% RE by 2035</button>
+              <button class="sai-chip" onclick="setExample(this)">Cut CO2 by 40% by 2040 — what does it cost?</button>
+              <button class="sai-chip" onclick="setExample(this)">Is nuclear worth it by 2050?</button>
+              <button class="sai-chip" onclick="setExample(this)">Compare all scenarios for 2060</button>
+            </div>
+            <button onclick="runSmartAnalysis()" id="ai-run-btn" class="sai-run-btn">Run analysis</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="sai-error" style="display:none;" class="lp-error-box"></div>
+
+      <div id="sai-progress" style="display:none;" class="card sai-progress-card">
+        <div class="sai-progress-row">
+          <div class="lp-spinner-ring" style="width:20px;height:20px;border-width:2px;"></div>
+          <span id="sai-progress-text" class="sai-progress-text">Starting...</span>
+        </div>
+      </div>
+
+      <div id="sai-runs-grid" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;">LP optimization runs</div>
+        <div class="metrics-grid" id="sai-runs-metrics"></div>
+      </div>
+
+      <div id="sai-result-panel" style="display:none;" class="card" style="margin-top:16px;">
+        <div class="sai-result-header">
+          <div>
+            <div class="card-title">Analysis</div>
+            <div class="card-sub" id="sai-result-sub">Claude · LP-backed</div>
+          </div>
+          <button onclick="copySAIResult()" class="sai-copy-btn">Copy</button>
+        </div>
+        <div id="sai-result-output" class="lp-ai-output" style="min-height:80px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <style>
+    @keyframes lp-spin { to { transform: rotate(360deg); } }
+
+    .sai-input-area { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    .sai-textarea {
+      width: 100%; min-height: 90px; resize: vertical;
+      font-size: 13px; padding: 12px 14px; border: 1px solid #ddd;
+      border-radius: 8px; font-family: inherit; color: #333; line-height: 1.6;
+      box-sizing: border-box;
+    }
+    .sai-textarea:focus { outline: none; border-color: #1D9E75; }
+
+    .sai-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+    .sai-examples { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .sai-example-label { font-size: 11px; color: #999; white-space: nowrap; }
+
+    .sai-chip {
+      font-size: 11px; padding: 4px 10px; border: 1px solid #d4ede7;
+      border-radius: 20px; background: #f8fffe; color: #0F6E56;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .sai-chip:hover { background: #e1f5ee; }
+
+    .sai-run-btn {
+      padding: 10px 28px; background: #1D9E75; color: #fff;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-weight: 600; font-size: 13px; transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .sai-run-btn:hover { background: #178a63; }
+    .sai-run-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .sai-progress-card { padding: 14px 18px; }
+    .sai-progress-row { display: flex; align-items: center; gap: 12px; }
+    .sai-progress-text { font-size: 13px; color: #555; }
+
+    .sai-result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+
+    .sai-copy-btn {
+      padding: 6px 14px; background: #f0f4f8; color: #1a2b4a;
+      border: 1px solid #ddd; border-radius: 8px; cursor: pointer;
+      font-size: 12px; font-weight: 600;
+    }
+    .sai-copy-btn:hover { background: #e4eaf0; }
+  </style>
+
+  <script src="scenario-ai.js"></script>
+</body>
+</html>
