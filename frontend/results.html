@@ -40,6 +40,11 @@
       <a href="reports.html" class="nav-item">
         <span class="nav-icon">◻</span> Reports
       </a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item">
+        <span class="nav-icon">⚡</span> Mix Optimizer
+      </a>
+          <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
@@ -60,7 +65,6 @@
       <div class="topbar-right">
         <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
         <span class="badge" id="role-badge">Energy Analyst</span>
-        <button onclick="openLP()" class="btn-outline" style="background:#1D9E75;color:#fff;border-color:#1D9E75;">Optimization</button>
         <a href="reports.html" class="btn-outline">Export Report →</a>
       </div>
     </div>
@@ -158,93 +162,6 @@
     </div>
   </div>
 
-  <!-- LP Modal -->
-  <div id="lp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:12px;width:780px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:28px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.2);">
-
-      <button onclick="closeLP()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#666;">✕</button>
-
-      <div style="margin-bottom:20px;">
-        <div style="font-size:16px;font-weight:700;color:#1a2b4a;margin-bottom:4px;">⚡ LP Optimization — Least-Cost Electricity Mix</div>
-        <div style="font-size:12px;color:#888;">Linear programming (PuLP/CBC solver) finds the cheapest generation mix that meets projected demand</div>
-      </div>
-
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
-        <div>
-          <label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Scenario</label>
-          <select id="lp-scenario" style="font-size:13px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;">
-            <option value="BAU">BAU</option>
-            <option value="MT" selected>MT — Moderate Transition</option>
-            <option value="DD">DD — Deep Decarbonization</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Target year</label>
-          <select id="lp-year" style="font-size:13px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;">
-            <option value="2030">2030</option>
-            <option value="2035" selected>2035</option>
-            <option value="2040">2040</option>
-            <option value="2050">2050</option>
-            <option value="2060">2060</option>
-          </select>
-        </div>
-        <div style="align-self:flex-end;">
-          <button onclick="runLP()" id="lp-run-btn" style="padding:8px 20px;background:#1D9E75;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;">▶ Run LP</button>
-        </div>
-      </div>
-
-      <div id="lp-error" style="display:none;padding:12px;background:#fff3f3;border-radius:8px;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
-
-      <div id="lp-results" style="display:block;position:relative;min-height:320px;">
-        <!-- Spinner overlay — sits on top, doesn't resize the modal -->
-        <div id="lp-spinner" style="display:none;position:absolute;inset:0;background:rgba(255,255,255,0.82);border-radius:8px;z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:10px;">
-          <div style="width:32px;height:32px;border:3px solid #d4ede7;border-top-color:#1D9E75;border-radius:50%;animation:lp-spin 0.7s linear infinite;"></div>
-          <div style="font-size:12px;color:#666;">Solving LP...</div>
-        </div>
-        <style>@keyframes lp-spin{to{transform:rotate(360deg)}}</style>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
-          <div style="background:#f0faf6;border:1px solid #c8e8da;border-radius:8px;padding:12px;">
-            <div style="font-size:10px;color:#666;margin-bottom:3px;">Total generation</div>
-            <div style="font-size:18px;font-weight:700;color:#0F6E56;" id="lp-gen">—</div>
-            <div style="font-size:10px;color:#888;">TWh</div>
-          </div>
-          <div style="background:#f0faf6;border:1px solid #c8e8da;border-radius:8px;padding:12px;">
-            <div style="font-size:10px;color:#666;margin-bottom:3px;">System cost</div>
-            <div style="font-size:18px;font-weight:700;color:#0F6E56;" id="lp-cost">—</div>
-            <div style="font-size:10px;color:#888;">Billion USD/yr</div>
-          </div>
-          <div style="background:#fff5f0;border:1px solid #f0c8b0;border-radius:8px;padding:12px;">
-            <div style="font-size:10px;color:#666;margin-bottom:3px;">CO₂ from power</div>
-            <div style="font-size:18px;font-weight:700;color:#D85A30;" id="lp-co2">—</div>
-            <div style="font-size:10px;color:#888;">Mt CO₂</div>
-          </div>
-          <div style="background:#f0faf6;border:1px solid #c8e8da;border-radius:8px;padding:12px;">
-            <div style="font-size:10px;color:#666;margin-bottom:3px;">RE share</div>
-            <div style="font-size:18px;font-weight:700;color:#1D9E75;" id="lp-re">—</div>
-            <div style="font-size:10px;color:#888;">% of generation</div>
-          </div>
-        </div>
-
-        <div style="font-size:12px;font-weight:600;color:#444;margin-bottom:8px;">Generation mix by technology</div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Technology</th>
-              <th>Generation (TWh)</th>
-              <th>Share (%)</th>
-              <th>New capacity (GW)</th>
-              <th>CO₂ (Mt)</th>
-            </tr>
-          </thead>
-          <tbody id="lp-tbody"></tbody>
-        </table>
-
-        <div style="margin-top:16px;height:200px;">
-          <canvas id="lpChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="results.js"></script>
