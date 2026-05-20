@@ -1,5 +1,10 @@
 const BACKEND = 'http://localhost:8000';
 
+let CFG = { base_co2: 242, base_elec: 115, base_tpes: 85, base_year: 2023, ndc_unconditional: 246.5, ndc_conditional: 217.5 };
+async function loadConfig() {
+  try { const r = await fetch(`${BACKEND}/api/config`); if (r.ok) CFG = await r.json(); } catch {}
+}
+
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 const badgeStyles = {
@@ -23,6 +28,7 @@ badge.style.color = badgeStyles[user.role].color;
 });
 
 async function loadDashboard() {
+  await loadConfig();
   let co2Data = null, wbData = null;
 
   try {
@@ -96,20 +102,20 @@ function renderAll(co2Data, wbData, hist) {
     }
   }
 
-  const lastCO2 = co2Values[co2Values.length - 1] || 242;
-  const ndcTarget = 246.5;
+  const lastCO2 = co2Values[co2Values.length - 1] || CFG.base_co2;
+  const ndcTarget = CFG.ndc_unconditional;
   const ndcGap = Math.round(lastCO2 - ndcTarget);
-  const lastYear = co2Years[co2Years.length - 1] || 2023;
+  const lastYear = co2Years[co2Years.length - 1] || CFG.base_year;
 
   setKPI('kpi-co2',  Math.round(lastCO2) + ' Mt',
     `CO₂ ${lastYear} · Source: ${co2Data ? 'Our World in Data' : 'IEA'}`);
-  setKPI('kpi-elec', '115 TWh', 'Electricity 2023 · KEGOC');
-  setKPI('kpi-tpes', '85 Mtoe', 'Total primary energy 2023 · IEA');
+  setKPI('kpi-elec', CFG.base_elec + ' TWh', `Electricity ${CFG.base_year} · KEGOC`);
+  setKPI('kpi-tpes', CFG.base_tpes + ' Mtoe', `Total primary energy ${CFG.base_year} · IEA`);
   setKPI('kpi-ndc',
     (ndcGap > 0 ? '+' : '') + ndcGap + ' Mt',
     ndcGap > 0 ? 'Above NDC 2030 target (−15% vs 1990)' : '✓ Below NDC target');
 
-  const ndc = 246.5;
+  const ndc = CFG.ndc_unconditional;
   const colors = co2Values.map(v => v > ndc ? '#D85A30' : '#1D9E75');
 
   renderChart('sectorChart', {
@@ -165,8 +171,49 @@ function renderAll(co2Data, wbData, hist) {
     }
   });
 
-  if (gdpYears.length > 0) {
+  // ── Electricity generation — из hist (всегда из /api/historical, данные Excel или встроенные)
+  if (hist && hist.electricity) {
+    const elecPairs = hist.years
+      .map((y, i) => [y, hist.electricity[i]])
+      .filter(p => p[1] != null);
+    const elecYears  = elecPairs.map(p => p[0]);
+    const elecValues = elecPairs.map(p => p[1]);
+
     renderChart('ironChart', {
+      type: 'line',
+      data: {
+        labels: elecYears,
+        datasets: [{
+          label: 'Electricity generation (TWh)',
+          data: elecValues,
+          borderColor: '#378ADD',
+          backgroundColor: 'rgba(55,138,221,0.08)',
+          tension: 0.35, borderWidth: 2.5, fill: true, pointRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' TWh' } }
+        },
+        scales: {
+          y: { ticks: { callback: v => v + ' TWh', font: { size: 10 } } },
+          x: { ticks: { font: { size: 10 }, maxRotation: 45 } }
+        }
+      }
+    });
+
+    const source = hist.source === 'excel' ? 'Excel (загружен)' : 'IEA / KEGOC';
+    const titleEl = document.querySelector('#ironChart')?.closest('.card')?.querySelector('.card-title');
+    if (titleEl) titleEl.textContent = `Electricity generation ${Math.min(...elecYears)}–${Math.max(...elecYears)}`;
+    const subEl = document.querySelector('#ironChart')?.closest('.card')?.querySelector('.card-sub');
+    if (subEl) subEl.textContent = `Kazakhstan · TWh · Source: ${source}`;
+  }
+
+  // ── GDP — рисуем отдельно если есть World Bank данные
+  if (gdpYears.length > 0) {
+    renderChart('gdpChart', {
       type: 'line',
       data: {
         labels: gdpYears,
@@ -189,10 +236,11 @@ function renderAll(co2Data, wbData, hist) {
         }
       }
     });
-    const titleEl = document.querySelector('#ironChart')?.closest('.card')?.querySelector('.card-title');
-    if (titleEl) titleEl.textContent = 'GDP 1990–2023 (World Bank data)';
-    const subEl = document.querySelector('#ironChart')?.closest('.card')?.querySelector('.card-sub');
-    if (subEl) subEl.textContent = 'Kazakhstan · Billion USD · Source: World Bank WDI (uploaded)';
+    document.getElementById('gdpChartCard')?.style && (document.getElementById('gdpChartCard').style.display = '');
+    const titleEl2 = document.querySelector('#gdpChart')?.closest('.card')?.querySelector('.card-title');
+    if (titleEl2) titleEl2.textContent = 'GDP 1990–present (World Bank)';
+    const subEl2 = document.querySelector('#gdpChart')?.closest('.card')?.querySelector('.card-sub');
+    if (subEl2) subEl2.textContent = 'Kazakhstan · Billion USD · Source: World Bank WDI (uploaded)';
   }
 }
 
