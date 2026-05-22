@@ -30,8 +30,10 @@
       <div class="nav-section">Output</div>
       <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
       <div class="nav-section">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> LP Optimizer</a>
       <a href="scenario-ai.html" class="nav-item active"><span class="nav-icon">◎</span> Smart Analysis</a>
+          <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
@@ -53,7 +55,7 @@
     <div class="topbar">
       <div>
         <h2>Smart Scenario Analysis</h2>
-        <p>Describe a policy goal in plain English — AI runs Energy mix optimizations and compares results</p>
+        <p>Describe a policy goal in plain English — AI runs LP optimizations and compares results</p>
       </div>
       <div class="topbar-right">
         <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
@@ -65,7 +67,7 @@
 
       <div class="card" style="margin-bottom:16px;">
         <div class="card-title">Policy goal</div>
-        <div class="card-sub">Ask any question about Kazakhstan's energy system — the AI will select scenarios, run Energy mix optimizations, and answer with data</div>
+        <div class="card-sub">Ask any question about Kazakhstan's energy system — the AI will select scenarios, run LP optimizations, and answer with data</div>
         <div class="sai-input-area">
           <textarea id="ai-goal-input" class="sai-textarea" placeholder="e.g. What is the cheapest way to reach 50% renewables by 2035?&#10;e.g. How much would it cost to cut CO2 by 40% by 2040?&#10;e.g. Compare BAU and Deep Decarbonization for 2050 electricity costs."></textarea>
           <div class="sai-actions">
