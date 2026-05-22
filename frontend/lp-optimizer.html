@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KZLEAP — Energy Mix Optimizer"</title>
+  <title>KZLEAP — LP Optimizer</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="results.css">
@@ -30,8 +30,10 @@
       <div class="nav-section">Output</div>
       <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
       <div class="nav-section">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item active"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+      <a href="lp-optimizer.html" class="nav-item active"><span class="nav-icon">⚡</span> LP Optimizer</a>
           <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
+          <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
@@ -52,7 +54,7 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2>Mix Optimizer</h2>
+        <h2>LP Optimizer</h2>
         <p>Linear programming · Least-cost electricity mix · PuLP/CBC solver</p>
       </div>
       <div class="topbar-right">
