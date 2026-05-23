@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Energy Map</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    .main-content {
+      margin-left: 220px;
+      padding: 24px;
+      min-height: 100vh;
+      box-sizing: border-box;
+      width: calc(100% - 220px);
+    }
+    #energy-map {
+      width: 100%;
+      height: 62vh;
+      min-height: 440px;
+      border-radius: 12px;
+      border: 1px solid #e0e4e8;
+      margin-top: 12px;
+    }
+    .fdot {
+      display: inline-block;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .map-controls {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 10px; align-items: center;
+    }
+    .filt-btn, .sc-btn {
+      padding: 5px 14px; border-radius: 20px;
+      border: 1px solid #e0e0e0; background: #fff;
+      cursor: pointer; font-size: 13px; transition: all .15s;
+      font-family: inherit;
+    }
+    .filt-btn.active { border-color: #1D9E75; background: #e1f5ee; color: #0F6E56; font-weight: 500; }
+    .sc-btn.active   { border-color: #378ADD; background: #e6f1fb; color: #185FA5; font-weight: 500; }
+    .section-label   { font-size: 12px; font-weight: 600; color: #888; margin-right: 4px; }
+    .stats-row { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+    .stat-card {
+      flex: 1; min-width: 110px;
+      background: #fff; border: 1px solid #e8ecf0;
+      border-radius: 10px; padding: 12px 16px;
+    }
+    .stat-val { font-size: 22px; font-weight: 700; color: #1a2332; }
+    .stat-lbl { font-size: 12px; color: #6b7a8d; margin-top: 2px; }
+    .legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; padding-bottom: 16px; }
+    .leg { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #444; }
+    .leg-pin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(0,0,0,.15); flex-shrink:0; }
+
+    /* Leaflet popup */
+    .leaflet-popup-content b { color: #1a2332; }
+    .new-badge { color: #1D9E75; font-weight: 600; }
+
+    /* Map marker pins */
+    .kz-pin {
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: 2.5px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+      font-size: 13px; line-height: 1;
+    }
+    .kz-pin.new-pin {
+      border-style: dashed;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.4), 0 2px 8px rgba(0,0,0,.2);
+    }
+  </style>
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div>
+        <div class="logo-title">KZLEAP</div>
+        <div class="logo-sub">Energy Platform</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> LP Optimizer</a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <a href="map.html" class="nav-item active"><span class="nav-icon">🗺</span> Energy Map</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">--</div>
+      <div style="flex:1; overflow:hidden;">
+        <div class="user-name" id="user-name">Loading...</div>
+        <div class="user-role" id="user-role">—</div>
+      </div>
+      <button onclick="window.location.href='index.html'" title="Logout"
+        style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.5;font-size:16px;">↩</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1 style="margin:0 0 4px;">Kazakhstan Energy Map</h1>
+      <p style="color:#6b7a8d;margin:0;font-size:14px;">
+        Interactive map of power plants — switch scenarios to see projected new capacity by 2035
+      </p>
+    </div>
+
+    <div class="map-controls" style="margin-top:16px;">
+      <span class="section-label">Scenario:</span>
+      <button class="sc-btn active" onclick="setScenario('current',this)">Current (2023)</button>
+      <button class="sc-btn" onclick="setScenario('BAU',this)">BAU</button>
+      <button class="sc-btn" onclick="setScenario('MT',this)">Moderate Transition</button>
+      <button class="sc-btn" onclick="setScenario('DD',this)">Deep Decarbonization</button>
+    </div>
+
+    <div class="map-controls">
+      <span class="section-label">Filter:</span>
+      <button class="filt-btn active" onclick="toggleFilter('coal',this)"><span class="fdot" style="background:#4a4a4a"></span>Coal</button>
+      <button class="filt-btn active" onclick="toggleFilter('gas',this)"><span class="fdot" style="background:#EF9F27"></span>Gas</button>
+      <button class="filt-btn active" onclick="toggleFilter('hydro',this)"><span class="fdot" style="background:#378ADD"></span>Hydro</button>
+      <button class="filt-btn active" onclick="toggleFilter('wind',this)"><span class="fdot" style="background:#1D9E75"></span>Wind</button>
+      <button class="filt-btn active" onclick="toggleFilter('solar',this)"><span class="fdot" style="background:#F5A623"></span>Solar</button>
+      <button class="filt-btn active" onclick="toggleFilter('nuclear',this)"><span class="fdot" style="background:#9F77DD"></span>Nuclear</button>
+    </div>
+
+    <div id="energy-map"></div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-total">—</div>
+        <div class="stat-lbl">Total capacity (GW)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-re">—</div>
+        <div class="stat-lbl">Renewables (GW)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-count">—</div>
+        <div class="stat-lbl">Plants on map</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-new">—</div>
+        <div class="stat-lbl">New planned objects</div>
+      </div>
+    </div>
+
+    <div class="legend-row">
+      <div class="leg"><div class="leg-pin" style="background:#555"></div> Coal TPP</div>
+      <div class="leg"><div class="leg-pin" style="background:#EF9F27"></div> Gas TPP</div>
+      <div class="leg"><div class="leg-pin" style="background:#378ADD"></div> Hydro HPP</div>
+      <div class="leg"><div class="leg-pin" style="background:#1D9E75"></div> Wind farm</div>
+      <div class="leg"><div class="leg-pin" style="background:#F5A623"></div> Solar PV</div>
+      <div class="leg"><div class="leg-pin" style="background:#9F77DD"></div> Nuclear (planned)</div>
+      <div class="leg">
+        <div class="leg-pin" style="background:#1D9E75;border-style:dashed;"></div>
+        New / Planned object
+      </div>
+    </div>
+  </div>
+
+<script>
+// ── User info (all roles) ────────────────────────────────────────────────
+(function() {
+  const u = JSON.parse(sessionStorage.getItem('kzleap_user') || '{}');
+  const name = u.name || u.email || 'User';
+  const role = u.role || 'researcher';
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-role').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  document.getElementById('user-avatar').textContent = name.slice(0,2).toUpperCase();
+})();
+
+// ── Map ──────────────────────────────────────────────────────────────────
+const map = L.map('energy-map').setView([48.5, 68.0], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors', maxZoom: 12
+}).addTo(map);
+
+// ── Colors ───────────────────────────────────────────────────────────────
+const COLORS = {
+  coal: '#4a4a4a', gas: '#EF9F27', hydro: '#378ADD',
+  wind: '#1D9E75', solar: '#F5A623', nuclear: '#9F77DD'
+};
+
+// Single letter label per type — clean, readable
+const LABELS = {
+  coal: 'C', gas: 'G', hydro: 'H', wind: 'W', solar: 'S', nuclear: 'N'
+};
+
+// ── Plants data ──────────────────────────────────────────────────────────
+const PLANTS = [
+  { name:'Ekibastuz GRES-1',   type:'coal',   gw:4.0,  lat:51.72, lng:75.37, year:1980 },
+  { name:'Ekibastuz GRES-2',   type:'coal',   gw:1.0,  lat:51.50, lng:75.15, year:1990 },
+  { name:'Karaganda CHP',      type:'coal',   gw:0.65, lat:49.80, lng:73.10, year:1955 },
+  { name:'Almaty CHP-2',       type:'coal',   gw:0.51, lat:43.25, lng:76.85, year:1959 },
+  { name:'Petropavlovsk CHP',  type:'coal',   gw:0.51, lat:54.87, lng:69.15, year:1958 },
+  { name:'Ridder CHP',         type:'coal',   gw:0.32, lat:50.35, lng:83.51, year:1952 },
+  { name:'Temirtau CHP',       type:'coal',   gw:0.43, lat:50.05, lng:72.96, year:1960 },
+  { name:'Atyrau GRES',        type:'gas',    gw:0.38, lat:47.12, lng:51.92, year:2000 },
+  { name:'Aktobe CHP',         type:'gas',    gw:0.23, lat:50.28, lng:57.21, year:1975 },
+  { name:'Shymkent CHP',       type:'gas',    gw:0.31, lat:42.30, lng:69.60, year:1970 },
+  { name:'Zhanaozen CHP',      type:'gas',    gw:0.19, lat:43.34, lng:52.87, year:2005 },
+  { name:'Bukhtarma HPP',      type:'hydro',  gw:0.67, lat:49.82, lng:84.52, year:1960 },
+  { name:'Shulbinsk HPP',      type:'hydro',  gw:0.70, lat:50.60, lng:82.42, year:1987 },
+  { name:'Kapchagai HPP',      type:'hydro',  gw:0.43, lat:43.87, lng:77.07, year:1970 },
+  { name:'Shelek Wind Farm',   type:'wind',   gw:0.10, lat:43.58, lng:79.52, year:2022 },
+  { name:'Ereymentau Wind',    type:'wind',   gw:0.045,lat:51.61, lng:73.10, year:2015 },
+  { name:'Zhambyl Solar PV',   type:'solar',  gw:0.10, lat:42.90, lng:71.38, year:2019 },
+  { name:'Kegen Solar PV',     type:'solar',  gw:0.50, lat:43.02, lng:79.18, year:2018 },
+];
+
+const FUTURE = {
+  BAU: [
+    { name:'Wind Park Aktobe',    type:'wind',  gw:0.2, lat:50.50, lng:57.00, year:2030 },
+  ],
+  MT: [
+    { name:'Stepnoy Wind Park',   type:'wind',    gw:0.5, lat:51.95, lng:71.05, year:2030 },
+    { name:'Turkestan Solar PV',  type:'solar',   gw:0.4, lat:41.80, lng:68.30, year:2030 },
+    { name:'Ulken NPP (planned)', type:'nuclear', gw:1.2, lat:44.28, lng:74.52, year:2035 },
+  ],
+  DD: [
+    { name:'Stepnoy Wind Park',   type:'wind',    gw:0.5, lat:51.95, lng:71.05, year:2030 },
+    { name:'Balkhash Wind Farm',  type:'wind',    gw:0.8, lat:46.82, lng:75.00, year:2030 },
+    { name:'Turkestan Solar PV',  type:'solar',   gw:0.6, lat:41.80, lng:68.30, year:2030 },
+    { name:'Aral Solar PV',       type:'solar',   gw:0.7, lat:45.00, lng:59.50, year:2032 },
+    { name:'Atyrau Wind Farm',    type:'wind',    gw:0.3, lat:47.52, lng:52.52, year:2033 },
+    { name:'Ulken NPP (planned)', type:'nuclear', gw:2.4, lat:44.28, lng:74.52, year:2035 },
+  ],
+};
+
+// ── Icon — clean colored circle + letter ─────────────────────────────────
+function makeIcon(type, isNew) {
+  const color = COLORS[type];
+  const label = LABELS[type];
+  const size = isNew ? 36 : 32;
+  const border = isNew ? 'border-style:dashed;' : '';
+  const pulse = isNew
+    ? `<div style="position:absolute;inset:-5px;border-radius:50%;background:${color};opacity:.15;pointer-events:none;"></div>`
+    : '';
+
+  const html = `<div style="position:relative;width:${size}px;height:${size}px;">
+    ${pulse}
+    <div class="kz-pin${isNew?' new-pin':''}" style="
+      width:${size}px;height:${size}px;
+      background:${color};${border}
+      color:#fff;font-size:${size > 32 ? 14 : 13}px;font-weight:700;
+      font-family:-apple-system,sans-serif;
+    ">${label}</div>
+  </div>`;
+
+  return L.divIcon({ html, className: '', iconSize: [size, size], iconAnchor: [size/2, size/2] });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+let activeFilters = new Set(['coal','gas','hydro','wind','solar','nuclear']);
+let currentScenario = 'current';
+let markers = [];
+
+function renderMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  let plants = [...PLANTS];
+  if (currentScenario !== 'current' && FUTURE[currentScenario]) {
+    FUTURE[currentScenario].forEach(p => plants.push({ ...p, isNew: true }));
+  }
+  plants = plants.filter(p => activeFilters.has(p.type));
+
+  let totalGW = 0, reGW = 0, newCount = 0;
+  plants.forEach(p => {
+    totalGW += p.gw;
+    if (['wind','solar','hydro'].includes(p.type)) reGW += p.gw;
+    if (p.isNew) newCount++;
+
+    const m = L.marker([p.lat, p.lng], { icon: makeIcon(p.type, p.isNew) });
+    const badge = p.isNew ? '<br><span class="new-badge">🆕 New / Planned</span>' : '';
+    m.bindPopup(`
+      <b>${p.name}</b><br>
+      Type: <b>${p.type.toUpperCase()}</b><br>
+      Capacity: <b>${p.gw} GW</b><br>
+      Commissioned: ${p.year}${badge}
+    `, { maxWidth: 210 });
+    m.addTo(map);
+    markers.push(m);
+  });
+
+  document.getElementById('stat-total').textContent = totalGW.toFixed(2);
+  document.getElementById('stat-re').textContent    = reGW.toFixed(2);
+  document.getElementById('stat-count').textContent = plants.length;
+  document.getElementById('stat-new').textContent   = newCount;
+}
+
+function setScenario(sc, btn) {
+  currentScenario = sc;
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMarkers();
+}
+
+function toggleFilter(type, btn) {
+  if (activeFilters.has(type)) activeFilters.delete(type);
+  else activeFilters.add(type);
+  btn.classList.toggle('active');
+  renderMarkers();
+}
+
+renderMarkers();
+// Force Leaflet to recalculate size after layout settles
+setTimeout(() => map.invalidateSize(), 300);
+</script>
+
+<script src="ai-chat-widget.js"></script>
+</body>
+</html>
