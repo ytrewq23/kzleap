@@ -13,24 +13,27 @@ def run_sensitivity_analysis(
     discount_rate: float,
     shocks: List[Dict],
 ) -> Dict:
-    """
-    Run LP under a list of parameter shocks and return results for each shock
-    alongside the baseline. Each shock is a dict:
-      { "param": "gas_fuel_cost" | "coal_fuel_cost" | "solar_capex" |
-                 "wind_capex" | "carbon_price" | "demand",
-        "delta_pct": float }   # e.g. +30 means +30%
-    """
 
-    def _solve(tech_overrides: dict, demand_twh: float, carbon_price_usd_t: float = 0.0):
+    _solve_counter = [0]
+
+    def _solve(
+        tech_overrides: dict,
+        demand_twh: float,
+        carbon_price_usd_t: float = 0.0,
+        relax_fossil_floors: bool = False,
+    ):
+        _solve_counter[0] += 1
+        uid = _solve_counter[0]
+
         techs_local = copy.deepcopy(technologies)
         for key, val in tech_overrides.items():
             t, param = key.split(".", 1)
             techs_local[t][param] = val
 
-        prob    = pulp.LpProblem("SA", pulp.LpMinimize)
+        prob    = pulp.LpProblem(f"SA_{uid}", pulp.LpMinimize)
         techs   = list(techs_local.keys())
-        gen     = {t: pulp.LpVariable(f"gen_{t}",     lowBound=0) for t in techs}
-        cap_new = {t: pulp.LpVariable(f"cap_new_{t}", lowBound=0) for t in techs}
+        gen     = {t: pulp.LpVariable(f"gen_{t}_{uid}",     lowBound=0) for t in techs}
+        cap_new = {t: pulp.LpVariable(f"cap_new_{t}_{uid}", lowBound=0) for t in techs}
 
         cost_terms = []
         for t in techs:
@@ -61,13 +64,26 @@ def run_sensitivity_analysis(
             prob += cap_new["nuclear"] == 0, "No_Nuc_New"
             prob += gen["nuclear"]     == 0, "No_Nuc_Gen"
 
-        prob += gen["solar"]   <= 0.35 * total, "Solar_Max"
-        prob += gen["wind"]    <= 0.25 * total, "Wind_Max"
         prob += gen["hydro"]   <= 0.15 * total, "Hydro_Max"
         prob += gen["nuclear"] <= 0.20 * total, "Nuclear_Max"
-        prob += pulp.lpSum(gen[t] for t in re_techs) <= 0.70 * total, "RE_Max"
-        prob += gen["coal"] >= 0.10 * total, "Coal_Min"
-        prob += gen["gas"]  >= 0.08 * total, "Gas_Min"
+
+        if relax_fossil_floors:
+            re_ceiling = min(0.85 + carbon_price_usd_t / 300, 0.92)
+            solar_ceil = min(0.50 + carbon_price_usd_t / 500, 0.60)
+            wind_ceil  = min(0.40 + carbon_price_usd_t / 600, 0.50)
+            coal_floor = max(0.05 - carbon_price_usd_t / 800,  0.01)
+            gas_floor  = max(0.05 - carbon_price_usd_t / 1200, 0.01)
+            prob += pulp.lpSum(gen[t] for t in re_techs) <= re_ceiling * total, "RE_Max"
+            prob += gen["solar"] <= solar_ceil * total, "Solar_Max"
+            prob += gen["wind"]  <= wind_ceil  * total, "Wind_Max"
+            prob += gen["coal"] >= coal_floor * total, "Coal_Min"
+            prob += gen["gas"]  >= gas_floor  * total, "Gas_Min"
+        else:
+            prob += pulp.lpSum(gen[t] for t in re_techs) <= 0.70 * total, "RE_Max"
+            prob += gen["solar"] <= 0.35 * total, "Solar_Max"
+            prob += gen["wind"]  <= 0.25 * total, "Wind_Max"
+            prob += gen["coal"] >= 0.10 * total, "Coal_Min"
+            prob += gen["gas"]  >= 0.08 * total, "Gas_Min"
 
         prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
@@ -112,40 +128,49 @@ def run_sensitivity_analysis(
 
     results = []
     for shock in shocks:
-        param      = shock["param"]
-        delta_pct  = shock["delta_pct"]
+        param     = shock["param"]
+        delta_pct = shock.get("delta_pct", 0.0) or 0.0
 
         if param == "demand":
             shocked_demand = base_demand_twh * (1 + delta_pct / 100)
-            result = _solve({}, shocked_demand)
+            result = _solve({}, shocked_demand, relax_fossil_floors=True)
+
         elif param == "carbon_price":
-            carbon_usd_t = shock.get("value", 0.0)
-            result = _solve({}, base_demand_twh, carbon_price_usd_t=carbon_usd_t)
+            carbon_usd_t = float(shock.get("value") or 0.0)
+            result = _solve(
+                {},
+                base_demand_twh,
+                carbon_price_usd_t=carbon_usd_t,
+                relax_fossil_floors=True,
+            )
+
         elif param in PARAM_MAP:
             t, field = PARAM_MAP[param]
-            base_val  = technologies[t][field]
-            new_val   = base_val * (1 + delta_pct / 100)
-            result    = _solve({f"{t}.{field}": new_val}, base_demand_twh)
+            base_val = technologies[t][field]
+            new_val  = base_val * (1 + delta_pct / 100)
+            result   = _solve({f"{t}.{field}": new_val}, base_demand_twh, relax_fossil_floors=True)
+
         else:
             continue
 
         if result is None:
             result = {"error": "infeasible"}
 
+        co2_base = baseline["total_co2_mt"]
         results.append({
             "param":     param,
             "delta_pct": delta_pct,
             "label":     shock.get("label", f"{param} {delta_pct:+.0f}%"),
             "result":    result,
-            "cost_delta_pct":  round((result.get("total_cost_bn_usd", 0) / baseline["total_cost_bn_usd"] - 1) * 100, 1) if "error" not in result else None,
-            "co2_delta_pct":   round((result.get("total_co2_mt", 0)      / baseline["total_co2_mt"]      - 1) * 100, 1) if "error" not in result and baseline["total_co2_mt"] > 0 else None,
-            "re_delta_ppt":    round(result.get("re_share_pct", 0) - baseline["re_share_pct"], 1) if "error" not in result else None,
-            "lcoe_delta_pct":  round((result.get("lcoe_usd_mwh", 0)      / baseline["lcoe_usd_mwh"]      - 1) * 100, 1) if "error" not in result and baseline["lcoe_usd_mwh"] > 0 else None,
+            "cost_delta_pct": round((result.get("total_cost_bn_usd", 0) / baseline["total_cost_bn_usd"] - 1) * 100, 1) if "error" not in result else None,
+            "co2_delta_pct":  round((result.get("total_co2_mt", 0) / co2_base - 1) * 100, 1) if "error" not in result and co2_base > 0 else None,
+            "re_delta_ppt":   round(result.get("re_share_pct", 0) - baseline["re_share_pct"], 1) if "error" not in result else None,
+            "lcoe_delta_pct": round((result.get("lcoe_usd_mwh", 0) / baseline["lcoe_usd_mwh"] - 1) * 100, 1) if "error" not in result and baseline["lcoe_usd_mwh"] > 0 else None,
         })
 
     return {
-        "scenario":  scenario,
-        "year":      year,
-        "baseline":  baseline,
-        "shocks":    results,
+        "scenario": scenario,
+        "year":     year,
+        "baseline": baseline,
+        "shocks":   results,
     }
