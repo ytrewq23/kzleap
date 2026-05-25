@@ -50,15 +50,14 @@ function renderShockList() {
   shocks.forEach((shock, i) => {
     const row = document.createElement('div');
     row.className = 'sa-shock-row';
-
     const isCarbon = shock.param === 'carbon_price';
-
     row.innerHTML = `
       <select class="sa-shock-select" onchange="updateShock(${i}, 'param', this.value)">
         ${SHOCK_PARAMS.map(p => `<option value="${p.value}" ${p.value === shock.param ? 'selected' : ''}>${p.label}</option>`).join('')}
       </select>
-      <span style="font-size:11px;color:#888;white-space:nowrap;">${isCarbon ? 'Value ($/t):' : 'Change (%):' }</span>
-      <input class="sa-shock-input" type="number" value="${isCarbon ? (shock.value || 50) : shock.delta_pct}"
+      <span style="font-size:11px;color:#888;white-space:nowrap;">${isCarbon ? 'Value ($/t):' : 'Change (%):'}</span>
+      <input class="sa-shock-input" type="number"
+        value="${isCarbon ? (shock.value ?? 50) : (shock.delta_pct ?? 30)}"
         onchange="updateShock(${i}, '${isCarbon ? 'value' : 'delta_pct'}', +this.value)"
         placeholder="${isCarbon ? '50' : '+30'}">
       <button class="sa-shock-remove" onclick="removeShock(${i})">✕</button>
@@ -68,7 +67,7 @@ function renderShockList() {
 }
 
 function addShock() {
-  shocks.push({ param: 'gas_fuel_cost', delta_pct: 30, label: 'Gas fuel cost +30%' });
+  shocks.push({ param: 'gas_fuel_cost', delta_pct: 30, value: null, label: 'Gas fuel cost +30%' });
   renderShockList();
 }
 
@@ -81,7 +80,7 @@ function updateShock(i, field, val) {
   shocks[i][field] = val;
   if (field === 'param') {
     shocks[i].delta_pct = 30;
-    shocks[i].value     = 50;
+    shocks[i].value = null;
     renderShockList();
   }
   shocks[i].label = buildLabel(shocks[i]);
@@ -89,22 +88,22 @@ function updateShock(i, field, val) {
 
 function buildLabel(shock) {
   const name = SHOCK_PARAMS.find(p => p.value === shock.param)?.label || shock.param;
-  if (shock.param === 'carbon_price') return `Carbon price $${shock.value}/t`;
-  return `${name} ${shock.delta_pct > 0 ? '+' : ''}${shock.delta_pct}%`;
+  if (shock.param === 'carbon_price') return `Carbon price $${shock.value ?? 50}/t`;
+  return `${name} ${(shock.delta_pct ?? 0) > 0 ? '+' : ''}${shock.delta_pct ?? 0}%`;
 }
 
 function loadPreset(type) {
   if (type === 'price') {
     shocks = [
-      { param: 'gas_fuel_cost',  delta_pct: +30, label: 'Gas fuel cost +30%' },
-      { param: 'coal_fuel_cost', delta_pct: +20, label: 'Coal fuel cost +20%' },
-      { param: 'gas_fuel_cost',  delta_pct: -20, label: 'Gas fuel cost -20%' },
+      { param: 'gas_fuel_cost',  delta_pct: +30, value: null, label: 'Gas fuel cost +30%' },
+      { param: 'coal_fuel_cost', delta_pct: +20, value: null, label: 'Coal fuel cost +20%' },
+      { param: 'gas_fuel_cost',  delta_pct: -20, value: null, label: 'Gas fuel cost -20%' },
     ];
   } else if (type === 'tech') {
     shocks = [
-      { param: 'solar_capex', delta_pct: -30, label: 'Solar capex -30%' },
-      { param: 'wind_capex',  delta_pct: -25, label: 'Wind capex -25%' },
-      { param: 'solar_capex', delta_pct: -50, label: 'Solar capex -50%' },
+      { param: 'solar_capex', delta_pct: -30, value: null, label: 'Solar capex -30%' },
+      { param: 'wind_capex',  delta_pct: -25, value: null, label: 'Wind capex -25%' },
+      { param: 'solar_capex', delta_pct: -50, value: null, label: 'Solar capex -50%' },
     ];
   } else if (type === 'carbon') {
     shocks = [
@@ -113,7 +112,6 @@ function loadPreset(type) {
       { param: 'carbon_price', delta_pct: 0, value: 100, label: 'Carbon price $100/t' },
     ];
   }
-  shocks.forEach(s => { if (!s.label) s.label = buildLabel(s); });
   renderShockList();
 }
 
@@ -133,11 +131,11 @@ function destroyChart(id) {
   if (charts[id]) { charts[id].destroy(); delete charts[id]; }
 }
 
-function buildBarChart(canvasId, labels, baselineVal, shockVals, label, color) {
+function buildBarChart(canvasId, labels, baselineVal, shockVals, label) {
   destroyChart(canvasId);
-  const allVals = [baselineVal, ...shockVals];
-  const minVal  = Math.min(...allVals.filter(v => v !== null));
-  const maxVal  = Math.max(...allVals.filter(v => v !== null));
+  const allVals = [baselineVal, ...shockVals.filter(v => v !== null)];
+  const minVal  = Math.min(...allVals);
+  const maxVal  = Math.max(...allVals);
   const padding = (maxVal - minVal) * 0.15 || 1;
 
   charts[canvasId] = new Chart(document.getElementById(canvasId), {
@@ -155,7 +153,10 @@ function buildBarChart(canvasId, labels, baselineVal, shockVals, label, color) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' ' + label } } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => (ctx.parsed.y ?? '—') + ' ' + label } }
+      },
       scales: {
         y: { min: Math.max(0, minVal - padding), max: maxVal + padding, ticks: { font: { size: 10 } } },
         x: { ticks: { font: { size: 10 }, maxRotation: 30 }, grid: { display: false } }
@@ -172,27 +173,28 @@ async function runSensitivity() {
   }
 
   const btn = document.getElementById('sa-run-btn');
-  btn.disabled = true; btn.textContent = 'Running...';
+  btn.disabled = true;
+  btn.textContent = 'Running...';
   document.getElementById('sa-error').style.display   = 'none';
   document.getElementById('sa-results').style.display = 'none';
   document.getElementById('sa-spinner').style.display = 'flex';
 
   try {
-    shocks.forEach(s => { s.label = buildLabel(s); });
+    const payload = {
+      scenario: document.getElementById('sa-scenario').value,
+      year:     +document.getElementById('sa-year').value,
+      shocks:   shocks.map(s => ({
+        param:     s.param,
+        delta_pct: s.param === 'carbon_price' ? 0 : (s.delta_pct ?? 0),
+        value:     s.param === 'carbon_price' ? (s.value ?? 50) : null,
+        label:     buildLabel(s),
+      })),
+    };
 
     const res = await fetch(`${BACKEND}/api/sensitivity`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        scenario: document.getElementById('sa-scenario').value,
-        year:     +document.getElementById('sa-year').value,
-        shocks:   shocks.map(s => ({
-          param:     s.param,
-          delta_pct: s.delta_pct || 0,
-          value:     s.value     || null,
-          label:     s.label,
-        })),
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) throw new Error('Backend error ' + res.status);
@@ -205,20 +207,19 @@ async function runSensitivity() {
     document.getElementById('sa-ai-output').textContent  = 'Click "Explain results" to get an AI interpretation.';
 
     const b = data.baseline;
-    const baseCards = document.getElementById('sa-baseline-cards');
-    baseCards.innerHTML = `
+    document.getElementById('sa-baseline-cards').innerHTML = `
       <div class="metric-card"><div class="metric-label">Baseline cost</div><div class="metric-value" style="color:#0F6E56;">${b.total_cost_bn_usd} B$</div><div class="metric-change neutral">USD/yr</div></div>
       <div class="metric-card"><div class="metric-label">Baseline CO2</div><div class="metric-value" style="color:#D85A30;">${b.total_co2_mt} Mt</div><div class="metric-change neutral">Operational</div></div>
       <div class="metric-card"><div class="metric-label">Baseline RE share</div><div class="metric-value" style="color:#1D9E75;">${b.re_share_pct}%</div><div class="metric-change neutral">Of generation</div></div>
       <div class="metric-card"><div class="metric-label">Baseline LCOE</div><div class="metric-value" style="color:#1a2b4a;">${b.lcoe_usd_mwh}</div><div class="metric-change neutral">USD/MWh</div></div>
     `;
 
-    const tbody  = document.getElementById('sa-table-body');
+    const tbody = document.getElementById('sa-table-body');
     tbody.innerHTML = '';
     data.shocks.forEach(s => {
-      const r = s.result;
+      const r   = s.result;
       const err = !!r.error;
-      const tr = document.createElement('tr');
+      const tr  = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight:600;">${s.label}</td>
         <td>${err ? '—' : r.total_cost_bn_usd}</td>
@@ -233,29 +234,31 @@ async function runSensitivity() {
       tbody.appendChild(tr);
     });
 
-    const labels    = data.shocks.map(s => s.label);
-    const costVals  = data.shocks.map(s => s.result.error ? null : s.result.total_cost_bn_usd);
-    const co2Vals   = data.shocks.map(s => s.result.error ? null : s.result.total_co2_mt);
-    const reVals    = data.shocks.map(s => s.result.error ? null : s.result.re_share_pct);
+    const labels   = data.shocks.map(s => s.label);
+    const costVals = data.shocks.map(s => s.result.error ? null : s.result.total_cost_bn_usd);
+    const co2Vals  = data.shocks.map(s => s.result.error ? null : s.result.total_co2_mt);
+    const reVals   = data.shocks.map(s => s.result.error ? null : s.result.re_share_pct);
 
-    buildBarChart('sa-cost-chart', labels, b.total_cost_bn_usd, costVals, 'B$/yr', '#378ADD');
-    buildBarChart('sa-co2-chart',  labels, b.total_co2_mt,      co2Vals,  'Mt',    '#D85A30');
-    buildBarChart('sa-re-chart',   labels, b.re_share_pct,       reVals,   '%',    '#1D9E75');
+    buildBarChart('sa-cost-chart', labels, b.total_cost_bn_usd, costVals, 'B$/yr');
+    buildBarChart('sa-co2-chart',  labels, b.total_co2_mt,      co2Vals,  'Mt');
+    buildBarChart('sa-re-chart',   labels, b.re_share_pct,      reVals,   '%');
 
   } catch (err) {
-    document.getElementById('sa-spinner').style.display  = 'none';
-    document.getElementById('sa-error').style.display    = 'block';
-    document.getElementById('sa-error').textContent      = 'Analysis failed: ' + err.message;
+    document.getElementById('sa-spinner').style.display = 'none';
+    document.getElementById('sa-error').style.display   = 'block';
+    document.getElementById('sa-error').textContent     = 'Analysis failed: ' + err.message;
   }
 
-  btn.disabled = false; btn.textContent = 'Run sensitivity analysis';
+  btn.disabled = false;
+  btn.textContent = 'Run sensitivity analysis';
 }
 
 async function explainSensitivity() {
   if (!lastData) return;
   const btn    = document.getElementById('sa-explain-btn');
   const output = document.getElementById('sa-ai-output');
-  btn.disabled = true; btn.textContent = 'Analyzing...';
+  btn.disabled = true;
+  btn.textContent = 'Analyzing...';
   output.textContent = '';
 
   const b = lastData.baseline;
@@ -274,15 +277,11 @@ ${shockSummary}
 
 Analyze — do not restate numbers, interpret them:
 
-1. Most impactful shock: Which single parameter change has the largest effect on system cost and why? What does this tell us about the structure of Kazakhstan's electricity system?
-
-2. CO2 sensitivity: Which shocks significantly change CO2 emissions and why? Does the LP respond to cost shocks by switching fuels, or are constraints binding?
-
-3. Renewables response: Do RE technology cost reductions actually increase RE share, or are RE penetration caps limiting the response? What does this imply for policy?
-
-4. Carbon price effectiveness: If carbon price shocks are included, at what price level does it start meaningfully changing the mix? Is it cost-competitive vs direct regulation?
-
-5. Risk ranking: Rank the tested shocks from highest to lowest risk for Kazakhstan's energy planning, and explain the top risk in one sentence.
+1. Most impactful shock: Which single parameter change has the largest effect on system cost and why?
+2. CO2 sensitivity: Which shocks significantly change CO2 emissions and why?
+3. Renewables response: Do RE technology cost reductions actually increase RE share, or are RE penetration caps limiting the response?
+4. Carbon price effectiveness: At what price level does carbon pricing start meaningfully changing the mix?
+5. Risk ranking: Rank the tested shocks from highest to lowest risk for Kazakhstan's energy planning.
 
 Keep each point to 2-3 sentences. Plain text only, no markdown, number each point.`;
 
@@ -290,10 +289,15 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
     const response = await fetch(`${BACKEND}/api/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], system: 'You are an expert energy economist specializing in Kazakhstan. Plain text only, no markdown, no bullet symbols, number each point.', max_tokens: 1500, stream: true }),
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }],
+        system: 'You are an expert energy economist specializing in Kazakhstan. Plain text only, no markdown, no bullet symbols, number each point.',
+        max_tokens: 1500,
+        stream: true,
+      }),
     });
 
-    const reader = response.body.getReader();
+    const reader  = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
     while (true) {
@@ -304,10 +308,10 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
       buffer = lines.pop();
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') break;
+        const d = line.slice(6).trim();
+        if (d === '[DONE]') break;
         try {
-          const parsed = JSON.parse(data);
+          const parsed = JSON.parse(d);
           const text = parsed.choices?.[0]?.delta?.content;
           if (text) output.textContent += text;
         } catch {}
@@ -317,7 +321,8 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
     output.textContent = 'Analysis failed: ' + err.message;
   }
 
-  btn.disabled = false; btn.textContent = 'Explain results';
+  btn.disabled = false;
+  btn.textContent = 'Explain results';
 }
 
 loadPreset('price');
