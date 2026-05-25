@@ -450,3 +450,104 @@ function renderNDCGauges(cfg, hist) {
     }
   );
 }
+
+/* ── News Feed ─────────────────────────────────────────────── */
+const NEWS = [
+  {
+    date: 'Mar 17, 2026',
+    tag: 'Capacity',
+    tag_color: '#1D9E75',
+    title: 'Kazakhstan Renewable Capacity to Hit 12.9 GW by 2035',
+    text: 'Installed renewable capacity expected to surge from 3.5 GW in 2025 to 12.9 GW by 2035. Onshore wind projected to rise from 1.9 GW to 8.7 GW, solar PV from 1.3 GW to 3.7 GW.',
+    source: 'GlobalData / GreentechLead',
+    url: 'https://greentechlead.com/renewable-energy/kazakhstan-renewable-energy-capacity-to-hit-12-9-gw-by-2035-as-wind-and-solar-investments-accelerate-52652',
+    relevance: 'Directly supports DD scenario projections in KZLEAP model',
+  },
+  {
+    date: 'Oct 23, 2025',
+    tag: 'Policy',
+    tag_color: '#378ADD',
+    title: 'Kazakhstan Targets 50% Renewables by 2050 — London Forum',
+    text: 'Deputy Minister Zharkeshov announced Kazakhstan aims for 50% RE share by 2050. Country now operates 158 RE facilities with 3+ GW combined capacity, planning 8.4 GW more by 2035.',
+    source: 'Times of Central Asia',
+    url: 'https://timesca.com/kazakhstan-unveils-green-energy-transition-strategy-at-london-forum/',
+    relevance: 'Validates MT and DD scenario RE targets in KZLEAP',
+  },
+  {
+    date: 'Sep 19, 2025',
+    tag: 'Analysis',
+    tag_color: '#EF9F27',
+    title: 'Why Kazakhstan\'s Energy Transition Is Stalling Despite Bold Pledges',
+    text: 'Policy framework established but progress remains limited. RE share reached only 7% by end of 2024 vs 10% target for 2030. Gap between pledges and implementation highlighted.',
+    source: 'The Diplomat',
+    url: 'https://thediplomat.com/2025/09/why-kazakhstans-energy-transition-is-stalling-despite-bold-pledges/',
+    relevance: 'Supports BAU scenario risk — current trajectory below NDC target',
+  },
+  {
+    date: 'Apr 17, 2025',
+    tag: 'Projects',
+    tag_color: '#1D9E75',
+    title: '9 New Renewable Projects Commissioned in 2025 — 503 MW Total',
+    text: '5 wind farms (387 MW), 3 solar plants (90 MW), 1 hydro plant (26 MW) across Karaganda, Aktobe, Kyzylorda and other regions. RE share reached 7% of total generation.',
+    source: 'QazaqGreen / Astana Times',
+    url: 'https://astanatimes.com/2025/04/kazakhstan-accelerates-renewable-energy-transition-with-nine-projects/',
+    relevance: 'Confirms wind and solar CAPEX assumptions used in LP Optimizer',
+  },
+  {
+    date: 'Jan 2026',
+    tag: 'Investment',
+    tag_color: '#9F77DD',
+    title: 'International Investors Scale Up: TotalEnergies, Masdar, China Power',
+    text: 'By December 2025, around 4 GW allocated to international strategic investors. Competitive auctions attracting foreign capital as Kazakhstan positions as Central Asia\'s top clean energy market.',
+    source: 'QazaqGreen',
+    url: 'https://qazaqgreen.com/en/news/kazakhstan/3275/',
+    relevance: 'Supports lower WACC assumptions in Investment Calculator scenarios',
+  },
+];
+
+function renderNewsFeed() {
+  const el = document.getElementById('news-feed');
+  if (!el) return;
+  el.innerHTML = NEWS.map((n, i) => `
+    <div style="
+      padding:14px 0;
+      border-bottom:${i < NEWS.length-1 ? '1px solid #f0f4f8' : 'none'};
+      display:flex; gap:14px; align-items:flex-start;
+    ">
+      <div style="flex-shrink:0; padding-top:2px;">
+        <div style="
+          width:8px; height:8px; border-radius:50%;
+          background:${n.tag_color}; margin-top:5px;
+        "></div>
+      </div>
+      <div style="flex:1;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px; flex-wrap:wrap;">
+          <span style="
+            font-size:10px; font-weight:700; padding:2px 8px;
+            border-radius:10px; background:${n.tag_color}18; color:${n.tag_color};
+            text-transform:uppercase; letter-spacing:.05em;
+          ">${n.tag}</span>
+          <span style="font-size:11px; color:#8a94a0;">${n.date}</span>
+          <span style="font-size:11px; color:#b0b8c4;">· ${n.source}</span>
+        </div>
+        <div style="font-size:13px; font-weight:600; color:#1a2332; margin-bottom:4px; line-height:1.4;">
+          <a href="${n.url}" target="_blank" style="color:#1a2332; text-decoration:none;"
+            onmouseover="this.style.color='#1D9E75'" onmouseout="this.style.color='#1a2332'">
+            ${n.title} ↗
+          </a>
+        </div>
+        <div style="font-size:12px; color:#6b7a8d; line-height:1.55; margin-bottom:6px;">
+          ${n.text}
+        </div>
+        <div style="
+          font-size:11px; color:#1D9E75; background:#e1f5ee;
+          padding:3px 10px; border-radius:6px; display:inline-block;
+        ">
+          🔗 KZLEAP: ${n.relevance}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+renderNewsFeed();
