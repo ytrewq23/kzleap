@@ -115,6 +115,8 @@ function renderAll(co2Data, wbData, hist) {
     (ndcGap > 0 ? '+' : '') + ndcGap + ' Mt',
     ndcGap > 0 ? 'Above NDC 2030 target (−15% vs 1990)' : '✓ Below NDC target');
 
+  renderNDCGauges(CFG, hist);
+
   const ndc = CFG.ndc_unconditional;
   const colors = co2Values.map(v => v > ndc ? '#D85A30' : '#1D9E75');
 
@@ -311,4 +313,140 @@ async function deleteAccount() {
     error.textContent = 'Cannot connect to server.';
     error.style.display = 'block';
   }
+}
+
+/* ── NDC Gauge Renderer ─────────────────────────────── */
+function drawGauge(canvasId, pctId, statusId, value, maxVal, opts) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 180, H = 100;
+  canvas.width = W; canvas.height = H;
+
+  const cx = W / 2, cy = H - 8;
+  const r = 78, strokeW = 14;
+  const startA = Math.PI, endA = 2 * Math.PI;
+
+  // clamp 0–1
+  const ratio = Math.min(Math.max(value / maxVal, 0), 1);
+
+  // color by ratio
+  let color;
+  if (opts.inverse) {
+    // lower is better (CO₂ gap, budget used)
+    color = ratio < 0.4 ? '#1D9E75' : ratio < 0.75 ? '#EF9F27' : '#D85A30';
+  } else {
+    // higher is better (RE share, reduction achieved)
+    color = ratio > 0.7 ? '#1D9E75' : ratio > 0.35 ? '#EF9F27' : '#D85A30';
+  }
+
+  // Track (grey arc)
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startA, endA);
+  ctx.lineWidth = strokeW;
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Value arc
+  if (ratio > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, startA, startA + ratio * Math.PI);
+    ctx.lineWidth = strokeW;
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  // Tick marks
+  for (let i = 0; i <= 4; i++) {
+    const a = Math.PI + (i / 4) * Math.PI;
+    const x1 = cx + (r - strokeW / 2 - 3) * Math.cos(a);
+    const y1 = cy + (r - strokeW / 2 - 3) * Math.sin(a);
+    const x2 = cx + (r + strokeW / 2 + 3) * Math.cos(a);
+    const y2 = cy + (r + strokeW / 2 + 3) * Math.sin(a);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // Update text
+  const pctEl = document.getElementById(pctId);
+  if (pctEl) {
+    pctEl.textContent = opts.displayVal;
+    pctEl.style.color = color;
+  }
+
+  // Status badge
+  const statusEl = document.getElementById(statusId);
+  if (statusEl) {
+    statusEl.textContent = opts.statusText;
+    statusEl.className = 'gauge-status ' + opts.statusClass;
+  }
+}
+
+function renderNDCGauges(cfg, hist) {
+  const co2Base1990 = 290; // Mt — 1990 baseline
+  const currentCO2 = cfg?.base_co2 || 242;
+  const ndcUnc = cfg?.ndc_unconditional || 246.5;   // −15% = 246.5 Mt
+  const ndcCond = cfg?.ndc_conditional  || 217.5;   // −25% = 217.5 Mt
+  const reTarget2030 = 15;  // % renewables NDC target
+  const currentRE = hist?.elec_mix_2023
+    ? (hist.elec_mix_2023.wind + hist.elec_mix_2023.solar + hist.elec_mix_2023.hydro)
+    : 15.0; // wind 3.5 + solar 1.5 + hydro 10
+
+  // KZ carbon budget 1.5°C: 0.6% of ~300 Gt global remaining = ~1.8 Gt = 1800 Mt
+  // Cumulative since 2020 approx: 242*4 = ~968 Mt used
+  const kzBudget15 = 1800;
+  const usedSince2020 = 242 * 4; // rough approx
+
+  // 1. CO₂ reduction achieved vs 1990
+  const reductionAchieved = ((co2Base1990 - currentCO2) / co2Base1990) * 100; // ~16.5%
+  const reductionTarget = 15;
+  drawGauge('gaugeCanvas0', 'gauge-pct-0', 'gauge-status-0',
+    reductionAchieved, reductionTarget * 1.5,
+    {
+      inverse: false,
+      displayVal: reductionAchieved.toFixed(1) + '%',
+      statusText: reductionAchieved >= reductionTarget ? '✓ NDC Target Met' : `${(reductionTarget - reductionAchieved).toFixed(1)}% still needed`,
+      statusClass: reductionAchieved >= reductionTarget ? 'green' : reductionAchieved > 10 ? 'amber' : 'red',
+    }
+  );
+
+  // 2. Renewables share
+  drawGauge('gaugeCanvas1', 'gauge-pct-1', 'gauge-status-1',
+    currentRE, reTarget2030,
+    {
+      inverse: false,
+      displayVal: currentRE.toFixed(1) + '%',
+      statusText: currentRE >= reTarget2030 ? '✓ On Track' : `${(reTarget2030 - currentRE).toFixed(1)}% to go`,
+      statusClass: currentRE >= reTarget2030 ? 'green' : currentRE > 8 ? 'amber' : 'red',
+    }
+  );
+
+  // 3. Unconditional NDC gap
+  const ndcGap = Math.max(currentCO2 - ndcUnc, 0);
+  const ndcGapMax = 60; // Mt scale
+  drawGauge('gaugeCanvas2', 'gauge-pct-2', 'gauge-status-2',
+    ndcGap, ndcGapMax,
+    {
+      inverse: true,
+      displayVal: ndcGap > 0 ? '+' + Math.round(ndcGap) + ' Mt' : '✓',
+      statusText: ndcGap <= 0 ? '✓ Below Target' : ndcGap < 20 ? 'Close to target' : 'Action needed',
+      statusClass: ndcGap <= 0 ? 'green' : ndcGap < 20 ? 'amber' : 'red',
+    }
+  );
+
+  // 4. Carbon budget 1.5°C used
+  const budgetRatio = (usedSince2020 / kzBudget15) * 100;
+  drawGauge('gaugeCanvas3', 'gauge-pct-3', 'gauge-status-3',
+    budgetRatio, 100,
+    {
+      inverse: true,
+      displayVal: budgetRatio.toFixed(0) + '%',
+      statusText: budgetRatio < 40 ? 'Budget Safe' : budgetRatio < 70 ? 'Budget Shrinking' : 'Critical',
+      statusClass: budgetRatio < 40 ? 'green' : budgetRatio < 70 ? 'amber' : 'red',
+    }
+  );
 }
