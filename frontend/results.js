@@ -1,4 +1,3 @@
-// ── Show custom scenario results ──
 function showCustomResults(data, params, type) {
   const labels = { MT: 'Moderate Transition', DD: 'Deep Decarbonization', BAU: 'BAU' };
   const colors = { MT: '#B07C10', DD: '#1D9E75', BAU: '#378ADD' };
@@ -6,7 +5,6 @@ function showCustomResults(data, params, type) {
 
   showBackendBadge(true);
 
-  // Update page subtitle
   const sub = document.querySelector('.topbar p');
   if (sub) sub.textContent = `Custom scenario: ${params.name} · 2024–2060`;
 
@@ -22,10 +20,20 @@ function showCustomResults(data, params, type) {
   const co2_2030 = co2[years.indexOf(2030)] || co2[6];
   const ndc = 246.5;
 
-  setCard('card-baseline', CFG.base_co2 + ' Mt', `Historical baseline ${CFG.base_year}`);
-  setCard('card-bau', co2_2050 + ' Mt', `Your scenario 2050`);
-  setCard('card-dd',  co2_2030 + ' Mt', `${co2_2030 <= ndc ? '✓ NDC met' : '✗ Above NDC'} in 2030`);
-  setCard('card-avoided', Math.round(params.renewables_2050) + '%', 'RE share by 2050');
+  const baseline = CFG.base_co2 || 242;
+  const reduction = Math.round((baseline - co2_2050) / baseline * 100);
+  const ndc30met  = co2_2030 <= ndc;
+
+  const lbl = (id, text) => { const el = document.querySelector(`#${id} .metric-label`); if (el) el.textContent = text; };
+  lbl('card-baseline', 'Baseline CO2 (2023)');
+  lbl('card-bau',      'Your scenario CO2 (2050)');
+  lbl('card-dd',       'Your scenario CO2 (2030)');
+  lbl('card-avoided',  'Reduction vs baseline (2050)');
+
+  setCard('card-baseline', baseline + ' Mt',  `Historical baseline ${CFG.base_year}`);
+  setCard('card-bau',      co2_2050 + ' Mt',  `${params.name}`);
+  setCard('card-dd',       co2_2030 + ' Mt',  `${ndc30met ? '✓ NDC met' : '✗ Above NDC'} · 2030`);
+  setCard('card-avoided',  (reduction > 0 ? '-' : '+') + Math.abs(reduction) + '%', `vs ${baseline} Mt baseline`);
 
   // CO2 chart
   if (co2Chart) co2Chart.destroy();
@@ -108,7 +116,7 @@ function showCustomResults(data, params, type) {
   }
 
   // Table
-  buildTable('5', years, co2, co2, co2, { ndc_unconditional_2030: 246.5, ndc_conditional_2030: 217.5 });
+  buildCustomTable('5', years, co2, params.name);
 }
 
 function renderCustomDemoCharts(data, years) {
@@ -240,13 +248,11 @@ async function init() {
   const customResults = JSON.parse(sessionStorage.getItem('kzleap_custom_results') || '{}');
 
   if (scenarioType && customResults[scenarioType]) {
-    // Show custom scenario results
     const custom = customResults[scenarioType];
     showCustomResults(custom.results, custom.params, scenarioType);
     return;
   }
 
-  // Загружаем конфиг (базовые значения из Excel или дефолт)
   await loadConfig();
 
   // Default: show all 3 scenarios comparison
@@ -262,7 +268,6 @@ async function init() {
   const mtCO2     = MT.co2;
   const ddCO2     = DD.co2;
 
-  // ── Update metric cards ──
   const bau2050 = bauCO2[years.indexOf(2050)] || bauCO2[bauCO2.length - 1];
   const mt2050  = mtCO2[years.indexOf(2050)]  || mtCO2[mtCO2.length - 1];
   const dd2050  = ddCO2[years.indexOf(2050)]  || ddCO2[ddCO2.length - 1];
@@ -273,7 +278,6 @@ async function init() {
   setCard('card-dd',       dd2050  + ' Mt', `▼ −${Math.round((bau2050-dd2050)/bau2050*100)}% vs BAU`);
   setCard('card-avoided',  avoided + ' Mt', 'Per year vs BAU by 2050');
 
-  // ── NDC reference lines (horizontal) ──
   const ndcLine = (value, label, color) => ({
     type: 'line',
     label,
@@ -286,7 +290,6 @@ async function init() {
     tension: 0,
   });
 
-  // ── CO₂ chart ──
   if (co2Chart) co2Chart.destroy();
   co2Chart = new Chart(document.getElementById('co2Chart'), {
     type: 'line',
@@ -409,6 +412,54 @@ function setCard(id, value, sub) {
 
 // ── Results table ──
 let _tableData = null;
+
+function buildCustomTable(filter, years, co2, scenarioName) {
+  const thead = document.querySelector('#results-table thead tr');
+  if (thead) thead.innerHTML = `
+    <th>Year</th>
+    <th style="color:#1D9E75;">${scenarioName} (Mt CO2)</th>
+    <th>vs 2023 baseline</th>
+    <th>NDC status</th>
+  `;
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  const milestones = [2025, 2030, 2035, 2040, 2045, 2050, 2060];
+  const base = 242;
+  const ndc15 = 246.5;
+  const ndc25 = 217.5;
+
+  years.forEach((y, i) => {
+    if (filter === '5' && !milestones.includes(y)) return;
+    const val = Math.round(co2[i]);
+    const diff = Math.round(val - base);
+    const pct  = Math.round((base - val) / base * 100);
+    const diffStr = diff > 0 ? '+' + diff : '' + diff;
+    const pctStr  = pct  > 0 ? '−' + pct + '%' : '+' + Math.abs(pct) + '%';
+
+    let ndcFlag = '';
+    if (y === 2030) {
+      ndcFlag = val <= ndc25
+        ? '<span style="color:#0F6E56;font-size:11px;">✓ NDC −25%</span>'
+        : val <= ndc15
+          ? '<span style="color:#B07C10;font-size:11px;">~ NDC −15%</span>'
+          : '<span style="color:#D85A30;font-size:11px;">✗ above NDC</span>';
+    }
+
+    const tr = document.createElement('tr');
+    if (milestones.includes(y)) tr.classList.add('milestone');
+    tr.innerHTML = `
+      <td><strong>${y}</strong></td>
+      <td style="color:#1D9E75;font-weight:500;">${val} Mt</td>
+      <td style="color:${diff <= 0 ? '#0F6E56' : '#D85A30'};">${diffStr} Mt (${pctStr})</td>
+      <td>${ndcFlag}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  _tableData = null;
+}
+
 
 function buildTable(filter, years, bauCO2, mtCO2, ddCO2, targets) {
   if (years) _tableData = { years, bauCO2, mtCO2, ddCO2, targets };
