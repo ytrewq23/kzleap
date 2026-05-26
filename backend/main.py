@@ -12,7 +12,8 @@ load_dotenv()
 from leap_model import run_scenario, get_historical_data, compare_scenarios, SCENARIOS
 from lp_optimizer import run_lp_optimization, TECHNOLOGIES, DISCOUNT_RATE
 from sensitivity import run_sensitivity_analysis
-from carbon_budget import compute_carbon_budget
+from carbon_budget import compute_carbon_budget, compute_custom_target
+from investment_planner import run_investment_plan
 from database import init_db, SessionLocal, User, LoginLog, VerificationCode, Dataset, hash_password
 from email_service import generate_code, send_verification_email
 from datetime import datetime
@@ -683,6 +684,35 @@ def run_custom_scenario(req: CustomScenarioRequest):
     return results
 
 
+
+class InvestmentRequest(BaseModel):
+    budget_bn_usd: float = 10.0
+    horizon_year: int = 2035
+    scenario: str = "MT"
+    priority: str = "cost"
+    run_monte_carlo: bool = True
+
+@app.post("/api/investment-plan")
+def investment_plan(req: InvestmentRequest):
+    if req.scenario not in SCENARIOS:
+        raise HTTPException(400, "Unknown scenario")
+    sc_data   = run_scenario(req.scenario, req.horizon_year, req.horizon_year)
+    demand    = sc_data["electricity"][-1] if sc_data.get("electricity") else 130.0
+    params    = SCENARIOS[req.scenario]
+    re_target = params.get("renewables_2030", 0.15) if req.horizon_year <= 2030 else params.get("renewables_2050", 0.40)
+    nuc_gw    = params.get("nuclear_gw_2035", 0.0) if req.horizon_year >= 2035 else 0.0
+    return run_investment_plan(
+        budget_bn_usd        = req.budget_bn_usd,
+        horizon_year         = req.horizon_year,
+        scenario             = req.scenario,
+        demand_twh           = demand,
+        renewables_target    = re_target,
+        nuclear_available_gw = nuc_gw,
+        priority             = req.priority,
+        run_monte_carlo      = req.run_monte_carlo,
+    )
+
+
 class SensitivityShock(BaseModel):
     param: str
     delta_pct: float = 0.0
@@ -714,6 +744,23 @@ def sensitivity_analysis(req: SensitivityRequest):
         discount_rate=DISCOUNT_RATE,
         shocks=shocks,
     )
+
+
+class CustomTargetRequest(BaseModel):
+    neutrality_year: int = 2060
+    reduction_pct_2030: float = 15.0
+    reduction_pct_2050: float = 60.0
+
+@app.post("/api/carbon-budget/custom-target")
+def custom_carbon_target(req: CustomTargetRequest):
+    data = compare_scenarios()
+    return compute_custom_target(
+        scenarios_compare   = data,
+        neutrality_year     = req.neutrality_year,
+        reduction_pct_2030  = req.reduction_pct_2030,
+        reduction_pct_2050  = req.reduction_pct_2050,
+    )
+
 
 @app.get("/api/carbon-budget")
 def carbon_budget():
