@@ -59,13 +59,19 @@ def run_lp_optimization(
         prob += cap_new["nuclear"] == 0, "No_Nuc_New"
         prob += gen["nuclear"]     == 0, "No_Nuc_Gen"
 
-    prob += gen["solar"]  <= 0.35 * total, "Solar_Max_35pct"
-    prob += gen["wind"]   <= 0.25 * total, "Wind_Max_25pct"
-    prob += gen["hydro"]  <= 0.15 * total, "Hydro_Max_15pct"
-    prob += gen["nuclear"]<= 0.20 * total, "Nuclear_Max_20pct"
-    prob += pulp.lpSum(gen[t] for t in re_techs) <= 0.70 * total, "RE_Max_70pct"
-    prob += gen["coal"]   >= 0.10 * total, "Coal_Min_10pct"
-    prob += gen["gas"]    >= 0.08 * total, "Gas_Min_8pct"
+    re_ceiling  = min(max(renewables_target + 0.05, 0.70), 0.92)
+    solar_ceil  = min(0.35 + max(renewables_target - 0.40, 0) * 0.8, 0.55)
+    wind_ceil   = min(0.25 + max(renewables_target - 0.40, 0) * 0.6, 0.42)
+    coal_floor  = max(0.10 - max(renewables_target - 0.50, 0) * 0.8, 0.01)
+    gas_floor   = max(0.08 - max(renewables_target - 0.50, 0) * 0.6, 0.01)
+
+    prob += gen["solar"]  <= solar_ceil * total, "Solar_Max"
+    prob += gen["wind"]   <= wind_ceil  * total, "Wind_Max"
+    prob += gen["hydro"]  <= 0.15 * total,       "Hydro_Max"
+    prob += gen["nuclear"]<= 0.20 * total,       "Nuclear_Max"
+    prob += pulp.lpSum(gen[t] for t in re_techs) <= re_ceiling * total, "RE_Max"
+    prob += gen["coal"]   >= coal_floor * total, "Coal_Min"
+    prob += gen["gas"]    >= gas_floor  * total, "Gas_Min"
 
     prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
