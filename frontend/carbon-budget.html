@@ -26,11 +26,11 @@
       <div class="nav-section">Output</div>
       <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
       <div class="nav-section">Tools</div>
-       <a href="lp-optimizer.html" class="nav-item active"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Energy Mix Optimizer</a>
       <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
       <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
       <a href="carbon-budget.html" class="nav-item active"><span class="nav-icon">◉</span> Carbon Budget</a>
-      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
+      <a href="investment.html" class="nav-item"><span class="nav-icon">◈</span> Investment Planner</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
@@ -109,6 +109,88 @@
           <div style="height:220px;"><canvas id="cb-compliance-chart"></canvas></div>
         </div>
 
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">Custom CO2 target</div>
+        <div class="card-sub">Set your own reduction targets and neutrality year — backend computes feasibility against all three scenarios</div>
+        <div class="lp-controls-row" style="margin-top:14px;flex-wrap:wrap;">
+          <div class="lp-control-group">
+            <label class="lp-label">Neutrality year</label>
+            <select id="ct-year" class="lp-select">
+              <option value="2050">2050</option>
+              <option value="2055">2055</option>
+              <option value="2060" selected>2060</option>
+              <option value="2065">2065</option>
+              <option value="2070">2070</option>
+            </select>
+          </div>
+          <div class="lp-control-group">
+            <label class="lp-label">Reduction by 2030 (% vs 1990)</label>
+            <input type="number" id="ct-red2030" value="15" min="0" max="60" step="1" class="lp-select" style="width:120px;">
+          </div>
+          <div class="lp-control-group">
+            <label class="lp-label">Reduction by 2050 (% vs 1990)</label>
+            <input type="number" id="ct-red2050" value="60" min="10" max="100" step="1" class="lp-select" style="width:120px;">
+          </div>
+          <div class="lp-control-group lp-control-run">
+            <button onclick="runCustomTarget()" id="ct-run-btn" class="lp-run-btn">Calculate</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button onclick="loadCTPreset('ndc')"         class="lp-explain-btn">Kazakhstan NDC</button>
+          <button onclick="loadCTPreset('paris15')"     class="lp-explain-btn">Paris 1.5C aligned</button>
+          <button onclick="loadCTPreset('neutrality')"  class="lp-explain-btn">Neutrality 2060</button>
+          <button onclick="loadCTPreset('ambitious')"   class="lp-explain-btn">Highly ambitious</button>
+        </div>
+
+        <div id="ct-error" style="display:none;margin-top:12px;" class="lp-error-box"></div>
+        <div id="ct-spinner" style="display:none;margin-top:12px;text-align:center;">
+          <div class="lp-spinner-ring" style="margin:0 auto 6px;"></div>
+          <div style="font-size:12px;color:#666;">Computing custom trajectory...</div>
+        </div>
+
+        <div id="ct-results" style="display:none;margin-top:16px;">
+          <div class="metrics-grid" id="ct-kpi-cards" style="margin-bottom:16px;"></div>
+
+          <div class="charts-row" style="margin-bottom:16px;">
+            <div style="flex:2;">
+              <div style="font-size:13px;font-weight:600;color:#1a2b4a;margin-bottom:8px;">Custom trajectory vs scenarios</div>
+              <div style="height:240px;"><canvas id="ct-trajectory-chart"></canvas></div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;color:#1a2b4a;margin-bottom:8px;">Budget consumption</div>
+              <div style="height:240px;"><canvas id="ct-budget-chart"></canvas></div>
+            </div>
+          </div>
+
+          <div style="font-size:13px;font-weight:600;color:#1a2b4a;margin-bottom:8px;">Scenario compatibility at key milestones</div>
+          <table class="table" style="margin-bottom:16px;">
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Compatible</th>
+                <th>Gap 2030 (Mt)</th>
+                <th>Gap 2040 (Mt)</th>
+                <th>Gap 2050 (Mt)</th>
+                <th>Gap 2060 (Mt)</th>
+              </tr>
+            </thead>
+            <tbody id="ct-gaps-tbody"></tbody>
+          </table>
+
+          <div class="card" style="background:#f8fffe;border:1px solid #d4ede7;">
+            <div class="lp-ai-panel-header">
+              <div>
+                <div class="card-title">AI feasibility assessment</div>
+                <div class="card-sub">Policy pathway analysis · Claude</div>
+              </div>
+              <button onclick="explainCustomTarget()" id="ct-explain-btn" class="lp-explain-btn">Assess feasibility</button>
+            </div>
+            <div id="ct-ai-output" class="lp-ai-output">Click "Assess feasibility" for an AI analysis of this target pathway.</div>
+          </div>
+        </div>
+      </div>
+
         <div class="card">
           <div class="lp-ai-panel-header">
             <div>
@@ -136,6 +218,5 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="carbon-budget.js"></script>
-  <script src="ai-chat-widget.js"></script>
 </body>
 </html>
