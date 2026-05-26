@@ -292,3 +292,284 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
 }
 
 loadCarbonBudget();
+
+
+// ── Custom Target ──
+
+let ctCharts = {};
+
+function destroyCTChart(id) {
+  if (ctCharts[id]) { ctCharts[id].destroy(); delete ctCharts[id]; }
+}
+
+function loadCTPreset(type) {
+  const presets = {
+    ndc:        { year: 2060, red2030: 15,  red2050: 50  },
+    paris15:    { year: 2050, red2030: 25,  red2050: 80  },
+    neutrality: { year: 2060, red2030: 15,  red2050: 60  },
+    ambitious:  { year: 2050, red2030: 35,  red2050: 90  },
+  };
+  const p = presets[type];
+  if (!p) return;
+  document.getElementById('ct-year').value    = p.year;
+  document.getElementById('ct-red2030').value = p.red2030;
+  document.getElementById('ct-red2050').value = p.red2050;
+}
+
+async function runCustomTarget() {
+  const btn = document.getElementById('ct-run-btn');
+  btn.disabled = true; btn.textContent = 'Calculating...';
+  document.getElementById('ct-error').style.display   = 'none';
+  document.getElementById('ct-results').style.display = 'none';
+  document.getElementById('ct-spinner').style.display = 'block';
+
+  try {
+    const res = await fetch(`${BACKEND}/api/carbon-budget/custom-target`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        neutrality_year:    +document.getElementById('ct-year').value,
+        reduction_pct_2030: +document.getElementById('ct-red2030').value,
+        reduction_pct_2050: +document.getElementById('ct-red2050').value,
+      }),
+    });
+    if (!res.ok) throw new Error('Backend error ' + res.status);
+    const data = await res.json();
+    window._ctData = data;
+
+    document.getElementById('ct-spinner').style.display  = 'none';
+    document.getElementById('ct-results').style.display  = 'block';
+
+    renderCTKPICards(data);
+    renderCTTrajectoryChart(data);
+    renderCTBudgetChart(data);
+    renderCTGapsTable(data);
+    document.getElementById('ct-ai-output').textContent = 'Click "Assess feasibility" for an AI analysis of this target pathway.';
+
+  } catch (err) {
+    document.getElementById('ct-spinner').style.display = 'none';
+    document.getElementById('ct-error').style.display   = 'block';
+    document.getElementById('ct-error').textContent     = 'Failed: ' + err.message;
+  }
+  btn.disabled = false; btn.textContent = 'Calculate';
+}
+
+function renderCTKPICards(data) {
+  const cards = document.getElementById('ct-kpi-cards');
+  const compatible = Object.values(data.scenario_gaps).filter(s => s.compatible).map((_,i) => Object.keys(data.scenario_gaps)[i]);
+  const sc_names = { BAU: 'BAU', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
+  const compat_list = Object.entries(data.scenario_gaps).filter(([,v]) => v.compatible).map(([k]) => sc_names[k] || k).join(', ') || 'None';
+
+  cards.innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Target 2030</div>
+      <div class="metric-value" style="color:#D85A30;">${data.target_2030_mt} Mt</div>
+      <div class="metric-change neutral">−${data.reduction_pct_2030}% vs 1990</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Target 2050</div>
+      <div class="metric-value" style="color:#B07C10;">${data.target_2050_mt} Mt</div>
+      <div class="metric-change neutral">−${data.reduction_pct_2050}% vs 1990</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Neutrality year</div>
+      <div class="metric-value" style="color:#1a2b4a;">${data.neutrality_year}</div>
+      <div class="metric-change neutral">Zero emissions target</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">1.5C budget used</div>
+      <div class="metric-value" style="color:${data.pct_budget_15c_used > 100 ? '#D85A30' : '#1D9E75'};">${data.pct_budget_15c_used}%</div>
+      <div class="metric-change neutral">${data.budget_15c_exhausted_yr ? 'Exhausted ' + data.budget_15c_exhausted_yr : 'Within budget'}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Required annual cut 2024–2030</div>
+      <div class="metric-value" style="color:#534AB7;">${data.ann_reduction_rate_2030}%</div>
+      <div class="metric-change neutral">per year vs 1990 baseline</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Compatible scenarios</div>
+      <div class="metric-value" style="font-size:14px;color:#0F6E56;">${compat_list}</div>
+      <div class="metric-change neutral">Meet target at all milestones</div>
+    </div>
+  `;
+}
+
+function renderCTTrajectoryChart(data) {
+  destroyCTChart('ct-trajectory-chart');
+  const traj   = data.custom_trajectory;
+  const years  = traj.map(r => r.year);
+  const custom = traj.map(r => r.co2_mt);
+
+  const datasets = [
+    { label: 'Custom target', data: custom, borderColor: '#D85A30', backgroundColor: '#D85A3020', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 0, borderDash: [6,3] },
+  ];
+
+  if (cbData && cbData.scenarios) {
+    const sc_colors = { BAU: '#4a5568', MT: '#1D9E75', DD: '#534AB7' };
+    const sc_names  = { BAU: 'BAU', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
+    Object.entries(cbData.scenarios).forEach(([sc, d]) => {
+      const vals = d.ndc_compliance.map(r => r.co2_mt);
+      const yrs  = d.ndc_compliance.map(r => r.year);
+      const aligned = years.map(y => {
+        const idx = yrs.indexOf(y);
+        return idx >= 0 ? vals[idx] : null;
+      });
+      datasets.push({
+        label: sc_names[sc], data: aligned,
+        borderColor: sc_colors[sc], fill: false,
+        tension: 0.3, borderWidth: 1.5, pointRadius: 0,
+      });
+    });
+  }
+
+  ctCharts['ct-trajectory-chart'] = new Chart(document.getElementById('ct-trajectory-chart'), {
+    type: 'line',
+    data: { labels: years, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } },
+      scales: {
+        y: { ticks: { callback: v => v + ' Mt', font: { size: 10 } }, min: 0 },
+        x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderCTBudgetChart(data) {
+  destroyCTChart('ct-budget-chart');
+  const traj = data.custom_trajectory;
+  const milestones = [2030, 2035, 2040, 2045, 2050, 2055, 2060];
+  const filtered = traj.filter(r => milestones.includes(r.year));
+
+  ctCharts['ct-budget-chart'] = new Chart(document.getElementById('ct-budget-chart'), {
+    type: 'bar',
+    data: {
+      labels: filtered.map(r => r.year),
+      datasets: [
+        { label: 'Cumulative CO2 (Mt)', data: filtered.map(r => r.cumulative_mt), backgroundColor: '#378ADD80', borderColor: '#378ADD', borderWidth: 1, borderRadius: 3 },
+        { label: '1.5C budget limit', data: filtered.map(() => data.budget_15c_mt), type: 'line', borderColor: '#D85A30', borderDash: [5,3], borderWidth: 1.5, pointRadius: 0, fill: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } },
+      scales: {
+        y: { ticks: { callback: v => v + ' Mt', font: { size: 9 } } },
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderCTGapsTable(data) {
+  const tbody = document.getElementById('ct-gaps-tbody');
+  tbody.innerHTML = '';
+  const sc_names = { BAU: 'Business as Usual', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
+  const sc_colors = { BAU: '#4a5568', MT: '#1D9E75', DD: '#534AB7' };
+
+  Object.entries(data.scenario_gaps).forEach(([sc, info]) => {
+    const tr = document.createElement('tr');
+    const compat = info.compatible
+      ? '<span style="color:#1D9E75;font-weight:600;">✓ Compatible</span>'
+      : '<span style="color:#D85A30;font-weight:600;">✗ Exceeds target</span>';
+
+    const gapCell = (yr) => {
+      const g = info.gaps[yr];
+      if (!g) return '<td style="color:#888;">—</td>';
+      const cls = g.gap_mt <= 0 ? 'color:#1D9E75' : 'color:#D85A30';
+      return `<td style="${cls};font-weight:500;">${g.gap_mt > 0 ? '+' : ''}${g.gap_mt} Mt</td>`;
+    };
+
+    tr.innerHTML = `
+      <td style="color:${sc_colors[sc]};font-weight:700;">${sc_names[sc]}</td>
+      <td>${compat}</td>
+      ${gapCell(2030)}${gapCell(2040)}${gapCell(2050)}${gapCell(2060)}
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function explainCustomTarget() {
+  const data = window._ctData;
+  if (!data) return;
+  const btn    = document.getElementById('ct-explain-btn');
+  const output = document.getElementById('ct-ai-output');
+  btn.disabled = true; btn.textContent = 'Analyzing...';
+  output.textContent = '';
+
+  const sc_names = { BAU: 'BAU', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
+  const gapsSummary = Object.entries(data.scenario_gaps).map(([sc, info]) => {
+    const g2030 = info.gaps[2030];
+    const g2050 = info.gaps[2050];
+    return `${sc_names[sc]}: compatible=${info.compatible}, gap 2030=${g2030 ? g2030.gap_mt + ' Mt' : '—'}, gap 2050=${g2050 ? g2050.gap_mt + ' Mt' : '—'}`;
+  }).join('\n');
+
+  const prompt = `You are a senior climate policy economist analyzing Kazakhstan's custom CO2 reduction target.
+
+Custom target parameters:
+- Neutrality year: ${data.neutrality_year}
+- Reduction by 2030: ${data.reduction_pct_2030}% vs 1990 baseline (target: ${data.target_2030_mt} Mt)
+- Reduction by 2050: ${data.reduction_pct_2050}% vs 1990 baseline (target: ${data.target_2050_mt} Mt)
+- Required annual reduction rate 2024-2030: ${data.ann_reduction_rate_2030}%/yr
+- Required annual reduction rate 2030-2050: ${data.ann_reduction_rate_2050}%/yr
+
+Carbon budget impact:
+- Cumulative emissions 2024-2060 under this path: ${data.cumulative_2024_2060_mt} Mt
+- Kazakhstan 1.5C budget: ${data.budget_15c_mt} Mt — ${data.pct_budget_15c_used}% used
+- 1.5C budget exhausted: ${data.budget_15c_exhausted_yr || 'Not exhausted'}
+- 2C budget exhausted: ${data.budget_20c_exhausted_yr || 'Not exhausted'}
+
+Scenario compatibility:
+${gapsSummary}
+
+Analyze — do not restate numbers, interpret them:
+
+1. Feasibility: Is the required annual reduction rate of ${data.ann_reduction_rate_2030}%/yr achievable for Kazakhstan given its coal-heavy economy and current policy trajectory?
+
+2. IPCC alignment: Does this path keep Kazakhstan within its fair share of the 1.5C carbon budget? What does the gap or surplus mean in practice?
+
+3. Scenario match: Which of the three modeled scenarios (BAU, MT, DD) is most compatible with this target, and what additional policies would be needed to close any gaps?
+
+4. Structural barriers: What are the top two structural barriers Kazakhstan would face in meeting this specific trajectory?
+
+5. Recommendation: One concrete policy lever Kazakhstan should prioritize in the next three years to stay on this path.
+
+Keep each point to 2-3 sentences. Plain text only, no markdown, number each point.`;
+
+  try {
+    const response = await fetch(`${BACKEND}/api/claude`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }],
+        system: 'You are an expert climate policy economist specializing in Kazakhstan. Plain text only, no markdown, number each point.',
+        max_tokens: 1500,
+        stream: true,
+      }),
+    });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const d = line.slice(6).trim();
+        if (d === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(d);
+          const text = parsed.choices?.[0]?.delta?.content;
+          if (text) output.textContent += text;
+        } catch {}
+      }
+    }
+  } catch (err) {
+    output.textContent = 'Analysis failed: ' + err.message;
+  }
+  btn.disabled = false; btn.textContent = 'Assess feasibility';
+}
