@@ -129,3 +129,125 @@ def compute_carbon_budget(scenarios_compare: Dict) -> Dict:
         "budget_20c_mt":      round(kz_budget_20c_mt, 0),
         "ipcc_kz_share_pct":  KZ_SHARE * 100,
     }
+
+
+def compute_custom_target(
+    scenarios_compare: Dict,
+    neutrality_year: int,
+    reduction_pct_2030: float,
+    reduction_pct_2050: float,
+) -> Dict:
+    """
+    Given a user-defined CO2 target path, compute:
+    - Required annual CO2 trajectory from 2024 to neutrality_year
+    - Which existing scenarios are compatible
+    - Remaining budget under the custom path
+    - Gap between each scenario and the custom target at key milestones
+    - Required annual reduction rate to meet the target
+    """
+    IPCC_GLOBAL_15C_GT = 400.0
+    IPCC_GLOBAL_20C_GT = 1150.0
+    KZ_SHARE           = 0.006
+
+    kz_budget_15c_mt = IPCC_GLOBAL_15C_GT * 1000 * KZ_SHARE
+    kz_budget_20c_mt = IPCC_GLOBAL_20C_GT * 1000 * KZ_SHARE
+
+    base_co2  = BASE_YEAR_CO2
+    target_2030_mt = round(base_co2 * (1 - reduction_pct_2030 / 100), 1)
+    target_2050_mt = round(base_co2 * (1 - reduction_pct_2050 / 100), 1)
+
+    years = list(range(2024, 2061))
+    custom_trajectory = []
+    cumulative = 0.0
+    budget_15c_exhausted = None
+    budget_20c_exhausted = None
+
+    for yr in years:
+        if yr <= 2030:
+            t = (yr - 2024) / (2030 - 2024)
+            co2 = base_co2 + (target_2030_mt - base_co2) * t
+        elif yr <= 2050:
+            t = (yr - 2030) / (2050 - 2030)
+            co2 = target_2030_mt + (target_2050_mt - target_2030_mt) * t
+        elif yr <= neutrality_year:
+            t = (yr - 2050) / max(neutrality_year - 2050, 1)
+            co2 = target_2050_mt * (1 - t)
+        else:
+            co2 = 0.0
+
+        co2 = max(round(co2, 1), 0.0)
+        cumulative += co2
+
+        if budget_15c_exhausted is None and cumulative >= kz_budget_15c_mt:
+            budget_15c_exhausted = yr
+        if budget_20c_exhausted is None and cumulative >= kz_budget_20c_mt:
+            budget_20c_exhausted = yr
+
+        custom_trajectory.append({
+            "year":          yr,
+            "co2_mt":        co2,
+            "cumulative_mt": round(cumulative, 1),
+        })
+
+    # Required annual reduction rate 2024-2030
+    ann_reduction_rate_2030 = round((base_co2 - target_2030_mt) / base_co2 / 6 * 100, 2)
+    ann_reduction_rate_2050 = round((target_2030_mt - target_2050_mt) / target_2030_mt / 20 * 100, 2) if target_2030_mt > 0 else 0
+
+    # Compare each standard scenario to custom target
+    scenario_gaps = {}
+    for sc_name, sc_data in scenarios_compare.items():
+        sc_years = sc_data.get("years", [])
+        sc_co2   = sc_data.get("co2", [])
+        if not sc_years:
+            continue
+
+        gaps = {}
+        for milestone in [2030, 2040, 2050, 2060]:
+            if milestone not in sc_years:
+                continue
+            idx = sc_years.index(milestone)
+            sc_val = sc_co2[idx]
+
+            tgt_row = next((r for r in custom_trajectory if r["year"] == milestone), None)
+            tgt_val = tgt_row["co2_mt"] if tgt_row else None
+
+            if tgt_val is not None:
+                gap = round(sc_val - tgt_val, 1)
+                gaps[milestone] = {
+                    "scenario_co2_mt": round(sc_val, 1),
+                    "target_co2_mt":   tgt_val,
+                    "gap_mt":          gap,
+                    "meets_target":    gap <= 0,
+                }
+
+        compatible = all(v["meets_target"] for v in gaps.values() if v)
+        scenario_gaps[sc_name] = {
+            "gaps":          gaps,
+            "compatible":    compatible,
+            "closest_year":  min(gaps.keys(), key=lambda y: abs(gaps[y]["gap_mt"])) if gaps else None,
+        }
+
+    remaining_15c = round(kz_budget_15c_mt - cumulative, 1)
+    remaining_20c = round(kz_budget_20c_mt - cumulative, 1)
+
+    return {
+        "neutrality_year":          neutrality_year,
+        "reduction_pct_2030":       reduction_pct_2030,
+        "reduction_pct_2050":       reduction_pct_2050,
+        "target_2030_mt":           target_2030_mt,
+        "target_2050_mt":           target_2050_mt,
+        "base_co2_mt":              base_co2,
+        "custom_trajectory":        custom_trajectory,
+        "cumulative_2024_2060_mt":  round(cumulative, 1),
+        "budget_15c_mt":            round(kz_budget_15c_mt, 1),
+        "budget_20c_mt":            round(kz_budget_20c_mt, 1),
+        "remaining_budget_15c_mt":  remaining_15c,
+        "remaining_budget_20c_mt":  remaining_20c,
+        "budget_15c_exhausted_yr":  budget_15c_exhausted,
+        "budget_20c_exhausted_yr":  budget_20c_exhausted,
+        "pct_budget_15c_used":      round(min(cumulative / kz_budget_15c_mt * 100, 100), 1),
+        "pct_budget_20c_used":      round(min(cumulative / kz_budget_20c_mt * 100, 100), 1),
+        "ann_reduction_rate_2030":  ann_reduction_rate_2030,
+        "ann_reduction_rate_2050":  ann_reduction_rate_2050,
+        "scenario_gaps":            scenario_gaps,
+    }
