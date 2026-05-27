@@ -127,13 +127,13 @@ Respond in the same language the user writes in (Russian or English). Be concise
     const page = (window.location.pathname.split('/').pop() || '');
     const defaults = ['What is Kazakhstan\'s NDC target?', 'Explain the 3 scenarios', 'How is CO₂ calculated?'];
     const map = {
-      'dashboard.html':    ['Почему CO₂ = 242 Мт?', 'Что такое NDC?', 'Сравни сценарии кратко'],
-      'scenario.html':     ['Чем DD отличается от MT?', 'Что такое BAU?', 'Как настроить кастомный сценарий?'],
-      'results.html':      ['Почему в BAU CO₂ растёт?', 'Когда ВИЭ достигнет 50%?', 'Объясни Simulation Results'],
-      'lp-optimizer.html': ['Что такое LCOE?', 'Почему уголь дешевле?', 'Как работает LP оптимизация?'],
-      'sensitivity.html':  ['Что такое анализ чувствительности?', 'Какой параметр важнее всего?'],
-      'carbon-budget.html':['Что такое углеродный бюджет IPCC?', 'Когда KZ исчерпает бюджет 1.5°C?'],
-      'map.html':          ['Какая самая мощная ТЭС Казахстана?', 'Где строятся новые ВЭС?', 'Что даст АЭС Улкен?'],
+      'dashboard.html':    ['Why is CO₂ = 242 Mt?', 'What is NDC?', 'Compare scenarios briefly'],
+      'scenario.html':     ['How does DD differ from MT?', 'What is BAU?', 'How to set custom scenario?'],
+      'results.html':      ['Why does CO₂ rise in BAU?', 'When will RE reach 50%?', 'Explain Simulation Results'],
+      'lp-optimizer.html': ['What is LCOE?', 'Why is coal cheaper?', 'How does LP optimization work?'],
+      'sensitivity.html':  ['What is sensitivity analysis?', 'Which parameter matters most?'],
+      'carbon-budget.html':['What is the IPCC carbon budget?', 'When will KZ exhaust 1.5°C budget?'],
+      'map.html':          ['Largest coal plant in Kazakhstan?', 'Where are new wind farms?', 'What will Ulken NPP give?'],
     };
     return map[page] || defaults;
   }
