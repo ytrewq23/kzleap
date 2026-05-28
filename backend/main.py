@@ -483,7 +483,17 @@ def get_dataset_co2(dataset_id: str):
     if not record:
         raise HTTPException(404, "Dataset not found")
     
-    with open(record.file_path, 'r', encoding='utf-8') as f:
+    # Normalize path — handle Windows paths stored in DB when running on Mac/Linux
+    file_path = record.file_path
+    filename_only = os.path.basename(file_path.replace('\\', '/').replace('\\', os.sep))
+    local_path = os.path.join(UPLOAD_DIR, filename_only)
+    if not os.path.exists(file_path) and os.path.exists(local_path):
+        file_path = local_path
+
+    if not os.path.exists(file_path):
+        raise HTTPException(404, f"File not found on disk: {filename_only}. Please re-upload the dataset.")
+
+    with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
     parsed = parse_csv_auto(content, record.filename)
