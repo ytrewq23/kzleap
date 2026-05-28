@@ -8,9 +8,9 @@
   <link rel="stylesheet" href="dashboard.css">
   <style>
     .lang-switcher { display:flex;gap:4px;align-items:center;margin-right:8px; }
-    .lang-btn { padding:3px 8px;font-size:11px;font-weight:600;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:transparent;color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.15s; }
-    .lang-btn:hover { background:rgba(255,255,255,0.1);color:#fff; }
-    .lang-btn.active { background:rgba(255,255,255,0.2);color:#fff;border-color:rgba(255,255,255,0.6); }
+    .lang-btn { padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s; }
+    .lang-btn:hover { background:#f0f4f8;color:#1a2b4a; }
+    .lang-btn.active { background:#1a2b4a;color:#fff;border-color:#1a2b4a; }
   </style>
 </head>
 <body class="app-page">
@@ -130,48 +130,48 @@
       </div>
 
       <div class="ndc-gauges-section">
-        <div class="ndc-section-title">NDC Progress Tracker — Kazakhstan 2030 Targets</div>
+        <div class="ndc-section-title"><span data-i18n="ndc_tracker_title">NDC Progress Tracker — Kazakhstan 2030 Targets</span></div>
         <div class="ndc-gauges-row">
           <div class="gauge-card">
-            <div class="gauge-label">CO₂ Reduction vs 1990</div>
+            <div class="gauge-label" data-i18n="gauge_co2_label">CO₂ Reduction vs 1990</div>
             <div class="gauge-wrap">
               <canvas id="gaugeCanvas0" width="180" height="100"></canvas>
               <div class="gauge-center">
                 <div class="gauge-pct" id="gauge-pct-0">—</div>
-                <div class="gauge-sub">of −15% target</div>
+                <div class="gauge-sub" data-i18n="gauge_co2_sub">of −15% target</div>
               </div>
             </div>
             <div class="gauge-status" id="gauge-status-0">Loading...</div>
           </div>
           <div class="gauge-card">
-            <div class="gauge-label">Renewables Share 2023</div>
+            <div class="gauge-label" data-i18n="gauge_re_label">Renewables Share 2023</div>
             <div class="gauge-wrap">
               <canvas id="gaugeCanvas1" width="180" height="100"></canvas>
               <div class="gauge-center">
                 <div class="gauge-pct" id="gauge-pct-1">—</div>
-                <div class="gauge-sub">of 15% target</div>
+                <div class="gauge-sub" data-i18n="gauge_re_sub">of 15% target</div>
               </div>
             </div>
             <div class="gauge-status" id="gauge-status-1">Loading...</div>
           </div>
           <div class="gauge-card">
-            <div class="gauge-label">Unconditional NDC Gap</div>
+            <div class="gauge-label" data-i18n="gauge_ndc_label">Unconditional NDC Gap</div>
             <div class="gauge-wrap">
               <canvas id="gaugeCanvas2" width="180" height="100"></canvas>
               <div class="gauge-center">
                 <div class="gauge-pct" id="gauge-pct-2">—</div>
-                <div class="gauge-sub">Mt to target</div>
+                <div class="gauge-sub" data-i18n="gauge_ndc_sub">Mt to target</div>
               </div>
             </div>
             <div class="gauge-status" id="gauge-status-2">Loading...</div>
           </div>
           <div class="gauge-card">
-            <div class="gauge-label">Carbon Budget Used (1.5°C)</div>
+            <div class="gauge-label" data-i18n="gauge_budget_label">Carbon Budget Used (1.5°C)</div>
             <div class="gauge-wrap">
               <canvas id="gaugeCanvas3" width="180" height="100"></canvas>
               <div class="gauge-center">
                 <div class="gauge-pct" id="gauge-pct-3">—</div>
-                <div class="gauge-sub">of KZ share</div>
+                <div class="gauge-sub" data-i18n="gauge_budget_sub">of KZ share</div>
               </div>
             </div>
             <div class="gauge-status" id="gauge-status-3">Loading...</div>
@@ -208,10 +208,10 @@
             <canvas id="pieChart"></canvas>
           </div>
           <div class="legend" style="margin-top:12px;flex-wrap:wrap;">
-            <span class="legend-item"><span class="dot" style="background:#378ADD"></span>Residential 33%</span>
-            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span>Transport 19%</span>
-            <span class="legend-item"><span class="dot" style="background:#D85A30"></span>Industry 16%</span>
-            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span>Other 32%</span>
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span><span data-i18n="legend_residential">Residential 33%</span></span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span><span data-i18n="legend_transport">Transport 19%</span></span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span><span data-i18n="legend_industry">Industry 16%</span></span>
+            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span><span data-i18n="legend_other">Other 32%</span></span>
           </div>
         </div>
       </div>
@@ -221,10 +221,10 @@
           <div class="card-title" data-i18n="chart_elec_title">Electricity generation 1990–2023</div>
           <div class="card-sub" data-i18n="chart_elec_sub">Kazakhstan · TWh · Source: IEA, KEGOC</div>
           <div class="legend">
-            <span class="legend-item"><span class="dot" style="background:#378ADD"></span>Electricity</span>
-            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span>Heat</span>
-            <span class="legend-item"><span class="dot" style="background:#D85A30"></span>Coal</span>
-            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span>Natural Gas</span>
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span><span data-i18n="legend_electricity">Electricity</span></span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span><span data-i18n="legend_heat">Heat</span></span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span><span data-i18n="legend_coal_lbl">Coal</span></span>
+            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span><span data-i18n="legend_gas_lbl">Natural Gas</span></span>
           </div>
           <div class="chart-wrap">
             <canvas id="ironChart"></canvas>
@@ -281,10 +281,10 @@
         <div class="card" style="flex:1;">
           <div class="card-header">
             <div>
-              <div class="card-title">Kazakhstan Energy News</div>
-              <div class="card-sub">Latest developments in energy transition · 2025–2026</div>
+              <div class="card-title" data-i18n="news_title">Kazakhstan Energy News</div>
+              <div class="card-sub" data-i18n="news_sub">Latest developments in energy transition · 2025–2026</div>
             </div>
-            <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:#e1f5ee;color:#0F6E56;font-weight:600;">Live Feed</span>
+            <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:#e1f5ee;color:#0F6E56;font-weight:600;" data-i18n="news_live">Live Feed</span>
           </div>
           <div id="news-feed" style="display:flex;flex-direction:column;gap:0;"></div>
         </div>
