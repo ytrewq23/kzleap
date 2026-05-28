@@ -1,0 +1,74 @@
+/* ── Report type cards ── */
+.report-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.report-type-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.report-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.report-icon.pdf     { background: #faece7; color: #712B13; }
+.report-icon.excel   { background: #e1f5ee; color: #085041; }
+.report-icon.summary { background: #e6f1fb; color: #0c447c; }
+.report-icon.sector  { background: #eeedfe; color: #3C3489; }
+
+.report-info { flex: 1; }
+.report-name { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+.report-desc { font-size: 12px; color: #888; }
+
+.btn-generate {
+  padding: 8px 16px;
+  background: #0c447c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.btn-generate:hover { background: #185FA5; }
+.btn-generate.green { background: #0F6E56; }
+.btn-generate.green:hover { background: #1D9E75; }
+
+/* ── Table ── */
+.r-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+.r-table th { text-align: left; padding: 10px 14px; background: #f8f8f8; color: #888; font-weight: 500; font-size: 12px; border-bottom: 1px solid #eee; }
+.r-table td { padding: 12px 14px; border-bottom: 1px solid #f5f5f5; color: #333; vertical-align: middle; }
+
+.file-name { font-weight: 500; color: #1a1a1a; }
+.file-size { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+.tag { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.tag.pdf-tag   { background: #faece7; color: #712B13; }
+.tag.excel-tag { background: #e1f5ee; color: #085041; }
+
+.btn-dl { padding: 6px 14px; border: 1.5px solid #e0e0e0; border-radius: 8px; background: #fff; font-size: 12px; cursor: pointer; color: #0c447c; transition: all 0.15s; }
+.btn-dl:hover { background: #e6f1fb; border-color: #0c447c; }
+
+.toast { position: fixed; bottom: 24px; right: 24px; background: #0F6E56; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; }

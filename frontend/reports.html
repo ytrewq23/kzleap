@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Reports</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="reports.css">
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html"     class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item active"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> Country Comparison</a>
+      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">💰</span> Investment Calculator</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div><div class="user-name" id="user-name">Ali B.</div><div class="user-role" id="user-role">Energy Analyst</div></div>
+      <a href="index.html" class="logout-btn" title="Logout">⏻</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Reports</h2>
+        <p>Generate and download reports in PDF or Excel format</p>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="report-cards">
+        <div class="report-type-card">
+          <div class="report-icon pdf">PDF</div>
+          <div class="report-info">
+            <div class="report-name">Full Scenario Report</div>
+            <div class="report-desc">BAU and Low Carbon · All 24 sectors · 2021–2050</div>
+          </div>
+          <button class="btn-generate" onclick="generatePDF()">Generate PDF</button>
+        </div>
+        <div class="report-type-card">
+          <div class="report-icon excel">XLS</div>
+          <div class="report-info">
+            <div class="report-name">Data Export</div>
+            <div class="report-desc">Raw simulation results · Year-by-year · All scenarios</div>
+          </div>
+          <button class="btn-generate green" onclick="exportExcel()">Export Excel</button>
+        </div>
+        <div class="report-type-card">
+          <div class="report-icon summary">SUM</div>
+          <div class="report-info">
+            <div class="report-name">Executive Summary</div>
+            <div class="report-desc">Key findings for policymakers · 2-page overview</div>
+          </div>
+          <button class="btn-generate" onclick="generateSummary()">Generate PDF</button>
+        </div>
+        <div class="report-type-card">
+          <div class="report-icon sector">SEC</div>
+          <div class="report-info">
+            <div class="report-name">Sector Analysis</div>
+            <div class="report-desc">Energy breakdown · Iron and Steel · Detailed view</div>
+          </div>
+          <button class="btn-generate" onclick="exportSummary()">Generate PDF</button>
+        </div>
+        <div class="report-type-card">
+          <div class="report-icon" style="background:#1a2b4a;color:#fff;">AI</div>
+          <div class="report-info">
+            <div class="report-name">AI Analytical Report</div>
+            <div class="report-desc">Claude-generated narrative · All scenarios · Policy recommendations</div>
+          </div>
+          <button class="btn-generate btn-ai-report" onclick="generateAIReport()">Generate</button>
+        </div>
+      </div>
+
+      <div id="ai-report-panel" style="display:none;" class="card" style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+          <div>
+            <div class="card-title">AI Analytical Report</div>
+            <div class="card-sub" id="ai-report-sub">Generating...</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="copyAIReport()" id="ai-copy-btn" style="padding:7px 16px;background:#f0f4f8;color:#1a2b4a;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Copy text</button>
+            <button onclick="printAIReport()" style="padding:7px 16px;background:#1a2b4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Print / Save PDF</button>
+          </div>
+        </div>
+        <div id="ai-report-output" style="font-size:13px;color:#333;line-height:1.8;white-space:pre-wrap;min-height:60px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Generated reports</div><div class="card-sub">Your recent exports</div></div>
+        </div>
+        <table class="r-table">
+          <thead>
+            <tr><th>File name</th><th>Type</th><th>Scenarios</th><th>Generated by</th><th>Date</th><th></th></tr>
+          </thead>
+          <tbody id="reports-table">
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="reports.js"></script>
+  <script src="ai-report.js"></script>
+  <script src="ai-chat-widget.js"></script>
+</body>
+</html>

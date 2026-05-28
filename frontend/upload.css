@@ -1,0 +1,104 @@
+
+.upload-zone {
+  border: 2px dashed #ccc;
+  border-radius: 14px;
+  padding: 48px 24px;
+  text-align: center;
+  background: #fafafa;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.upload-zone.dragover {
+  border-color: #0c447c;
+  background: #f0f7ff;
+}
+
+.upload-icon-wrap {
+  width: 56px;
+  height: 56px;
+  background: #e6f1fb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.upload-icon { font-size: 22px; color: #0c447c; font-weight: 700; }
+.upload-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
+.upload-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+.btn-browse {
+  padding: 10px 28px;
+  background: #0c447c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-browse:hover { background: #185FA5; }
+
+/* ── Upload progress ── */
+.up-file-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 12px 0;
+}
+
+.up-file-icon {
+  width: 42px;
+  height: 42px;
+  background: #e1f5ee;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #085041;
+  flex-shrink: 0;
+}
+
+.up-file-info { flex: 1; }
+.up-file-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+.up-file-size { font-size: 12px; color: #aaa; margin-top: 2px; }
+.up-pct { font-size: 14px; font-weight: 700; color: #0c447c; min-width: 40px; text-align: right; }
+
+.up-bar-wrap { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.up-bar { height: 100%; background: #0c447c; border-radius: 3px; width: 0%; transition: width 0.3s; }
+
+/* ── Datasets table ── */
+.u-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+.u-table th { text-align: left; padding: 10px 14px; background: #f8f8f8; color: #888; font-weight: 500; font-size: 12px; border-bottom: 1px solid #eee; }
+.u-table td { padding: 12px 14px; border-bottom: 1px solid #f5f5f5; color: #333; vertical-align: middle; }
+
+.ds-name { font-weight: 600; color: #1a1a1a; }
+.ds-sub  { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+.ds-status { font-size: 12px; font-weight: 500; }
+.ds-status.active   { color: #0F6E56; }
+.ds-status.archived { color: #888; }
+
+.btn-sm { padding: 5px 12px; border: 1.5px solid #e0e0e0; border-radius: 6px; background: #fff; font-size: 11px; cursor: pointer; color: #555; margin-right: 4px; transition: all 0.15s; }
+.btn-sm:hover { border-color: #0c447c; color: #0c447c; }
+.btn-sm.red:hover { border-color: #D85A30; color: #D85A30; }
+
+/* ── Format guide ── */
+.format-guide { margin-top: 0; }
+.format-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0; }
+.format-table th { background: #f0f7ff; color: #0c447c; padding: 8px 12px; text-align: left; font-weight: 600; border: 1px solid #d0e8f5; }
+.format-table td { padding: 7px 12px; border: 1px solid #eee; color: #444; }
+.format-table .header-row td { background: #e6f1fb; font-weight: 600; color: #0c447c; }
+
+.format-note { font-size: 12px; color: #666; margin-top: 10px; line-height: 1.6; }
+.format-note code { background: #e6f1fb; padding: 1px 5px; border-radius: 4px; font-family: monospace; color: #0c447c; }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: 24px; right: 24px; background: #0F6E56; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; }

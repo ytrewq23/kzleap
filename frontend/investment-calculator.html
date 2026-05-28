@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Investment Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    .main { padding: 28px 32px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+    .topbar h2 { margin:0 0 4px; font-size:22px; color:#1a2332; }
+    .topbar p  { margin:0; font-size:13px; color:#6b7a8d; }
+
+    /* Layout */
+    .calc-grid { display:grid; grid-template-columns: 400px 1fr; gap:18px; }
+    @media(max-width:1000px){ .calc-grid{ grid-template-columns:1fr; } }
+
+    /* Input panel */
+    .input-panel { display:flex; flex-direction:column; gap:14px; }
+    .panel-card { background:#fff; border:1px solid #e8ecf0; border-radius:12px; padding:18px 20px; }
+    .panel-title { font-size:13px; font-weight:700; color:#1a2332; margin-bottom:2px; }
+    .panel-sub   { font-size:12px; color:#6b7a8d; margin-bottom:16px; }
+
+    /* Tech rows */
+    .tech-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .tech-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .tech-info { flex:1; }
+    .tech-name { font-size:13px; font-weight:500; color:#1a2332; }
+    .tech-capex { font-size:11px; color:#6b7a8d; }
+    .tech-input-wrap { display:flex; align-items:center; gap:6px; }
+    .tech-input {
+      width:70px; padding:5px 8px;
+      border:1px solid #e0e4e8; border-radius:6px;
+      font-size:13px; text-align:right; font-family:inherit;
+      transition: border-color .15s;
+    }
+    .tech-input:focus { outline:none; border-color:#1D9E75; }
+    .tech-unit { font-size:12px; color:#6b7a8d; width:28px; }
+
+    /* Sliders */
+    .sl-row { margin-bottom:14px; }
+    .sl-header { display:flex; justify-content:space-between; margin-bottom:5px; }
+    .sl-label { font-size:12px; font-weight:500; color:#1a2332; }
+    .sl-val   { font-size:12px; font-weight:600; color:#1D9E75; font-family:monospace; }
+    .sl-sub   { font-size:11px; color:#6b7a8d; margin-bottom:4px; }
+    input[type=range] { width:100%; accent-color:#1D9E75; height:4px; }
+
+    /* Calculate button */
+    .calc-btn {
+      width:100%; padding:13px;
+      background:linear-gradient(135deg,#1D9E75,#0F6E56);
+      color:#fff; border:none; border-radius:10px;
+      font-size:14px; font-weight:700; cursor:pointer;
+      font-family:inherit; transition:all .2s; letter-spacing:.3px;
+    }
+    .calc-btn:hover { transform:translateY(-1px); box-shadow:0 4px 16px rgba(29,158,117,.3); }
+
+    /* Results panel */
+    .results-panel { display:flex; flex-direction:column; gap:16px; }
+
+    /* KPI row */
+    .kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .kpi-card {
+      background:#fff; border:1px solid #e8ecf0; border-radius:12px;
+      padding:16px; border-top:3px solid #e8ecf0;
+    }
+    .kpi-label { font-size:11px; font-weight:600; color:#6b7a8d; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+    .kpi-val   { font-size:24px; font-weight:700; color:#1a2332; line-height:1.1; }
+    .kpi-unit  { font-size:12px; color:#6b7a8d; margin-top:3px; }
+    .kpi-delta { font-size:12px; margin-top:6px; font-weight:500; }
+    .green { color:#1D9E75; } .red { color:#D85A30; } .amber { color:#EF9F27; }
+
+    /* Chart cards */
+    .chart-card { background:#fff; border:1px solid #e8ecf0; border-radius:12px; padding:18px 20px; }
+    .chart-title { font-size:14px; font-weight:600; color:#1a2332; margin-bottom:2px; }
+    .chart-sub   { font-size:12px; color:#6b7a8d; margin-bottom:14px; }
+    .chart-wrap  { height:220px; position:relative; }
+    .charts-2col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+    /* Payback table */
+    .payback-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .payback-table th { text-align:left; padding:8px 10px; color:#6b7a8d; font-size:11px; font-weight:600; text-transform:uppercase; border-bottom:1px solid #e8ecf0; }
+    .payback-table td { padding:9px 10px; border-bottom:1px solid #f4f5f7; }
+    .payback-table tr:last-child td { border-bottom:none; }
+    .tb-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+
+    /* Insight box */
+    .insight-box {
+      background:linear-gradient(135deg,#f0faf6,#e8f5ee);
+      border:1px solid #c8e8da; border-radius:10px;
+      padding:14px 18px; font-size:13px; color:#0F6E56; line-height:1.6;
+    }
+    .insight-box strong { color:#085041; }
+
+    /* Source note */
+    .source-note { font-size:11px; color:#8a94a0; margin-top:8px; }
+  </style>
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> LP Optimizer</a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> Country Comparison</a>
+      <a href="investment-calculator.html" class="nav-item active"><span class="nav-icon">💰</span> Investment Calc</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">--</div>
+      <div style="flex:1;">
+        <div class="user-name" id="user-name">User</div>
+        <div class="user-role" id="user-role">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Investment Calculator</h2>
+        <p>Calculate total investment, payback period and CO₂ savings for Kazakhstan energy transition · CAPEX from IEA/IRENA 2023</p>
+      </div>
+      <span class="badge" id="role-badge">Analyst</span>
+    </div>
+
+    <div class="calc-grid">
+
+      <!-- LEFT: Input panel -->
+      <div class="input-panel">
+
+        <div class="panel-card">
+          <div class="panel-title">New capacity to build (GW)</div>
+          <div class="panel-sub">Enter planned capacity additions for each technology</div>
+
+          <div class="tech-row">
+            <div class="tech-dot" style="background:#1D9E75"></div>
+            <div class="tech-info">
+              <div class="tech-name">Wind</div>
+              <div class="tech-capex">CAPEX: $1,400/kW · CF: 30% · Life: 25yr</div>
+            </div>
+            <div class="tech-input-wrap">
+              <input type="number" class="tech-input" id="inp-wind" value="3" min="0" max="50" step="0.5" oninput="calculate()">
+              <span class="tech-unit">GW</span>
+            </div>
+          </div>
+
+          <div class="tech-row">
+            <div class="tech-dot" style="background:#F5A623"></div>
+            <div class="tech-info">
+              <div class="tech-name">Solar PV</div>
+              <div class="tech-capex">CAPEX: $900/kW · CF: 22% · Life: 25yr</div>
+            </div>
+            <div class="tech-input-wrap">
+              <input type="number" class="tech-input" id="inp-solar" value="5" min="0" max="50" step="0.5" oninput="calculate()">
+              <span class="tech-unit">GW</span>
+            </div>
+          </div>
+
+          <div class="tech-row">
+            <div class="tech-dot" style="background:#378ADD"></div>
+            <div class="tech-info">
+              <div class="tech-name">Hydro</div>
+              <div class="tech-capex">CAPEX: $2,500/kW · CF: 40% · Life: 60yr</div>
+            </div>
+            <div class="tech-input-wrap">
+              <input type="number" class="tech-input" id="inp-hydro" value="0.5" min="0" max="10" step="0.5" oninput="calculate()">
+              <span class="tech-unit">GW</span>
+            </div>
+          </div>
+
+          <div class="tech-row">
+            <div class="tech-dot" style="background:#9F77DD"></div>
+            <div class="tech-info">
+              <div class="tech-name">Nuclear (VVER-1200)</div>
+              <div class="tech-capex">CAPEX: $5,000/kW · CF: 90% · Life: 60yr</div>
+            </div>
+            <div class="tech-input-wrap">
+              <input type="number" class="tech-input" id="inp-nuclear" value="1.2" min="0" max="5" step="0.4" oninput="calculate()">
+              <span class="tech-unit">GW</span>
+            </div>
+          </div>
+
+          <div class="tech-row">
+            <div class="tech-dot" style="background:#4a4a4a"></div>
+            <div class="tech-info">
+              <div class="tech-name">Coal (retire)</div>
+              <div class="tech-capex">Decommissioning cost: ~$150/kW</div>
+            </div>
+            <div class="tech-input-wrap">
+              <input type="number" class="tech-input" id="inp-coal-retire" value="4" min="0" max="14" step="0.5" oninput="calculate()">
+              <span class="tech-unit">GW</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-title">Economic parameters</div>
+          <div class="panel-sub">Adjust assumptions for your scenario</div>
+
+          <div class="sl-row">
+            <div class="sl-header">
+              <span class="sl-label">Discount rate</span>
+              <span class="sl-val" id="val-discount">8%</span>
+            </div>
+            <div class="sl-sub">Cost of capital for Kazakhstan energy projects</div>
+            <input type="range" min="4" max="15" value="8" step="0.5"
+              id="sl-discount" oninput="document.getElementById('val-discount').textContent=this.value+'%'; calculate()">
+          </div>
+
+          <div class="sl-row">
+            <div class="sl-header">
+              <span class="sl-label">Carbon price ($/t CO₂)</span>
+              <span class="sl-val" id="val-carbon">20</span>
+            </div>
+            <div class="sl-sub">Kazakhstan ETS current price ~$3, NDC target ~$20</div>
+            <input type="range" min="0" max="150" value="20" step="5"
+              id="sl-carbon" oninput="document.getElementById('val-carbon').textContent='$'+this.value; calculate()">
+          </div>
+
+          <div class="sl-row">
+            <div class="sl-header">
+              <span class="sl-label">Coal savings ($/MWh)</span>
+              <span class="sl-val" id="val-coal-save">45</span>
+            </div>
+            <div class="sl-sub">Avoided fuel cost per MWh replaced by renewables</div>
+            <input type="range" min="20" max="100" value="45" step="5"
+              id="sl-coal-save" oninput="document.getElementById('val-coal-save').textContent='$'+this.value; calculate()">
+          </div>
+
+          <div class="sl-row">
+            <div class="sl-header">
+              <span class="sl-label">Build period (years)</span>
+              <span class="sl-val" id="val-period">10</span>
+            </div>
+            <div class="sl-sub">Investment spread over this many years</div>
+            <input type="range" min="5" max="20" value="10" step="1"
+              id="sl-period" oninput="document.getElementById('val-period').textContent=this.value; calculate()">
+          </div>
+        </div>
+
+        <button class="calc-btn" onclick="calculate()">⚡ Calculate Investment</button>
+        <div class="source-note">CAPEX data: IEA World Energy Outlook 2023, IRENA Renewable Power Generation Costs 2023</div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div class="results-panel">
+
+        <div class="kpi-row">
+          <div class="kpi-card" style="border-top-color:#1D9E75">
+            <div class="kpi-label">Total Investment</div>
+            <div class="kpi-val green" id="kpi-total">—</div>
+            <div class="kpi-unit">Billion USD</div>
+            <div class="kpi-delta" id="kpi-annual">— B$/yr over build period</div>
+          </div>
+          <div class="kpi-card" style="border-top-color:#378ADD">
+            <div class="kpi-label">CO₂ Avoided</div>
+            <div class="kpi-val green" id="kpi-co2">—</div>
+            <div class="kpi-unit">Mt CO₂/year</div>
+            <div class="kpi-delta" id="kpi-co2-life">— Mt over plant lifetime</div>
+          </div>
+          <div class="kpi-card" style="border-top-color:#EF9F27">
+            <div class="kpi-label">Simple Payback</div>
+            <div class="kpi-val amber" id="kpi-payback">—</div>
+            <div class="kpi-unit">years</div>
+            <div class="kpi-delta" id="kpi-irr">Cost of saved CO₂: —</div>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-card" style="border-top-color:#9F77DD">
+            <div class="kpi-label">New Electricity</div>
+            <div class="kpi-val" id="kpi-elec" style="color:#9F77DD">—</div>
+            <div class="kpi-unit">TWh/year added</div>
+            <div class="kpi-delta" id="kpi-homes">Equivalent to — homes</div>
+          </div>
+          <div class="kpi-card" style="border-top-color:#1D9E75">
+            <div class="kpi-label">RE Share Impact</div>
+            <div class="kpi-val green" id="kpi-re">—</div>
+            <div class="kpi-unit">% points increase</div>
+            <div class="kpi-delta" id="kpi-re-abs">From 15% → —%</div>
+          </div>
+          <div class="kpi-card" style="border-top-color:#D85A30">
+            <div class="kpi-label">Carbon Revenue</div>
+            <div class="kpi-val red" id="kpi-carbon-rev">—</div>
+            <div class="kpi-unit">B$/year at carbon price</div>
+            <div class="kpi-delta" id="kpi-carbon-sub">Helps fund transition</div>
+          </div>
+        </div>
+
+        <div class="charts-2col">
+          <div class="chart-card">
+            <div class="chart-title">Investment by technology (B$)</div>
+            <div class="chart-sub">Total CAPEX breakdown</div>
+            <div class="chart-wrap"><canvas id="chartCapex"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Annual electricity generation (TWh)</div>
+            <div class="chart-sub">New capacity output per year</div>
+            <div class="chart-wrap"><canvas id="chartGen"></canvas></div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">Payback analysis — Cumulative cash flow (B$)</div>
+          <div class="chart-sub">Investment outflow vs savings inflow over time</div>
+          <div class="chart-wrap"><canvas id="chartPayback"></canvas></div>
+        </div>
+
+        <div class="panel-card">
+          <div class="chart-title" style="margin-bottom:12px;">Technology breakdown</div>
+          <table class="payback-table">
+            <thead>
+              <tr><th>Technology</th><th>Capacity</th><th>CAPEX (B$)</th><th>Generation (TWh/yr)</th><th>CO₂ avoided (Mt/yr)</th><th>Payback</th></tr>
+            </thead>
+            <tbody id="tech-table"></tbody>
+          </table>
+        </div>
+
+        <div class="insight-box" id="insight-box">
+          Enter capacity values and press Calculate to see investment analysis.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+// ── User ─────────────────────────────────────────────────────────────────
+(function(){
+  const u = JSON.parse(sessionStorage.getItem('kzleap_user') || '{}');
+  const name = u.name || 'User';
+  const role = u.role || 'analyst';
+  const badgeStyles = {
+    analyst:     { bg:'#e1f5ee', color:'#085041', text:'Energy Analyst' },
+    researcher:  { bg:'#eeedfe', color:'#3C3489', text:'Researcher' },
+    policymaker: { bg:'#faece7', color:'#712B13', text:'Policymaker' },
+  };
+  const bs = badgeStyles[role] || badgeStyles.analyst;
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-role').textContent = bs.text;
+  document.getElementById('user-avatar').textContent = name.slice(0,2).toUpperCase();
+  const b = document.getElementById('role-badge');
+  b.textContent = bs.text; b.style.background = bs.bg; b.style.color = bs.color;
+})();
+
+// ── Technology data (from lp_optimizer.py) ───────────────────────────────
+const TECH = {
+  wind:    { capex_kw:1400, cf:0.30, life:25, co2_replace:0.70, color:'#1D9E75', label:'Wind' },
+  solar:   { capex_kw: 900, cf:0.22, life:25, co2_replace:0.70, color:'#F5A623', label:'Solar PV' },
+  hydro:   { capex_kw:2500, cf:0.40, life:60, co2_replace:0.70, color:'#378ADD', label:'Hydro' },
+  nuclear: { capex_kw:5000, cf:0.90, life:60, co2_replace:0.82, color:'#9F77DD', label:'Nuclear' },
+};
+const COAL_DECOMM_KW = 150; // $/kW decommissioning
+const KZ_TOTAL_GEN   = 115; // TWh current total generation
+const KZ_COAL_GEN    = 70;  // TWh coal generation
+
+let charts = {};
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function calculate() {
+  const gw = {
+    wind:    +document.getElementById('inp-wind').value    || 0,
+    solar:   +document.getElementById('inp-solar').value   || 0,
+    hydro:   +document.getElementById('inp-hydro').value   || 0,
+    nuclear: +document.getElementById('inp-nuclear').value || 0,
+  };
+  const coalRetire = +document.getElementById('inp-coal-retire').value || 0;
+  const discount   = (+document.getElementById('sl-discount').value) / 100;
+  const carbonPrice= +document.getElementById('sl-carbon').value;
+  const coalSave   = +document.getElementById('sl-coal-save').value;
+  const period     = +document.getElementById('sl-period').value;
+
+  // ── Calculations ─────────────────────────────────────────────────────
+  let totalCapex = 0, totalGen = 0, totalCO2 = 0;
+  const techRows = [];
+
+  Object.entries(gw).forEach(([key, gwVal]) => {
+    if (gwVal <= 0) return;
+    const t = TECH[key];
+    const capex_b = (gwVal * 1e6 * t.capex_kw) / 1e9; // GW → kW (*1e6), then to B$ (/1e9)
+    const gen_twh = gwVal * t.cf * 8.76;                // TWh/yr
+    const co2_mt  = gen_twh * t.co2_replace / 1000;     // Mt/yr avoided (replacing coal)
+    const ann_capex = capex_b * (discount / (1 - Math.pow(1+discount, -t.life)));
+    const savings_yr = gen_twh * coalSave / 1000 + co2_mt * carbonPrice / 1000;
+    const payback = savings_yr > 0 ? (capex_b / savings_yr).toFixed(1) : '—';
+
+    totalCapex += capex_b;
+    totalGen   += gen_twh;
+    totalCO2   += co2_mt;
+    techRows.push({ key, label:t.label, color:t.color, gw:gwVal, capex:capex_b, gen:gen_twh, co2:co2_mt, payback });
+  });
+
+  // Coal decommissioning cost
+  const decommCost = (coalRetire * 1e6 * COAL_DECOMM_KW) / 1e9;
+  totalCapex += decommCost;
+
+  const annualInvest = totalCapex / period;
+  const coalCO2avoided = coalRetire * 0.65 * 8.76 * 0.82 / 1000; // Mt/yr from coal retirement
+  const totalCO2all = totalCO2 + coalCO2avoided;
+
+  // Savings per year
+  const annualSavings = totalGen * coalSave / 1000 + totalCO2all * carbonPrice / 1000;
+  const paybackYrs = annualSavings > 0 ? (totalCapex / annualSavings).toFixed(1) : '—';
+  const costPerTon = totalCO2all > 0 ? (annualInvest / totalCO2all).toFixed(0) : '—';
+
+  // RE share impact
+  const reGen = (gw.wind*TECH.wind.cf + gw.solar*TECH.solar.cf + gw.hydro*TECH.hydro.cf) * 8.76;
+  const newTotal = KZ_TOTAL_GEN + totalGen - coalRetire * 0.65 * 8.76;
+  const newRE = ((reGen + 17.3) / newTotal * 100); // 17.3 TWh existing RE
+  const reIncrease = (newRE - 15).toFixed(1);
+
+  const carbonRev = (totalCO2all * carbonPrice / 1000).toFixed(2);
+  const lifetimeCO2 = (totalCO2all * 25).toFixed(0); // avg 25yr
+  const homes = Math.round(totalGen * 1000 / 3.5); // avg 3.5 MWh/home/yr
+
+  // ── Update KPIs ───────────────────────────────────────────────────────
+  document.getElementById('kpi-total').textContent   = totalCapex.toFixed(1);
+  document.getElementById('kpi-annual').textContent  = annualInvest.toFixed(1) + ' B$/yr over build period';
+  document.getElementById('kpi-co2').textContent     = totalCO2all.toFixed(2);
+  document.getElementById('kpi-co2-life').textContent= lifetimeCO2 + ' Mt over plant lifetime';
+  document.getElementById('kpi-payback').textContent = paybackYrs;
+  document.getElementById('kpi-irr').textContent     = '$' + costPerTon + '/t CO₂ abatement cost';
+  document.getElementById('kpi-elec').textContent    = totalGen.toFixed(1);
+  document.getElementById('kpi-homes').textContent   = 'Equivalent to ' + homes.toLocaleString() + ' homes';
+  document.getElementById('kpi-re').textContent      = '+' + reIncrease;
+  document.getElementById('kpi-re-abs').textContent  = 'From 15% → ' + newRE.toFixed(1) + '%';
+  document.getElementById('kpi-carbon-rev').textContent = carbonRev;
+  document.getElementById('kpi-carbon-sub').textContent = 'Helps offset ' + (carbonRev/annualInvest*100).toFixed(0) + '% of annual investment';
+
+  // ── Tech table ────────────────────────────────────────────────────────
+  const tbody = document.getElementById('tech-table');
+  tbody.innerHTML = techRows.map(r => `
+    <tr>
+      <td><span class="tb-dot" style="background:${r.color}"></span>${r.label}</td>
+      <td>${r.gw} GW</td>
+      <td>${r.capex.toFixed(2)} B$</td>
+      <td>${r.gen.toFixed(1)} TWh</td>
+      <td>${r.co2.toFixed(2)} Mt</td>
+      <td>${r.payback} yr</td>
+    </tr>
+  `).join('') + (decommCost > 0 ? `
+    <tr>
+      <td><span class="tb-dot" style="background:#4a4a4a"></span>Coal retire</td>
+      <td>${coalRetire} GW</td>
+      <td>${decommCost.toFixed(2)} B$</td>
+      <td>−${(coalRetire*0.65*8.76).toFixed(1)} TWh</td>
+      <td>+${coalCO2avoided.toFixed(2)} Mt</td>
+      <td>—</td>
+    </tr>` : '');
+
+  // ── CAPEX chart ───────────────────────────────────────────────────────
+  destroyChart('chartCapex');
+  const capexData = techRows.map(r => r.capex);
+  const capexLabels = techRows.map(r => r.label);
+  if (decommCost > 0) { capexLabels.push('Coal retire'); capexData.push(decommCost); }
+  charts['chartCapex'] = new Chart(document.getElementById('chartCapex'), {
+    type: 'doughnut',
+    data: {
+      labels: capexLabels,
+      datasets: [{ data: capexData,
+        backgroundColor: [...techRows.map(r=>r.color+'CC'), '#4a4a4aCC'],
+        borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ position:'bottom', labels:{ font:{size:11}, boxWidth:12 } },
+        tooltip:{ callbacks:{ label: ctx => ctx.label+': $'+ctx.parsed.toFixed(2)+'B' } }
+      }
+    }
+  });
+
+  // ── Generation chart ──────────────────────────────────────────────────
+  destroyChart('chartGen');
+  charts['chartGen'] = new Chart(document.getElementById('chartGen'), {
+    type: 'bar',
+    data: {
+      labels: techRows.map(r => r.label),
+      datasets: [{
+        data: techRows.map(r => r.gen),
+        backgroundColor: techRows.map(r => r.color+'CC'),
+        borderColor: techRows.map(r => r.color),
+        borderWidth: 1.5, borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx=>ctx.parsed.y.toFixed(1)+' TWh/yr' } } },
+      scales:{ y:{ ticks:{ callback: v=>v+' TWh', font:{size:10} } }, x:{ ticks:{font:{size:10}} } }
+    }
+  });
+
+  // ── Payback chart ─────────────────────────────────────────────────────
+  destroyChart('chartPayback');
+  const years = Array.from({length:31},(_,i)=>2025+i);
+  const cumFlow = years.map((y,i) => {
+    const outflow = i < period ? -(annualInvest * (i+1)) : -totalCapex;
+    const inflow  = i > 0 ? annualSavings * i : 0;
+    return +(outflow + inflow).toFixed(2);
+  });
+  charts['chartPayback'] = new Chart(document.getElementById('chartPayback'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: 'Cumulative cash flow (B$)',
+        data: cumFlow,
+        borderColor: ctx => {
+          const v = ctx.raw;
+          return v >= 0 ? '#1D9E75' : '#D85A30';
+        },
+        segment: { borderColor: ctx => ctx.p1.parsed.y >= 0 ? '#1D9E75' : '#D85A30' },
+        backgroundColor: 'rgba(29,158,117,0.06)',
+        borderWidth: 2.5, tension: 0.3, fill: true, pointRadius: 2,
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx=>ctx.parsed.y.toFixed(1)+' B$' } } },
+      scales:{
+        x:{ ticks:{font:{size:10}, maxTicksLimit:10} },
+        y:{ ticks:{ callback: v=>v+'B$', font:{size:10} },
+            grid:{ color: ctx => ctx.tick.value===0 ? '#888' : '#f0f0f0', lineWidth: ctx => ctx.tick.value===0 ? 2 : 1 }
+        }
+      }
+    }
+  });
+
+  // ── Insight ───────────────────────────────────────────────────────────
+  const breakeven = cumFlow.findIndex(v => v >= 0);
+  const breakevenYr = breakeven > 0 ? 2025 + breakeven : null;
+  document.getElementById('insight-box').innerHTML = `
+    <strong>Investment Summary:</strong> Building ${(gw.wind+gw.solar+gw.hydro+gw.nuclear).toFixed(1)} GW of clean energy
+    + retiring ${coalRetire} GW of coal requires <strong>$${totalCapex.toFixed(1)}B total</strong>
+    ($${annualInvest.toFixed(1)}B/yr over ${period} years).<br><br>
+    This avoids <strong>${totalCO2all.toFixed(1)} Mt CO₂/year</strong> — equivalent to
+    ${(totalCO2all/242*100).toFixed(0)}% of Kazakhstan's current emissions.
+    ${breakevenYr ? `Break-even point: <strong>${breakevenYr}</strong>.` : ''}
+    At $${carbonPrice}/t carbon price, carbon revenues cover
+    <strong>${(carbonRev/annualInvest*100).toFixed(0)}%</strong> of annual investment costs.
+    ${newRE.toFixed(0) >= 15 ? '✓ Achieves NDC renewables target.' : `Renewables reach ${newRE.toFixed(0)}% — NDC target is 15%.`}
+  `;
+}
+
+// Run on load
+calculate();
+</script>
+<script src="ai-chat-widget.js"></script>
+</body>
+</html>

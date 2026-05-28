@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="logo-circle">KZ</div>
+      <h1>KZLEAP</h1>
+      <p>Kazakhstan Energy Forecasting Platform</p>
+    </div>
+
+    <div class="login-card">
+      <h2>Sign in</h2>
+      <p class="login-sub">Choose your role and enter credentials</p>
+
+      <div class="role-selector">
+        <button class="role-btn active" onclick="selectRole('analyst', this)">
+          Energy Analyst
+        </button>
+        <button class="role-btn" onclick="selectRole('researcher', this)">
+          Researcher
+        </button>
+        <button class="role-btn" onclick="selectRole('policymaker', this)">
+          Policymaker
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="you@kzleap.kz" />
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••" />
+      </div>
+
+      <div id="error-msg" class="error-msg" style="display:none;">
+        Invalid email or password. Please try again.
+      </div>
+
+      <button class="login-btn" onclick="handleLogin()">Sign in</button>
+      <div style="text-align:center;margin-top:12px;font-size:13px;">
+  <a href="forgot-password.html" style="color:#0F6E56;text-decoration:none;">Forgot password?</a>
+</div>
+<div class="register-link" style="text-align:center;margin-top:16px;font-size:13px;color:#666;">
+  Don't have an account? <a href="register.html" style="color:#0F6E56;font-weight:600;text-decoration:none;">Register</a>
+</div>
+
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid #f0f0f0;text-align:center;">
+  <a href="kids.html" style="
+    display:inline-flex;align-items:center;gap:8px;
+    background:linear-gradient(135deg,#27AE60,#56CCF2);
+    color:#fff;font-weight:800;font-size:14px;
+    padding:11px 28px;border-radius:30px;text-decoration:none;
+    box-shadow:0 4px 18px rgba(39,174,96,0.4);
+    transition:transform 0.15s,box-shadow 0.15s;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  "
+  onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(39,174,96,0.5)'"
+  onmouseout="this.style.transform='';this.style.boxShadow='0 4px 18px rgba(39,174,96,0.4)'"
+  >
+    For Kids — EcoCity Game
+  </a>
+  <div style="margin-top:8px;font-size:11px;color:#aaa;">No registration required · For kids</div>
+</div>
+      
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  
+</body>
+</html>

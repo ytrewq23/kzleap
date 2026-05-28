@@ -1,0 +1,94 @@
+/* ── Scenario badges ── */
+.scenario-legend {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sc-badge {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sc-badge.bau {
+  background: #e6f1fb;
+  color: #0c447c;
+}
+
+.sc-badge.lc {
+  background: #e1f5ee;
+  color: #085041;
+}
+
+/* ── Table ── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: #f8f8f8;
+  color: #888;
+  font-weight: 500;
+  font-size: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f5f5f5;
+  color: #333;
+}
+
+.table tr:hover td {
+  background: #fafafa;
+}
+
+.table td.bau-val {
+  color: #185FA5;
+  font-weight: 500;
+}
+
+.table td.lc-val {
+  color: #0F6E56;
+  font-weight: 500;
+}
+
+.table td.diff-val {
+  color: #666;
+}
+
+.table td.pct-val {
+  color: #0F6E56;
+  font-weight: 600;
+}
+
+.table tr.milestone td {
+  background: #f0f7ff;
+  font-weight: 500;
+}
+
+/* ── Outline button ── */
+.btn-outline {
+  padding: 7px 14px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-outline:hover {
+  border-color: #0c447c;
+  color: #0c447c;
+}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Simulation Results</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="results.css">
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div>
+        <div class="logo-title">KZLEAP</div>
+        <div class="logo-sub">Energy Platform</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="results.html" class="nav-item active"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
+            <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> Country Comparison</a>
+      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">💰</span> Investment Calculator</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div>
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
+      </div>
+      <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Simulation Results</h2>
+        <p>BAU · Moderate Transition · Deep Decarbonization · Kazakhstan · 2021–2060</p>
+      </div>
+      <div class="topbar-right">
+        <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
+        <span class="badge" id="role-badge">Energy Analyst</span>
+        <a href="reports.html" class="btn-outline">Export Report →</a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div id="loading-msg" style="text-align:center;padding:12px;color:#666;font-size:13px;display:none;">
+        Loading data from KZLEAP backend...
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card" id="card-baseline">
+          <div class="metric-label">Baseline CO2 (2023)</div>
+          <div class="metric-value">—</div>
+          <div class="metric-change neutral">Loading...</div>
+        </div>
+        <div class="metric-card" id="card-bau">
+          <div class="metric-label">BAU projection (2050)</div>
+          <div class="metric-value" style="color:#D85A30;">—</div>
+          <div class="metric-change down">Loading...</div>
+        </div>
+        <div class="metric-card" id="card-dd">
+          <div class="metric-label">Deep Decarbonization (2050)</div>
+          <div class="metric-value" style="color:#0F6E56;">—</div>
+          <div class="metric-change up">Loading...</div>
+        </div>
+        <div class="metric-card" id="card-avoided">
+          <div class="metric-label">CO2 avoided by 2050 (DD vs BAU)</div>
+          <div class="metric-value" style="color:#0F6E56;">—</div>
+          <div class="metric-change up">Loading...</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">CO2 emissions forecast 2021–2060</div>
+            <div class="card-sub">BAU · Moderate Transition · Deep Decarbonization · Mt CO2 · with NDC targets</div>
+          </div>
+          <div class="scenario-legend">
+            <span class="sc-badge bau">BAU</span>
+            <span class="sc-badge" style="background:#FEF3CD;color:#7C5200;">MT</span>
+            <span class="sc-badge lc">DD</span>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="co2Chart"></canvas>
+        </div>
+      </div>
+
+      <div class="charts-row" style="margin-bottom:16px;">
+        <div class="card" style="flex:1;">
+          <div class="card-title">Electricity generation forecast (TWh)</div>
+          <div class="card-sub">Total generation · BAU · MT · DD</div>
+          <div class="chart-wrap" style="height:200px;">
+            <canvas id="energyChart"></canvas>
+          </div>
+        </div>
+        <div class="card" style="flex:1;">
+          <div class="card-title">Fuel mix 2050 comparison</div>
+          <div class="card-sub">Share of each fuel type · %</div>
+          <div class="chart-wrap" style="height:200px;">
+            <canvas id="fuelChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Year-by-year results</div>
+            <div class="card-sub">CO2 emissions · Million tonnes</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-outline" onclick="filterTable('all')">All years</button>
+            <button class="btn-outline" onclick="filterTable('5')">Every 5 years</button>
+          </div>
+        </div>
+        <table class="table" id="results-table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th style="color:#378ADD;">BAU (Mt CO2)</th>
+              <th style="color:#B07C10;">MT (Mt CO2)</th>
+              <th style="color:#0F6E56;">DD (Mt CO2)</th>
+              <th>DD vs BAU (Mt)</th>
+              <th>Reduction (%)</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="results.js"></script>
+  <script src="ai-chat-widget.js"></script>
+</body>
+</html>

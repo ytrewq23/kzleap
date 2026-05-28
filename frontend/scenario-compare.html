@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Scenario Comparison</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    .main { padding: 28px 32px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .topbar h2 { margin:0 0 4px; font-size:22px; color:#1a2332; }
+    .topbar p  { margin:0; font-size:13px; color:#6b7a8d; }
+
+    /* Scenario selector */
+    .sc-selector { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+    .sc-label { font-size:12px; font-weight:600; color:#6b7a8d; text-transform:uppercase; letter-spacing:.05em; }
+    .sc-col-btn {
+      padding:7px 18px; border-radius:8px; border:2px solid #e0e4e8;
+      background:#fff; cursor:pointer; font-size:13px; font-weight:600;
+      font-family:inherit; transition:all .15s;
+    }
+    .sc-col-btn:hover { border-color:#378ADD; }
+    .sc-col-btn.left-active  { border-color:#D85A30; background:#faece7; color:#993C1D; }
+    .sc-col-btn.right-active { border-color:#1D9E75; background:#e1f5ee; color:#0F6E56; }
+
+    /* Year slider */
+    .year-slider-wrap {
+      background:#fff; border:1px solid #e8ecf0; border-radius:12px;
+      padding:16px 24px; margin-bottom:20px;
+      display:flex; align-items:center; gap:20px;
+    }
+    .year-display {
+      font-size:28px; font-weight:700; color:#1a2332;
+      min-width:60px; text-align:center;
+    }
+    .year-slider-inner { flex:1; }
+    .year-slider-label { font-size:12px; color:#6b7a8d; margin-bottom:6px; display:flex; justify-content:space-between; }
+    input[type=range].year-sl {
+      width:100%; accent-color:#1D9E75; height:6px; cursor:pointer;
+    }
+    .play-btn {
+      width:40px; height:40px; border-radius:50%;
+      background:#1D9E75; border:none; color:#fff;
+      font-size:16px; cursor:pointer; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .15s;
+    }
+    .play-btn:hover { background:#0F6E56; transform:scale(1.05); }
+
+    /* Comparison grid */
+    .compare-header { display:grid; grid-template-columns:1fr 80px 1fr; gap:12px; margin-bottom:12px; align-items:center; }
+    .col-header {
+      padding:12px 18px; border-radius:10px; text-align:center;
+      font-size:14px; font-weight:700;
+    }
+    .col-header.left  { background:#faece7; color:#993C1D; border:2px solid #D85A30; }
+    .col-header.right { background:#e1f5ee; color:#0F6E56; border:2px solid #1D9E75; }
+    .col-header.mid   { text-align:center; font-size:11px; color:#6b7a8d; font-weight:600; }
+
+    /* KPI comparison rows */
+    .kpi-compare-grid { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+    .kpi-compare-row {
+      display:grid; grid-template-columns:1fr 80px 1fr; gap:12px; align-items:center;
+    }
+    .kpi-compare-card {
+      background:#fff; border:1px solid #e8ecf0; border-radius:10px;
+      padding:12px 16px; display:flex; flex-direction:column;
+    }
+    .kpi-compare-card.left  { border-left:3px solid #D85A30; }
+    .kpi-compare-card.right { border-left:3px solid #1D9E75; }
+    .kcc-label { font-size:11px; color:#6b7a8d; margin-bottom:4px; }
+    .kcc-val   { font-size:20px; font-weight:700; }
+    .kcc-sub   { font-size:11px; color:#8a94a0; margin-top:2px; }
+    .kpi-metric-name {
+      text-align:center; font-size:11px; font-weight:600;
+      color:#6b7a8d; text-transform:uppercase; letter-spacing:.05em;
+    }
+
+    /* Delta badge */
+    .delta-badge {
+      display:inline-block; font-size:12px; font-weight:700;
+      padding:4px 10px; border-radius:20px; margin-top:4px;
+    }
+    .delta-green { background:#e1f5ee; color:#0F6E56; }
+    .delta-red   { background:#faece7; color:#993C1D; }
+    .delta-gray  { background:#f1efec; color:#6b7a8d; }
+
+    /* Charts */
+    .charts-compare { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .chart-card { background:#fff; border:1px solid #e8ecf0; border-radius:12px; padding:18px 20px; }
+    .chart-card-full { grid-column:1/-1; }
+    .cc-title { font-size:13px; font-weight:600; color:#1a2332; margin-bottom:2px; }
+    .cc-sub   { font-size:12px; color:#6b7a8d; margin-bottom:14px; }
+    .chart-wrap { height:220px; position:relative; }
+    .chart-wrap-lg { height:280px; position:relative; }
+
+    /* Verdict box */
+    .verdict-box {
+      background:linear-gradient(135deg,#0d1117,#1a2332);
+      color:#fff; border-radius:12px; padding:20px 24px;
+      margin-bottom:16px;
+    }
+    .verdict-title { font-size:14px; font-weight:700; margin-bottom:10px; color:#4ecba0; }
+    .verdict-grid  { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .verdict-item  { }
+    .verdict-label { font-size:10px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+    .verdict-val   { font-size:18px; font-weight:700; }
+    .verdict-sub   { font-size:11px; color:rgba(255,255,255,.5); margin-top:2px; }
+  </style>
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
+      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> Upload Dataset</a>
+      <div class="nav-section">Scenarios</div>
+      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> Scenario Builder</a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
+      <a href="scenario-compare.html" class="nav-item active"><span class="nav-icon">⇔</span> Compare Scenarios</a>
+      <div class="nav-section">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
+      <div class="nav-section">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> Country Comparison</a>
+      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">💰</span> Investment Calc</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">--</div>
+      <div style="flex:1;">
+        <div class="user-name" id="user-name">User</div>
+        <div class="user-role" id="user-role">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2>Scenario Comparison</h2>
+        <p>Compare any two scenarios side-by-side · Move the year slider to see how they diverge over time</p>
+      </div>
+      <span class="badge" id="role-badge">Analyst</span>
+    </div>
+
+    <!-- Scenario selectors -->
+    <div class="sc-selector">
+      <span class="sc-label">Left:</span>
+      <button class="sc-col-btn left-active" onclick="setLeft('BAU',this)">BAU</button>
+      <button class="sc-col-btn" onclick="setLeft('MT',this)">MT</button>
+      <button class="sc-col-btn" onclick="setLeft('DD',this)">DD</button>
+      <span class="sc-label" style="margin-left:16px;">Right:</span>
+      <button class="sc-col-btn" onclick="setRight('BAU',this)">BAU</button>
+      <button class="sc-col-btn" onclick="setRight('MT',this)">MT</button>
+      <button class="sc-col-btn right-active" onclick="setRight('DD',this)">DD</button>
+    </div>
+
+    <!-- Year slider -->
+    <div class="year-slider-wrap">
+      <button class="play-btn" id="play-btn" onclick="togglePlay()">▶</button>
+      <div class="year-slider-inner">
+        <div class="year-slider-label">
+          <span>2024</span><span>2030</span><span>2040</span><span>2050</span><span>2060</span>
+        </div>
+        <input type="range" class="year-sl" id="year-slider" min="2024" max="2060" value="2035" step="1" oninput="onYearChange(this.value)">
+      </div>
+      <div class="year-display" id="year-display">2035</div>
+    </div>
+
+    <!-- Column headers -->
+    <div class="compare-header">
+      <div class="col-header left" id="left-header">BAU — Business as Usual</div>
+      <div class="col-header mid">VS</div>
+      <div class="col-header right" id="right-header">DD — Deep Decarbonization</div>
+    </div>
+
+    <!-- KPI rows -->
+    <div class="kpi-compare-grid" id="kpi-rows"></div>
+
+    <!-- Verdict -->
+    <div class="verdict-box" id="verdict-box"></div>
+
+    <!-- Charts -->
+    <div class="charts-compare">
+      <div class="chart-card chart-card-full">
+        <div class="cc-title">CO₂ Emissions Trajectory 2024–2060 (Mt)</div>
+        <div class="cc-sub">Both scenarios · NDC targets · Selected year marker</div>
+        <div class="chart-wrap-lg"><canvas id="chartCO2"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">Renewables Share (%)</div>
+        <div class="cc-sub">Wind + Solar + Hydro</div>
+        <div class="chart-wrap"><canvas id="chartRE"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">Coal Share (%)</div>
+        <div class="cc-sub">Coal in electricity mix</div>
+        <div class="chart-wrap"><canvas id="chartCoal"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">Electricity Generation (TWh)</div>
+        <div class="cc-sub">Total generation forecast</div>
+        <div class="chart-wrap"><canvas id="chartElec"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">Fuel Mix at Selected Year</div>
+        <div class="cc-sub">Side-by-side doughnut</div>
+        <div class="chart-wrap"><canvas id="chartMix"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ── User ─────────────────────────────────────────────────────────────────
+(function(){
+  const u = JSON.parse(sessionStorage.getItem('kzleap_user') || '{}');
+  const name = u.name || 'User';
+  const role = u.role || 'analyst';
+  const bs = { analyst:{bg:'#e1f5ee',color:'#085041',text:'Energy Analyst'}, researcher:{bg:'#eeedfe',color:'#3C3489',text:'Researcher'}, policymaker:{bg:'#faece7',color:'#712B13',text:'Policymaker'} }[role] || {bg:'#e1f5ee',color:'#085041',text:'Analyst'};
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-role').textContent = bs.text;
+  document.getElementById('user-avatar').textContent = name.slice(0,2).toUpperCase();
+  const b = document.getElementById('role-badge');
+  b.textContent = bs.text; b.style.background = bs.bg; b.style.color = bs.color;
+})();
+
+// ── Model (mirrors leap_model.py logic) ──────────────────────────────────
+const SCENARIOS_DATA = {
+  BAU: { name:'Business as Usual', short:'BAU', color:'#D85A30',
+    gdp_growth:0.040, eff:-0.010, coal_2050:0.45, re_2030:0.08, re_2050:0.15, nuc_gw:0.0 },
+  MT:  { name:'Moderate Transition', short:'MT', color:'#EF9F27',
+    gdp_growth:0.042, eff:-0.020, coal_2050:0.25, re_2030:0.15, re_2050:0.40, nuc_gw:1.2 },
+  DD:  { name:'Deep Decarbonization', short:'DD', color:'#1D9E75',
+    gdp_growth:0.043, eff:-0.030, coal_2050:0.05, re_2030:0.22, re_2050:0.70, nuc_gw:2.4 },
+};
+
+const BASE = { co2:242, elec:115, tpes:85, year:2023, coal:0.61, gas:0.24, hydro:0.10, re:0.05 };
+const NDC15 = 246.5, NDC25 = 217.5, BASE1990 = 290;
+
+function simulate(key) {
+  const p = SCENARIOS_DATA[key];
+  const years = [], co2=[], elec=[], re=[], coal=[], gas=[], nuclear=[], hydro=[];
+  for (let yr = 2024; yr <= 2060; yr++) {
+    const t = yr - BASE.year;
+    const gdpF = Math.pow(1+p.gdp_growth, t);
+    const effF = Math.pow(1+p.eff, t);
+    const elecD = BASE.elec * Math.pow(gdpF, 0.75) * effF;
+
+    // RE share
+    const yr30 = 2030, yr50 = 2050, yrNuc = 2035;
+    let reS;
+    if (yr <= yr30) reS = BASE.re + (p.re_2030 - BASE.re) * (t / 7);
+    else if (yr <= yr50) reS = p.re_2030 + (p.re_2050 - p.re_2030) * ((yr-yr30)/20);
+    else reS = p.re_2050;
+    reS = Math.min(reS, 0.85);
+
+    // Nuclear
+    let nucS = 0;
+    if (yr >= yrNuc && p.nuc_gw > 0) {
+      const ramp = Math.min((yr-yrNuc)/10, 1.0);
+      nucS = Math.min((p.nuc_gw * 1.1 * ramp) / Math.max(elecD,1) * 8760/1000, 0.15);
+    }
+
+    const hydroS = BASE.hydro;
+    const fossil = Math.max(1 - reS - nucS - hydroS, 0.05);
+    let coalS;
+    if (yr <= yr50) coalS = BASE.coal + (p.coal_2050 - BASE.coal) * (t/27);
+    else coalS = p.coal_2050 + (0 - p.coal_2050) * ((yr-yr50)/10);
+    coalS = Math.max(Math.min(coalS, fossil), 0);
+    const gasS = Math.max(fossil - coalS, 0);
+
+    const co2Val = elecD*coalS*0.82 + elecD*gasS*0.49 + elecD*reS*0.013 + BASE.co2*0.35;
+
+    years.push(yr);
+    co2.push(+co2Val.toFixed(1));
+    elec.push(+elecD.toFixed(1));
+    re.push(+(reS*100).toFixed(1));
+    coal.push(+(coalS*100).toFixed(1));
+    gas.push(+(gasS*100).toFixed(1));
+    nuclear.push(+(nucS*100).toFixed(1));
+    hydro.push(+(hydroS*100).toFixed(1));
+  }
+  return { years, co2, elec, re, coal, gas, nuclear, hydro };
+}
+
+// Pre-compute all scenarios
+const SIM = { BAU: simulate('BAU'), MT: simulate('MT'), DD: simulate('DD') };
+
+function getIdx(year) { return year - 2024; }
+function getVal(key, metric, year) { return SIM[key][metric][getIdx(year)]; }
+
+// ── State ─────────────────────────────────────────────────────────────────
+let leftSc = 'BAU', rightSc = 'DD', currentYear = 2035;
+let charts = {}, playInterval = null, isPlaying = false;
+
+// ── Scenario buttons ──────────────────────────────────────────────────────
+function setLeft(sc, btn) {
+  leftSc = sc;
+  document.querySelectorAll('.sc-selector .sc-col-btn').forEach((b,i) => { if(i<3) b.classList.remove('left-active'); });
+  btn.classList.add('left-active');
+  renderAll();
+}
+function setRight(sc, btn) {
+  rightSc = sc;
+  document.querySelectorAll('.sc-selector .sc-col-btn').forEach((b,i) => { if(i>=4) b.classList.remove('right-active'); });
+  btn.classList.add('right-active');
+  renderAll();
+}
+
+// ── Year slider ───────────────────────────────────────────────────────────
+function onYearChange(val) {
+  currentYear = +val;
+  document.getElementById('year-display').textContent = val;
+  renderKPIs();
+  renderVerdict();
+  updateYearMarker();
+  renderMixChart();
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    clearInterval(playInterval);
+    isPlaying = false;
+    document.getElementById('play-btn').textContent = '▶';
+  } else {
+    isPlaying = true;
+    document.getElementById('play-btn').textContent = '⏸';
+    if (currentYear >= 2060) { currentYear = 2024; document.getElementById('year-slider').value = 2024; }
+    playInterval = setInterval(() => {
+      if (currentYear >= 2060) { clearInterval(playInterval); isPlaying = false; document.getElementById('play-btn').textContent = '▶'; return; }
+      currentYear++;
+      document.getElementById('year-slider').value = currentYear;
+      document.getElementById('year-display').textContent = currentYear;
+      renderKPIs();
+      renderVerdict();
+      updateYearMarker();
+      renderMixChart();
+    }, 120);
+  }
+}
+
+// ── KPI rows ──────────────────────────────────────────────────────────────
+const METRICS = [
+  { key:'co2',  label:'CO₂ Emissions', unit:'Mt', lowerBetter:true },
+  { key:'re',   label:'Renewables Share', unit:'%', lowerBetter:false },
+  { key:'coal', label:'Coal Share', unit:'%', lowerBetter:true },
+  { key:'elec', label:'Electricity', unit:'TWh', lowerBetter:false },
+];
+
+function renderKPIs() {
+  const lSc = SCENARIOS_DATA[leftSc], rSc = SCENARIOS_DATA[rightSc];
+  document.getElementById('left-header').textContent  = lSc.short + ' — ' + lSc.name;
+  document.getElementById('right-header').textContent = rSc.short + ' — ' + rSc.name;
+  document.getElementById('left-header').style.borderColor  = lSc.color;
+  document.getElementById('right-header').style.borderColor = rSc.color;
+
+  const html = METRICS.map(m => {
+    const lVal = getVal(leftSc,  m.key, currentYear);
+    const rVal = getVal(rightSc, m.key, currentYear);
+    const diff = rVal - lVal;
+    const pct  = lVal !== 0 ? ((diff/lVal)*100).toFixed(1) : 0;
+    const rBetter = m.lowerBetter ? diff < 0 : diff > 0;
+    const badgeClass = rBetter ? 'delta-green' : Math.abs(diff) < 1 ? 'delta-gray' : 'delta-red';
+    const sign = diff > 0 ? '+' : '';
+
+    return `
+      <div class="kpi-compare-row">
+        <div class="kpi-compare-card left">
+          <div class="kcc-label">${m.label}</div>
+          <div class="kcc-val" style="color:${SCENARIOS_DATA[leftSc].color}">${lVal} <span style="font-size:13px;color:#6b7a8d">${m.unit}</span></div>
+        </div>
+        <div class="kpi-metric-name">
+          ${m.label}<br>
+          <span class="delta-badge ${badgeClass}">${sign}${diff.toFixed(1)} ${m.unit}</span>
+        </div>
+        <div class="kpi-compare-card right">
+          <div class="kcc-label">${m.label}</div>
+          <div class="kcc-val" style="color:${SCENARIOS_DATA[rightSc].color}">${rVal} <span style="font-size:13px;color:#6b7a8d">${m.unit}</span></div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('kpi-rows').innerHTML = html;
+}
+
+// ── Verdict ───────────────────────────────────────────────────────────────
+function renderVerdict() {
+  const lCO2 = getVal(leftSc,  'co2', currentYear);
+  const rCO2 = getVal(rightSc, 'co2', currentYear);
+  const lRE  = getVal(leftSc,  're',  currentYear);
+  const rRE  = getVal(rightSc, 're',  currentYear);
+  const co2Diff = Math.abs(lCO2 - rCO2).toFixed(0);
+  const reDiff  = Math.abs(rRE - lRE).toFixed(1);
+  const ndcL = lCO2 <= NDC15 ? '✓ Below NDC' : lCO2 <= NDC25 ? '⚠ Near NDC' : '✗ Above NDC';
+  const ndcR = rCO2 <= NDC15 ? '✓ Below NDC' : rCO2 <= NDC25 ? '⚠ Near NDC' : '✗ Above NDC';
+
+  document.getElementById('verdict-box').innerHTML = `
+    <div class="verdict-title">📊 Comparison at ${currentYear}</div>
+    <div class="verdict-grid">
+      <div class="verdict-item">
+        <div class="verdict-label">CO₂ Gap</div>
+        <div class="verdict-val" style="color:#4ecba0">${co2Diff} Mt</div>
+        <div class="verdict-sub">difference between scenarios</div>
+      </div>
+      <div class="verdict-item">
+        <div class="verdict-label">RE Gap</div>
+        <div class="verdict-val" style="color:#4ecba0">${reDiff}%</div>
+        <div class="verdict-sub">renewables difference</div>
+      </div>
+      <div class="verdict-item">
+        <div class="verdict-label">NDC Status</div>
+        <div class="verdict-val" style="color:#4ecba0;font-size:13px;">${SCENARIOS_DATA[leftSc].short}: ${ndcL}</div>
+        <div class="verdict-sub">${SCENARIOS_DATA[rightSc].short}: ${ndcR}</div>
+      </div>
+    </div>`;
+}
+
+// ── Line charts ───────────────────────────────────────────────────────────
+function destroyChart(id) { if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+function renderLineChart(canvasId, metric, yLabel, unitSuffix) {
+  destroyChart(canvasId);
+  const lSc = SCENARIOS_DATA[leftSc], rSc = SCENARIOS_DATA[rightSc];
+  const years = SIM.BAU.years;
+  const datasets = [
+    { label: lSc.short, data: SIM[leftSc][metric],  borderColor: lSc.color, backgroundColor: lSc.color+'15', borderWidth:2.5, tension:0.3, fill:false, pointRadius:1 },
+    { label: rSc.short, data: SIM[rightSc][metric], borderColor: rSc.color, backgroundColor: rSc.color+'15', borderWidth:2.5, tension:0.3, fill:false, pointRadius:1 },
+  ];
+  if (metric === 'co2') {
+    datasets.push({ label:'NDC −15%', data:years.map(()=>NDC15), borderColor:'#B07C10', borderWidth:1.5, borderDash:[5,4], pointRadius:0, fill:false });
+    datasets.push({ label:'NDC −25%', data:years.map(()=>NDC25), borderColor:'#993C1D', borderWidth:1,   borderDash:[3,3], pointRadius:0, fill:false });
+  }
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type:'line',
+    data:{ labels:years, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ labels:{ font:{size:11}, boxWidth:14 } },
+        tooltip:{ callbacks:{ label: ctx => ctx.dataset.label+': '+ctx.parsed.y+unitSuffix } },
+        annotation: {
+          annotations: [{
+            type:'line', xMin:currentYear, xMax:currentYear,
+            borderColor:'#888', borderWidth:1.5, borderDash:[4,3],
+            label:{ content: currentYear+'', enabled:true, position:'start', font:{size:10} }
+          }]
+        }
+      },
+      scales:{
+        x:{ ticks:{ font:{size:10}, maxTicksLimit:10 } },
+        y:{ ticks:{ callback: v=>v+unitSuffix, font:{size:10} }, title:{ display:true, text:yLabel, font:{size:11} } }
+      }
+    }
+  });
+}
+
+function updateYearMarker() {
+  ['chartCO2','chartRE','chartCoal','chartElec'].forEach(id => {
+    const ch = charts[id];
+    if (!ch) return;
+    const idx = getIdx(currentYear);
+    ch.data.datasets.forEach(ds => { ds.pointRadius = ds.data.map((_,i) => i===idx ? 5 : 1); });
+    ch.update('none');
+  });
+}
+
+// ── Mix doughnut ──────────────────────────────────────────────────────────
+function renderMixChart() {
+  destroyChart('chartMix');
+  const lSc = SCENARIOS_DATA[leftSc], rSc = SCENARIOS_DATA[rightSc];
+  const lRE = getVal(leftSc,'re',currentYear), lCoal=getVal(leftSc,'coal',currentYear), lGas=getVal(leftSc,'gas',currentYear), lNuc=getVal(leftSc,'nuclear',currentYear);
+  const rRE = getVal(rightSc,'re',currentYear), rCoal=getVal(rightSc,'coal',currentYear), rGas=getVal(rightSc,'gas',currentYear), rNuc=getVal(rightSc,'nuclear',currentYear);
+  const lHydro = 10, rHydro = 10;
+
+  charts['chartMix'] = new Chart(document.getElementById('chartMix'), {
+    type:'doughnut',
+    data:{
+      labels:['RE (Wind/Solar)', 'Hydro', 'Nuclear', 'Gas', 'Coal'],
+      datasets:[
+        { label: lSc.short, data:[lRE, lHydro, lNuc, lGas, lCoal], backgroundColor:['#1D9E75CC','#378ADDCC','#9F77DDCC','#EF9F27CC','#4a4a4aCC'], borderWidth:0, weight:1 },
+        { label: rSc.short, data:[rRE, rHydro, rNuc, rGas, rCoal], backgroundColor:['#1D9E75','#378ADD','#9F77DD','#EF9F27','#4a4a4a'], borderWidth:0, weight:1 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ font:{size:11}, boxWidth:12 } },
+        tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label} — ${ctx.label}: ${ctx.parsed.toFixed(1)}%` } }
+      }
+    }
+  });
+}
+
+function renderAll() {
+  renderKPIs();
+  renderVerdict();
+  renderLineChart('chartCO2',  'co2',  'Mt CO₂',  ' Mt');
+  renderLineChart('chartRE',   're',   '% share',  '%');
+  renderLineChart('chartCoal', 'coal', '% share',  '%');
+  renderLineChart('chartElec', 'elec', 'TWh',      ' TWh');
+  renderMixChart();
+}
+
+renderAll();
+</script>
+<script src="ai-chat-widget.js"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoCity Kids — KZLEAP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="kids.css">
+</head>
+<body>
+
+  
+  <div class="mascot-wrap" id="mascotWrap">
+    <div class="speech-bubble" id="speechBubble">
+      <span id="speechText">Hi! I'm Arlan! 🐆 Help me build a green city!</span>
+    </div>
+    <div class="mascot" id="mascot">🐆</div>
+  </div>
+
+  
+  <div class="score-bar">
+    <div class="score-bar-left">
+      <button class="back-btn" onclick="window.location.href='index.html'">← Exit</button>
+    </div>
+    <div class="score-center">
+      <span class="score-label">⚡ Energy</span>
+      <div class="energy-bar-wrap">
+        <div class="energy-bar" id="energyBar"></div>
+      </div>
+      <span class="energy-num" id="energyNum">0 / 100</span>
+    </div>
+    <div class="score-right">
+      <span class="stars-display" id="starsDisplay">⭐ 0</span>
+    </div>
+  </div>
+
+  
+  <div class="level-badge-wrap">
+    <div class="level-badge" id="levelBadge">🌱 Level 1</div>
+    <div class="level-hint" id="levelHint">Keep playing to level up!</div>
+  </div>
+
+  
+  <div class="game-wrap">
+
+    
+    <div class="game-select" id="gameSelect">
+      <h2 class="pick-title">Choose a game!</h2>
+      <div class="mini-cards">
+        <div class="mini-card card-quiz" onclick="startGame('quiz')">
+          <div class="mini-card-icon">🤔</div>
+          <div class="mini-card-name">What uses more?</div>
+          <div class="mini-card-desc">Guess which device eats more energy!</div>
+        </div>
+        <div class="mini-card card-sort" onclick="startGame('sort')">
+          <div class="mini-card-icon">♻️</div>
+          <div class="mini-card-name">Sort the Energy</div>
+          <div class="mini-card-desc">Split clean and dirty energy sources</div>
+        </div>
+        <div class="mini-card card-solar" onclick="startGame('solar')">
+          <div class="mini-card-icon">☀️</div>
+          <div class="mini-card-name">Solar Charge!</div>
+          <div class="mini-card-desc">Clear the clouds — power the city!</div>
+        </div>
+        <div class="mini-card card-maze" onclick="startGame('maze')">
+          <div class="mini-card-icon">🚲</div>
+          <div class="mini-card-name">Bike to School</div>
+          <div class="mini-card-desc">Ride through the city, avoid cars!</div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="game-screen" id="gameQuiz" style="display:none;">
+      <div class="game-header">
+        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
+        <h2>🤔 What uses MORE energy?</h2>
+        <p>Tap the one that eats more electricity!</p>
+        <div class="game-timer" id="quizTimer">⏱ 10</div>
+      </div>
+      <div class="quiz-arena">
+        <div class="quiz-card" id="quizCardA" onclick="answerQuiz(0)">
+          <div class="quiz-emoji" id="quizEmojiA"></div>
+          <div class="quiz-name"  id="quizNameA"></div>
+        </div>
+        <div class="quiz-vs">VS</div>
+        <div class="quiz-card" id="quizCardB" onclick="answerQuiz(1)">
+          <div class="quiz-emoji" id="quizEmojiB"></div>
+          <div class="quiz-name"  id="quizNameB"></div>
+        </div>
+      </div>
+      <div class="quiz-feedback" id="quizFeedback">&nbsp;</div>
+      <div class="game-score-line">Correct: <span id="quizScore">0</span> &nbsp;|&nbsp; Wrong: <span id="quizErrors">0</span></div>
+    </div>
+
+    
+    <div class="game-screen" id="gameSort" style="display:none;">
+      <div class="game-header">
+        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
+        <h2>♻️ Sort the Energy!</h2>
+        <p>Drag each icon to the right basket!</p>
+        <div class="game-timer" id="sortTimer">⏱ 30</div>
+      </div>
+      <div class="sort-arena">
+        <div class="sort-bins">
+          <div class="sort-bin bin-green" id="binGreen"
+               ondragover="allowDrop(event)" ondrop="dropToken(event,'green')">
+            <div class="bin-icon">🌿</div>
+            <div class="bin-label">Clean Energy</div>
+          </div>
+          <div class="sort-bin bin-dirty" id="binDirty"
+               ondragover="allowDrop(event)" ondrop="dropToken(event,'dirty')">
+            <div class="bin-icon">🏭</div>
+            <div class="bin-label">Dirty Energy</div>
+          </div>
+        </div>
+        <div class="falling-zone" id="fallingZone"></div>
+      </div>
+      <div class="game-score-line">Correct: <span id="sortScore">0</span> &nbsp;|&nbsp; Wrong: <span id="sortErrors">0</span></div>
+    </div>
+
+    
+    <div class="game-screen" id="gameSolar" style="display:none;">
+      <div class="game-header">
+        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
+        <h2>☀️ Solar Charge!</h2>
+        <p>Tap clouds to clear the sky and charge the city!</p>
+        <div class="game-timer" id="solarTimer">⏱ 30</div>
+      </div>
+      <div class="solar-scene" id="solarScene">
+        <div class="sun-row"><span class="sun-emoji" id="gameSun">☀️</span></div>
+        <div class="solar-panels-row" id="solarPanels"></div>
+        <div class="city-battery-row">
+          <span class="battery-label">🔋 City battery</span>
+          <div class="battery-wrap">
+            <div class="battery-fill" id="batteryFill"></div>
+          </div>
+          <span class="battery-pct" id="batteryPct">0%</span>
+        </div>
+        <div class="clouds-layer" id="cloudsLayer"></div>
+      </div>
+    </div>
+
+    
+    <div class="game-screen" id="gameMaze" style="display:none;">
+      <div class="game-header">
+        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
+        <h2>🚲 Bike to School!</h2>
+        <p>Arrow keys or swipe — dodge the cars! 🚗</p>
+        <div class="game-timer" id="mazeTimer">⏱ 30</div>
+      </div>
+      <div class="maze-wrap">
+        <canvas id="mazeCanvas" width="340" height="320"></canvas>
+      </div>
+      <div class="game-score-line">Dodged: <span id="mazeScore">0</span> cars &nbsp;|&nbsp; Hits: <span id="mazeHits">0</span></div>
+    </div>
+
+    
+    <div class="result-screen" id="resultScreen" style="display:none;">
+      <div class="result-card">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <h2 id="resultTitle">Awesome!</h2>
+        <p  id="resultText">You helped the city!</p>
+        <div class="result-stars" id="resultStars"></div>
+        <div class="result-fact"  id="resultFact"></div>
+        <div class="result-btns">
+          <button class="res-btn res-play" onclick="playAgain()">▶ Play Again</button>
+          <button class="res-btn res-home" onclick="showGameSelect()">🏠 Menu</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  
+  <div class="city-progress">
+    <div class="city-scene">
+      <div class="ground"></div>
+      <div class="buildings" id="buildings">
+        <span class="bld" id="bld0">🏚️</span>
+        <span class="bld" id="bld1">🌲</span>
+        <span class="bld" id="bld2">🌲</span>
+        <span class="bld" id="bld3">🌲</span>
+        <span class="bld" id="bld4">🌲</span>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="confettiCanvas"></canvas>
+  <script src="kids.js"></script>
+</body>
+</html>

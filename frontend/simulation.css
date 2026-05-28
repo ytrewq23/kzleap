@@ -1,0 +1,144 @@
+
+.sim-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.config-label { font-size: 13px; color: #666; }
+.config-value { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+.status-ok { color: #0F6E56; }
+
+/* ── Run button ── */
+.run-btn {
+  width: 100%;
+  padding: 14px;
+  background: #0c447c;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.run-btn:hover { background: #185FA5; }
+.run-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+/* ── Progress steps ── */
+.progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 12px 0;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.step-dot.waiting  { background: #ddd; }
+.step-dot.running  { background: #EF9F27; animation: pulse 1s infinite; }
+.step-dot.done     { background: #0F6E56; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.step-info { flex: 1; }
+.step-name { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+.step-desc { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+.step-status {
+  font-size: 11px;
+  color: #aaa;
+  min-width: 60px;
+  text-align: right;
+}
+
+.step-status.running { color: #EF9F27; font-weight: 600; }
+.step-status.done    { color: #0F6E56; font-weight: 600; }
+
+/* ── Progress bar ── */
+.progress-bar-wrap {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #0c447c;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+/* ── Done message ── */
+.done-msg {
+  text-align: center;
+  padding: 16px;
+  background: #e1f5ee;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F6E56;
+}
+
+.done-msg a { color: #0c447c; text-decoration: none; margin-left: 8px; }
+.done-msg a:hover { text-decoration: underline; }
+
+/* ── Info card ── */
+.info-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: #f0f7ff;
+  border-color: #b5d4f4;
+}
+
+.info-icon {
+  width: 32px;
+  height: 32px;
+  background: #e6f1fb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0c447c;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.info-title { font-size: 13px; font-weight: 600; color: #0c447c; margin-bottom: 6px; }
+.info-text  { font-size: 12px; color: #555; line-height: 1.6; }
+.info-text code { background: #dce8f5; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 11px; }

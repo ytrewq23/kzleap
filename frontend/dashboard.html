@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <style>
+    .lang-switcher { display:flex;gap:4px;align-items:center;margin-right:8px; }
+    .lang-btn { padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s; }
+    .lang-btn:hover { background:#f0f4f8;color:#1a2b4a; }
+    .lang-btn.active { background:#1a2b4a;color:#fff;border-color:#1a2b4a; }
+  </style>
+</head>
+<body class="app-page">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div>
+        <div class="logo-title">KZLEAP</div>
+        <div class="logo-sub" data-i18n="energy_platform">Energy Platform</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item active">
+        <span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span>
+      </a>
+      <a href="upload.html" class="nav-item" id="nav-upload">
+        <span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span>
+      </a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario">
+        <span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span>
+      </a>
+      <a href="results.html" class="nav-item">
+        <span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span>
+      </a>
+      <a href="whatif.html" class="nav-item">
+        <span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span>
+      </a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item">
+        <span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span>
+      </a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item">
+        <span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span>
+      </a>
+      <a href="scenario-ai.html" class="nav-item">
+        <span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span>
+      </a>
+      <a href="sensitivity.html" class="nav-item">
+        <span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span>
+      </a>
+      <a href="carbon-budget.html" class="nav-item">
+        <span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span>
+      </a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> Country Comparison</a>
+      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">💰</span> Investment Calculator</a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div style="flex:1;">
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
+      </div>
+      <button onclick="confirmDelete()" title="Delete Account" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+          <path d="M10 11v6M14 11v6"></path>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+        </svg>
+      </button>
+      <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2 data-i18n="dashboard_title">Dashboard</h2>
+        <p data-i18n="dashboard_subtitle">Kazakhstan energy balance overview · 2021–2023</p>
+      </div>
+      <div class="topbar-right">
+        <div class="lang-switcher">
+          <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+        </div>
+        <span class="badge" id="role-badge">Energy Analyst</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="metrics-grid">
+        <div class="metric-card" id="kpi-co2">
+          <div class="metric-label" data-i18n="kpi_co2_label">CO₂ emissions (2023)</div>
+          <div class="metric-value">242 Mt</div>
+          <div class="metric-change down" data-i18n="kpi_co2_sub">CO₂ 2023 · +5% vs 2020</div>
+        </div>
+        <div class="metric-card" id="kpi-elec">
+          <div class="metric-label" data-i18n="kpi_elec_label">Electricity generation (2023)</div>
+          <div class="metric-value">115 TWh</div>
+          <div class="metric-change up" data-i18n="kpi_elec_sub">+7% vs 2020 · KEGOC</div>
+        </div>
+        <div class="metric-card" id="kpi-tpes">
+          <div class="metric-label" data-i18n="kpi_tpes_label">Total primary energy (2023)</div>
+          <div class="metric-value">85 Mtoe</div>
+          <div class="metric-change neutral" data-i18n="kpi_tpes_sub">IEA Kazakhstan 2023</div>
+        </div>
+        <div class="metric-card" id="kpi-ndc">
+          <div class="metric-label" data-i18n="kpi_ndc_label">Gap to NDC 2030 target</div>
+          <div class="metric-value" style="color:#D85A30;">+5 Mt</div>
+          <div class="metric-change down" data-i18n="kpi_ndc_sub">Above −15% vs 1990 target</div>
+        </div>
+      </div>
+
+      <div class="ndc-gauges-section">
+        <div class="ndc-section-title"><span data-i18n="ndc_tracker_title">NDC Progress Tracker — Kazakhstan 2030 Targets</span></div>
+        <div class="ndc-gauges-row">
+          <div class="gauge-card">
+            <div class="gauge-label" data-i18n="gauge_co2_label">CO₂ Reduction vs 1990</div>
+            <div class="gauge-wrap">
+              <canvas id="gaugeCanvas0" width="180" height="100"></canvas>
+              <div class="gauge-center">
+                <div class="gauge-pct" id="gauge-pct-0">—</div>
+                <div class="gauge-sub" data-i18n="gauge_co2_sub">of −15% target</div>
+              </div>
+            </div>
+            <div class="gauge-status" id="gauge-status-0">Loading...</div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-label" data-i18n="gauge_re_label">Renewables Share 2023</div>
+            <div class="gauge-wrap">
+              <canvas id="gaugeCanvas1" width="180" height="100"></canvas>
+              <div class="gauge-center">
+                <div class="gauge-pct" id="gauge-pct-1">—</div>
+                <div class="gauge-sub" data-i18n="gauge_re_sub">of 15% target</div>
+              </div>
+            </div>
+            <div class="gauge-status" id="gauge-status-1">Loading...</div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-label" data-i18n="gauge_ndc_label">Unconditional NDC Gap</div>
+            <div class="gauge-wrap">
+              <canvas id="gaugeCanvas2" width="180" height="100"></canvas>
+              <div class="gauge-center">
+                <div class="gauge-pct" id="gauge-pct-2">—</div>
+                <div class="gauge-sub" data-i18n="gauge_ndc_sub">Mt to target</div>
+              </div>
+            </div>
+            <div class="gauge-status" id="gauge-status-2">Loading...</div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-label" data-i18n="gauge_budget_label">Carbon Budget Used (1.5°C)</div>
+            <div class="gauge-wrap">
+              <canvas id="gaugeCanvas3" width="180" height="100"></canvas>
+              <div class="gauge-center">
+                <div class="gauge-pct" id="gauge-pct-3">—</div>
+                <div class="gauge-sub" data-i18n="gauge_budget_sub">of KZ share</div>
+              </div>
+            </div>
+            <div class="gauge-status" id="gauge-status-3">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card chart-card-wide">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="chart_co2_title">CO₂ emissions history 1990–2023</div>
+              <div class="card-sub" data-i18n="chart_co2_sub">Kazakhstan · Mt CO₂ · with NDC 2030 target line · Source: IEA, BNS KZ</div>
+            </div>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span>2021</span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span>2022</span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span>2023</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="sectorChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card-narrow">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="chart_pie_title">Electricity fuel mix 2023</div>
+              <div class="card-sub" data-i18n="chart_pie_sub">Share by source · Source: KEGOC, KOREM</div>
+            </div>
+          </div>
+          <div class="chart-wrap-sm">
+            <canvas id="pieChart"></canvas>
+          </div>
+          <div class="legend" style="margin-top:12px;flex-wrap:wrap;">
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span><span data-i18n="legend_residential">Residential 33%</span></span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span><span data-i18n="legend_transport">Transport 19%</span></span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span><span data-i18n="legend_industry">Industry 16%</span></span>
+            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span><span data-i18n="legend_other">Other 32%</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card" style="flex:1;">
+          <div class="card-title" data-i18n="chart_elec_title">Electricity generation 1990–2023</div>
+          <div class="card-sub" data-i18n="chart_elec_sub">Kazakhstan · TWh · Source: IEA, KEGOC</div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot" style="background:#378ADD"></span><span data-i18n="legend_electricity">Electricity</span></span>
+            <span class="legend-item"><span class="dot" style="background:#1D9E75"></span><span data-i18n="legend_heat">Heat</span></span>
+            <span class="legend-item"><span class="dot" style="background:#D85A30"></span><span data-i18n="legend_coal_lbl">Coal</span></span>
+            <span class="legend-item"><span class="dot" style="background:#7F77DD"></span><span data-i18n="legend_gas_lbl">Natural Gas</span></span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="ironChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card" style="flex:1; display:none;" id="gdpChartCard">
+          <div class="card-title">GDP 1990–present</div>
+          <div class="card-sub">Kazakhstan · Billion USD</div>
+          <div class="chart-wrap">
+            <canvas id="gdpChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card" style="flex:1;">
+          <div class="card-title" data-i18n="chart_model_title">Model status</div>
+          <div class="card-sub" data-i18n="chart_model_sub">24 demand sectors · LEAP 25.11.25</div>
+          <div class="status-list">
+            <div class="status-item">
+              <span class="status-dot green"></span>
+              <span>Iron and Steel</span>
+              <span class="status-tag green" data-i18n="status_operational">Operational</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Chemical</span>
+              <span class="status-tag amber" data-i18n="status_in_progress">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Nonferrous</span>
+              <span class="status-tag amber" data-i18n="status_in_progress">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Road Transport</span>
+              <span class="status-tag amber" data-i18n="status_in_progress">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot amber"></span>
+              <span>Residential</span>
+              <span class="status-tag amber" data-i18n="status_in_progress">In progress</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot gray"></span>
+              <span data-i18n="status_more">+19 more sectors</span>
+              <span class="status-tag gray" data-i18n="status_pending">Pending</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row" style="margin-top:0;">
+        <div class="card" style="flex:1;">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="news_title">Kazakhstan Energy News</div>
+              <div class="card-sub" data-i18n="news_sub">Latest developments in energy transition · 2025–2026</div>
+            </div>
+            <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:#e1f5ee;color:#0F6E56;font-weight:600;" data-i18n="news_live">Live Feed</span>
+          </div>
+          <div id="news-feed" style="display:flex;flex-direction:column;gap:0;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="translations.js"></script>
+  <script src="dashboard.js"></script>
+
+  <div id="delete-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <h3 style="margin:0 0 8px;color:#1a2b4a;font-size:18px;" data-i18n="delete_title">Delete Account</h3>
+      <p style="margin:0 0 20px;color:#666;font-size:14px;" data-i18n="delete_desc">This action cannot be undone. Please enter your password to confirm.</p>
+      <div style="margin-bottom:16px;">
+        <input type="password" id="delete-password" data-i18n="delete_password" data-i18n-attr="placeholder" placeholder="Enter your password" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+      </div>
+      <div id="delete-error" style="display:none;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:12px;">
+        <button onclick="closeDeleteModal()" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;" data-i18n="delete_cancel">Cancel</button>
+        <button onclick="deleteAccount()" style="flex:1;padding:10px;border:none;border-radius:8px;background:#c0392b;color:white;cursor:pointer;font-size:14px;font-weight:600;" data-i18n="delete_confirm">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="ai-chat-widget.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
+</body>
+</html>
