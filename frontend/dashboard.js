@@ -56,6 +56,7 @@ async function loadDashboard() {
   } catch {}
 
   renderAll(co2Data, wbData, hist);
+  if (typeof applyTranslations === "function") applyTranslations();
 }
 
 function renderAll(co2Data, wbData, hist) {
@@ -262,11 +263,13 @@ function renderNDCGauges(cfg, hist, currentCO2Val) {
 
   const reductionAchieved = ((co2Base1990 - currentCO2) / co2Base1990) * 100;
 
+  const tr = (key) => (typeof t === 'function') ? t(key) : key;
+
   drawGauge('gaugeCanvas0', 'gauge-pct-0', 'gauge-status-0',
     reductionAchieved, reTarget * 1.5, {
       inverse: false,
       displayVal: reductionAchieved.toFixed(1) + '%',
-      statusText: reductionAchieved >= reTarget ? '\u2713 NDC Target Met' : (reTarget - reductionAchieved).toFixed(1) + '% still needed',
+      statusText: reductionAchieved >= reTarget ? tr('gauge_ndc_met') : (reTarget - reductionAchieved).toFixed(1) + '% ' + tr('gauge_still_needed'),
       statusClass: reductionAchieved >= reTarget ? 'green' : reductionAchieved > 10 ? 'amber' : 'red',
     });
 
@@ -274,7 +277,7 @@ function renderNDCGauges(cfg, hist, currentCO2Val) {
     currentRE, reTarget, {
       inverse: false,
       displayVal: currentRE.toFixed(1) + '%',
-      statusText: currentRE >= reTarget ? '\u2713 On Track' : (reTarget - currentRE).toFixed(1) + '% to go',
+      statusText: currentRE >= reTarget ? tr('gauge_on_track') : (reTarget - currentRE).toFixed(1) + '% ' + tr('gauge_to_go'),
       statusClass: currentRE >= reTarget ? 'green' : currentRE > 8 ? 'amber' : 'red',
     });
 
@@ -283,7 +286,7 @@ function renderNDCGauges(cfg, hist, currentCO2Val) {
     ndcGap, 60, {
       inverse: true,
       displayVal: ndcGap > 0 ? '+' + Math.round(ndcGap) + ' Mt' : '\u2713',
-      statusText: ndcGap <= 0 ? '\u2713 Below Target' : ndcGap < 20 ? 'Close to target' : 'Action needed',
+      statusText: ndcGap <= 0 ? tr('gauge_below_target') : ndcGap < 20 ? tr('gauge_close') : tr('gauge_action'),
       statusClass: ndcGap <= 0 ? 'green' : ndcGap < 20 ? 'amber' : 'red',
     });
 
@@ -292,7 +295,7 @@ function renderNDCGauges(cfg, hist, currentCO2Val) {
     budgetRatio, 100, {
       inverse: true,
       displayVal: budgetRatio.toFixed(0) + '%',
-      statusText: budgetRatio < 40 ? 'Budget Safe' : budgetRatio < 70 ? 'Budget Shrinking' : 'Critical',
+      statusText: budgetRatio < 40 ? tr('gauge_budget_safe') : budgetRatio < 70 ? tr('gauge_budget_shrinking') : tr('gauge_critical'),
       statusClass: budgetRatio < 40 ? 'green' : budgetRatio < 70 ? 'amber' : 'red',
     });
 }
@@ -383,3 +386,4 @@ function renderNewsFeed() {
 
 loadDashboard();
 renderNewsFeed();
+if (typeof applyTranslations === "function") applyTranslations();
