@@ -74,6 +74,12 @@
       box-shadow: 0 0 0 3px rgba(255,255,255,.4), 0 2px 8px rgba(0,0,0,.2);
     }
   </style>
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
 </head>
 <body class="app-page">
 
@@ -82,27 +88,25 @@
       <div class="logo-sm">KZ</div>
       <div>
         <div class="logo-title">KZLEAP</div>
-        <div class="logo-sub">Energy Platform</div>
+        <div class="logo-sub" data-i18n="energy_platform">Energy Platform</div>
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
-      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> Upload Dataset</a>
-      <div class="nav-section">Scenarios</div>
-      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> Scenario Builder</a>
-      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
-      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
-      <div class="nav-section">Output</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
-      <div class="nav-section">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> LP Optimizer</a>
-      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
-      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
-      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span></a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item active"><span class="nav-icon">🗺</span> Energy Map</a>
-      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">◱</span> Country Comparison</a>
-      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> Investment Calc</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">--</div>
@@ -116,23 +120,30 @@
   </div>
 
   <div class="main-content">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+      </div>
+    </div>
     <div class="page-header">
-      <h1 style="margin:0 0 4px;">Kazakhstan Energy Map</h1>
+      <h1 style="margin:0 0 4px;" data-i18n="map_title">Kazakhstan Energy Map</h1>
       <p style="color:#6b7a8d;margin:0;font-size:14px;">
-        Interactive map of power plants — switch scenarios to see projected new capacity by 2035
+        <span data-i18n="map_sub">Interactive map of power plants — switch scenarios to see projected new capacity by 2035</span>
       </p>
     </div>
 
     <div class="map-controls" style="margin-top:16px;">
-      <span class="section-label">Scenario:</span>
-      <button class="sc-btn active" onclick="setScenario('current',this)">Current (2023)</button>
+      <span class="section-label" data-i18n="map_scenario_lbl">Scenario:</span>
+      <button class="sc-btn active" onclick="setScenario('current',this)" data-i18n="map_current">Current (2023)</button>
       <button class="sc-btn" onclick="setScenario('BAU',this)">BAU</button>
-      <button class="sc-btn" onclick="setScenario('MT',this)">Moderate Transition</button>
-      <button class="sc-btn" onclick="setScenario('DD',this)">Deep Decarbonization</button>
+      <button class="sc-btn" onclick="setScenario('MT',this)" data-i18n="map_moderate">Moderate Transition</button>
+      <button class="sc-btn" onclick="setScenario('DD',this)" data-i18n="map_deep">Deep Decarbonization</button>
     </div>
 
     <div class="map-controls">
-      <span class="section-label">Filter:</span>
+      <span class="section-label" data-i18n="map_filter_lbl">Filter:</span>
       <button class="filt-btn active" onclick="toggleFilter('coal',this)"><span class="fdot" style="background:#4a4a4a"></span>Coal</button>
       <button class="filt-btn active" onclick="toggleFilter('gas',this)"><span class="fdot" style="background:#EF9F27"></span>Gas</button>
       <button class="filt-btn active" onclick="toggleFilter('hydro',this)"><span class="fdot" style="background:#378ADD"></span>Hydro</button>
@@ -146,32 +157,32 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-val" id="stat-total">—</div>
-        <div class="stat-lbl">Total capacity (GW)</div>
+        <div class="stat-lbl" data-i18n="map_total_cap">Total capacity (GW)</div>
       </div>
       <div class="stat-card">
         <div class="stat-val" id="stat-re">—</div>
-        <div class="stat-lbl">Renewables (GW)</div>
+        <div class="stat-lbl" data-i18n="map_re">Renewables (GW)</div>
       </div>
       <div class="stat-card">
         <div class="stat-val" id="stat-count">—</div>
-        <div class="stat-lbl">Plants on map</div>
+        <div class="stat-lbl" data-i18n="map_plants">Plants on map</div>
       </div>
       <div class="stat-card">
         <div class="stat-val" id="stat-new">—</div>
-        <div class="stat-lbl">New planned objects</div>
+        <div class="stat-lbl" data-i18n="map_new">New planned objects</div>
       </div>
     </div>
 
     <div class="legend-row">
-      <div class="leg"><div class="leg-pin" style="background:#555"></div> Coal TPP</div>
-      <div class="leg"><div class="leg-pin" style="background:#EF9F27"></div> Gas TPP</div>
-      <div class="leg"><div class="leg-pin" style="background:#378ADD"></div> Hydro HPP</div>
-      <div class="leg"><div class="leg-pin" style="background:#1D9E75"></div> Wind farm</div>
-      <div class="leg"><div class="leg-pin" style="background:#F5A623"></div> Solar PV</div>
-      <div class="leg"><div class="leg-pin" style="background:#9F77DD"></div> Nuclear (planned)</div>
+      <div class="leg"><div class="leg-pin" style="background:#555"></div> <span data-i18n="map_coal_tpp">Coal TPP</span></div>
+      <div class="leg"><div class="leg-pin" style="background:#EF9F27"></div> <span data-i18n="map_gas_tpp">Gas TPP</span></div>
+      <div class="leg"><div class="leg-pin" style="background:#378ADD"></div> <span data-i18n="map_hydro">Hydro HPP</span></div>
+      <div class="leg"><div class="leg-pin" style="background:#1D9E75"></div> <span data-i18n="map_wind">Wind farm</span></div>
+      <div class="leg"><div class="leg-pin" style="background:#F5A623"></div> <span data-i18n="map_solar">Solar PV</span></div>
+      <div class="leg"><div class="leg-pin" style="background:#9F77DD"></div> <span data-i18n="map_nuclear_plan">Nuclear (planned)</span></div>
       <div class="leg">
         <div class="leg-pin" style="background:#1D9E75;border-style:dashed;"></div>
-        New / Planned object
+        <span data-i18n="map_new_planned">New / Planned object</span>
       </div>
     </div>
   </div>
@@ -326,6 +337,28 @@ renderMarkers();
 setTimeout(() => map.invalidateSize(), 300);
 </script>
 
+<script src="translations.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  applyTranslations();
+  // Re-render on lang change
+  const origSetLang = window.setLang;
+  window.setLang = function(lang) {
+    origSetLang(lang);
+    document.querySelector('h1').textContent = t('map_title');
+    document.querySelector('.page-header p').textContent = t('map_sub');
+    document.querySelectorAll('.section-label')[0].textContent = t('map_scenario_lbl');
+    document.querySelectorAll('.section-label')[1].textContent = t('map_filter_lbl');
+    document.querySelector('[onclick*="current"]').textContent = t('map_current');
+    document.querySelector('[onclick*="Moderate"]').textContent = t('map_moderate');
+    document.querySelector('[onclick*="Deep"]').textContent = t('map_deep');
+    document.getElementById('stat-total').closest('.stat-card').querySelector('.stat-lbl').textContent = t('map_total_cap');
+    document.getElementById('stat-re').closest('.stat-card').querySelector('.stat-lbl').textContent = t('map_re');
+    document.getElementById('stat-count').closest('.stat-card').querySelector('.stat-lbl').textContent = t('map_plants');
+    document.getElementById('stat-new').closest('.stat-card').querySelector('.stat-lbl').textContent = t('map_new');
+  };
+});
+</script>
 <script src="ai-chat-widget.js"></script>
 </body>
 </html>

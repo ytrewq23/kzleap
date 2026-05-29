@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KZLEAP — Login</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
 </head>
 <body class="login-page">
 
@@ -76,5 +82,7 @@
 
   <script src="app.js"></script>
   
+  <script src="translations.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
 </body>
 </html>

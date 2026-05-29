@@ -7,6 +7,12 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="results.css">
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
 </head>
 <body class="app-page">
 
@@ -15,24 +21,24 @@
       <div class="logo-sm">KZ</div>
       <div>
         <div class="logo-title">KZLEAP</div>
-        <div class="logo-sub">Energy Platform</div>
+        <div class="logo-sub" data-i18n="energy_platform">Energy Platform</div>
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
-      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
-      <div class="nav-section">Scenarios</div>
-      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
-      <a href="results.html" class="nav-item active"><span class="nav-icon">▰</span> Simulation Results</a>
-      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
-      <div class="nav-section">Output</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
-      <div class="nav-section">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
-      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
-      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
-      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span></a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
+      <a href="results.html" class="nav-item active"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
       <a href="compare-countries.html" class="nav-item"><span class="nav-icon">◱</span> Country Comparison</a>
       <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> Investment Calc</a>
@@ -52,13 +58,13 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2>Simulation Results</h2>
-        <p>BAU · Moderate Transition · Deep Decarbonization · Kazakhstan · 2021–2060</p>
+        <h2 data-i18n="results_title">Simulation Results</h2>
+        <p data-i18n="results_sub">BAU · Moderate Transition · Deep Decarbonization · Kazakhstan · 2021–2060</p>
       </div>
       <div class="topbar-right">
         <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
         <span class="badge" id="role-badge">Energy Analyst</span>
-        <a href="reports.html" class="btn-outline">Export Report →</a>
+        <a href="reports.html" class="btn-outline" data-i18n="results_export" data-i18n="results_export">Export Report →</a>
       </div>
     </div>
 
@@ -70,22 +76,22 @@
 
       <div class="metrics-grid">
         <div class="metric-card" id="card-baseline">
-          <div class="metric-label">Baseline CO2 (2023)</div>
+          <div class="metric-label" data-i18n="kpi_baseline_label">Baseline CO2 (2023)</div>
           <div class="metric-value">—</div>
           <div class="metric-change neutral">Loading...</div>
         </div>
         <div class="metric-card" id="card-bau">
-          <div class="metric-label">BAU projection (2050)</div>
+          <div class="metric-label" data-i18n="kpi_bau_label">BAU projection (2050)</div>
           <div class="metric-value" style="color:#D85A30;">—</div>
           <div class="metric-change down">Loading...</div>
         </div>
         <div class="metric-card" id="card-dd">
-          <div class="metric-label">Deep Decarbonization (2050)</div>
+          <div class="metric-label" data-i18n="kpi_dd_label">Deep Decarbonization (2050)</div>
           <div class="metric-value" style="color:#0F6E56;">—</div>
           <div class="metric-change up">Loading...</div>
         </div>
         <div class="metric-card" id="card-avoided">
-          <div class="metric-label">CO2 avoided by 2050 (DD vs BAU)</div>
+          <div class="metric-label" data-i18n="kpi_avoided_label">CO2 avoided by 2050 (DD vs BAU)</div>
           <div class="metric-value" style="color:#0F6E56;">—</div>
           <div class="metric-change up">Loading...</div>
         </div>
@@ -94,8 +100,8 @@
       <div class="card" style="margin-bottom:16px;">
         <div class="card-header">
           <div>
-            <div class="card-title">CO2 emissions forecast 2021–2060</div>
-            <div class="card-sub">BAU · Moderate Transition · Deep Decarbonization · Mt CO2 · with NDC targets</div>
+            <div class="card-title" data-i18n="chart_co2f_title" data-i18n="chart_co2f_title">CO2 emissions forecast 2021–2060</div>
+            <div class="card-sub" data-i18n="chart_co2f_sub">BAU · Moderate Transition · Deep Decarbonization · Mt CO2 · with NDC targets</div>
           </div>
           <div class="scenario-legend">
             <span class="sc-badge bau">BAU</span>
@@ -110,15 +116,15 @@
 
       <div class="charts-row" style="margin-bottom:16px;">
         <div class="card" style="flex:1;">
-          <div class="card-title">Electricity generation forecast (TWh)</div>
-          <div class="card-sub">Total generation · BAU · MT · DD</div>
+          <div class="card-title" data-i18n="chart_elecf_title" data-i18n="chart_elecf_title">Electricity generation forecast (TWh)</div>
+          <div class="card-sub" data-i18n="chart_elecf_sub">Total generation · BAU · MT · DD</div>
           <div class="chart-wrap" style="height:200px;">
             <canvas id="energyChart"></canvas>
           </div>
         </div>
         <div class="card" style="flex:1;">
-          <div class="card-title">Fuel mix 2050 comparison</div>
-          <div class="card-sub">Share of each fuel type · %</div>
+          <div class="card-title" data-i18n="chart_fuel_title" data-i18n="chart_fuel_title">Fuel mix 2050 comparison</div>
+          <div class="card-sub" data-i18n="chart_fuel_sub">Share of each fuel type · %</div>
           <div class="chart-wrap" style="height:200px;">
             <canvas id="fuelChart"></canvas>
           </div>
@@ -128,23 +134,23 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Year-by-year results</div>
-            <div class="card-sub">CO2 emissions · Million tonnes</div>
+            <div class="card-title" data-i18n="table_results_title" data-i18n="table_results_title">Year-by-year results</div>
+            <div class="card-sub" data-i18n="table_results_sub">CO2 emissions · Million tonnes</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn-outline" onclick="filterTable('all')">All years</button>
-            <button class="btn-outline" onclick="filterTable('5')">Every 5 years</button>
+            <button class="btn-outline" onclick="filterTable('all')" data-i18n="btn_all_years" data-i18n="btn_all_years">All years</button>
+            <button class="btn-outline" onclick="filterTable('5')" data-i18n="btn_every5" data-i18n="btn_every5">Every 5 years</button>
           </div>
         </div>
         <table class="table" id="results-table">
           <thead>
             <tr>
-              <th>Year</th>
-              <th style="color:#378ADD;">BAU (Mt CO2)</th>
-              <th style="color:#B07C10;">MT (Mt CO2)</th>
-              <th style="color:#0F6E56;">DD (Mt CO2)</th>
-              <th>DD vs BAU (Mt)</th>
-              <th>Reduction (%)</th>
+              <th data-i18n="col_year">Year</th>
+              <th style="color:#378ADD;" data-i18n="col_bau">BAU (Mt CO2)</th>
+              <th style="color:#B07C10;" data-i18n="col_mt">MT (Mt CO2)</th>
+              <th style="color:#0F6E56;" data-i18n="col_dd">DD (Mt CO2)</th>
+              <th data-i18n="col_dd_vs_bau">DD vs BAU (Mt)</th>
+              <th data-i18n="col_reduction">Reduction (%)</th>
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
@@ -157,5 +163,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="results.js"></script>
   <script src="ai-chat-widget.js"></script>
+  <script src="translations.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
 </body>
 </html>

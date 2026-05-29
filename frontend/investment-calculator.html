@@ -97,32 +97,38 @@
     /* Source note */
     .source-note { font-size:11px; color:#8a94a0; margin-top:8px; }
   </style>
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
 </head>
 <body class="app-page">
 
   <div class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-sm">KZ</div>
-      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub" data-i18n="energy_platform">Energy Platform</div></div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
-      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> Upload Dataset</a>
-      <div class="nav-section">Scenarios</div>
-      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> Scenario Builder</a>
-      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
-      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
-      <div class="nav-section">Output</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
-      <div class="nav-section">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> LP Optimizer</a>
-      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
-      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
-      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span></a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">LP Optimizer</span></a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
-      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">◱</span> Country Comparison</a>
-      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> Investment Calc</a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> Country Comparison</a>
+      <a href="investment-calculator.html" class="nav-item active"><span class="nav-icon">💰</span> Investment Calc</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">--</div>
@@ -136,8 +142,13 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2>Investment Calculator</h2>
-        <p>Calculate total investment, payback period and CO₂ savings for Kazakhstan energy transition · CAPEX from IEA/IRENA 2023</p>
+        <h2 data-i18n="inv_title">Investment Calculator</h2>
+        <p data-i18n="inv_sub">Calculate total investment, payback period and CO₂ savings for Kazakhstan energy transition · CAPEX from IEA/IRENA 2023</p>
+      </div>
+      <div class="lang-switcher" style="margin-right:8px;">
+        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
       </div>
       <span class="badge" id="role-badge">Analyst</span>
     </div>
@@ -148,8 +159,8 @@
       <div class="input-panel">
 
         <div class="panel-card">
-          <div class="panel-title">New capacity to build (GW)</div>
-          <div class="panel-sub">Enter planned capacity additions for each technology</div>
+          <div class="panel-title" data-i18n="inv_capacity_title">New capacity to build (GW)</div>
+          <div class="panel-sub" data-i18n="inv_capacity_sub">Enter planned capacity additions for each technology</div>
 
           <div class="tech-row">
             <div class="tech-dot" style="background:#1D9E75"></div>
@@ -213,52 +224,52 @@
         </div>
 
         <div class="panel-card">
-          <div class="panel-title">Economic parameters</div>
-          <div class="panel-sub">Adjust assumptions for your scenario</div>
+          <div class="panel-title" data-i18n="inv_econ_title">Economic parameters</div>
+          <div class="panel-sub" data-i18n="inv_econ_sub">Adjust assumptions for your scenario</div>
 
           <div class="sl-row">
             <div class="sl-header">
-              <span class="sl-label">Discount rate</span>
+              <span class="sl-label" data-i18n="inv_discount">Discount rate</span>
               <span class="sl-val" id="val-discount">8%</span>
             </div>
-            <div class="sl-sub">Cost of capital for Kazakhstan energy projects</div>
+            <div class="sl-sub" data-i18n="inv_discount_sub">Cost of capital for Kazakhstan energy projects</div>
             <input type="range" min="4" max="15" value="8" step="0.5"
               id="sl-discount" oninput="document.getElementById('val-discount').textContent=this.value+'%'; calculate()">
           </div>
 
           <div class="sl-row">
             <div class="sl-header">
-              <span class="sl-label">Carbon price ($/t CO₂)</span>
+              <span class="sl-label" data-i18n="inv_carbon">Carbon price ($/t CO₂)</span>
               <span class="sl-val" id="val-carbon">20</span>
             </div>
-            <div class="sl-sub">Kazakhstan ETS current price ~$3, NDC target ~$20</div>
+            <div class="sl-sub" data-i18n="inv_carbon_sub">Kazakhstan ETS current price ~$3, NDC target ~$20</div>
             <input type="range" min="0" max="150" value="20" step="5"
               id="sl-carbon" oninput="document.getElementById('val-carbon').textContent='$'+this.value; calculate()">
           </div>
 
           <div class="sl-row">
             <div class="sl-header">
-              <span class="sl-label">Coal savings ($/MWh)</span>
+              <span class="sl-label" data-i18n="inv_coal_save">Coal savings ($/MWh)</span>
               <span class="sl-val" id="val-coal-save">45</span>
             </div>
-            <div class="sl-sub">Avoided fuel cost per MWh replaced by renewables</div>
+            <div class="sl-sub" data-i18n="inv_coal_save_sub">Avoided fuel cost per MWh replaced by renewables</div>
             <input type="range" min="20" max="100" value="45" step="5"
               id="sl-coal-save" oninput="document.getElementById('val-coal-save').textContent='$'+this.value; calculate()">
           </div>
 
           <div class="sl-row">
             <div class="sl-header">
-              <span class="sl-label">Build period (years)</span>
+              <span class="sl-label" data-i18n="inv_period">Build period (years)</span>
               <span class="sl-val" id="val-period">10</span>
             </div>
-            <div class="sl-sub">Investment spread over this many years</div>
+            <div class="sl-sub" data-i18n="inv_period_sub">Investment spread over this many years</div>
             <input type="range" min="5" max="20" value="10" step="1"
               id="sl-period" oninput="document.getElementById('val-period').textContent=this.value; calculate()">
           </div>
         </div>
 
-        <button class="calc-btn" onclick="calculate()">⚡ Calculate Investment</button>
-        <div class="source-note">CAPEX data: IEA World Energy Outlook 2023, IRENA Renewable Power Generation Costs 2023</div>
+        <button class="calc-btn" onclick="calculate()" data-i18n="inv_btn">⚡ Calculate Investment</button>
+        <div class="source-note" data-i18n="inv_source">CAPEX data: IEA World Energy Outlook 2023, IRENA Renewable Power Generation Costs 2023</div>
       </div>
 
       <!-- RIGHT: Results -->
@@ -266,70 +277,70 @@
 
         <div class="kpi-row">
           <div class="kpi-card" style="border-top-color:#1D9E75">
-            <div class="kpi-label">Total Investment</div>
+            <div class="kpi-label" data-i18n="inv_kpi_total">Total Investment</div>
             <div class="kpi-val green" id="kpi-total">—</div>
-            <div class="kpi-unit">Billion USD</div>
+            <div class="kpi-unit" data-i18n="inv_unit_bn_usd">Billion USD</div>
             <div class="kpi-delta" id="kpi-annual">— B$/yr over build period</div>
           </div>
           <div class="kpi-card" style="border-top-color:#378ADD">
-            <div class="kpi-label">CO₂ Avoided</div>
+            <div class="kpi-label" data-i18n="inv_kpi_co2">CO₂ Avoided</div>
             <div class="kpi-val green" id="kpi-co2">—</div>
-            <div class="kpi-unit">Mt CO₂/year</div>
+            <div class="kpi-unit" data-i18n="inv_unit_mt_yr">Mt CO₂/year</div>
             <div class="kpi-delta" id="kpi-co2-life">— Mt over plant lifetime</div>
           </div>
           <div class="kpi-card" style="border-top-color:#EF9F27">
-            <div class="kpi-label">Simple Payback</div>
+            <div class="kpi-label" data-i18n="inv_kpi_payback">Simple Payback</div>
             <div class="kpi-val amber" id="kpi-payback">—</div>
-            <div class="kpi-unit">years</div>
+            <div class="kpi-unit" data-i18n="inv_unit_years">years</div>
             <div class="kpi-delta" id="kpi-irr">Cost of saved CO₂: —</div>
           </div>
         </div>
 
         <div class="kpi-row">
           <div class="kpi-card" style="border-top-color:#9F77DD">
-            <div class="kpi-label">New Electricity</div>
+            <div class="kpi-label" data-i18n="inv_kpi_elec">New Electricity</div>
             <div class="kpi-val" id="kpi-elec" style="color:#9F77DD">—</div>
-            <div class="kpi-unit">TWh/year added</div>
+            <div class="kpi-unit" data-i18n="inv_unit_twh_yr">TWh/year added</div>
             <div class="kpi-delta" id="kpi-homes">Equivalent to — homes</div>
           </div>
           <div class="kpi-card" style="border-top-color:#1D9E75">
-            <div class="kpi-label">RE Share Impact</div>
+            <div class="kpi-label" data-i18n="inv_kpi_re">RE Share Impact</div>
             <div class="kpi-val green" id="kpi-re">—</div>
-            <div class="kpi-unit">% points increase</div>
+            <div class="kpi-unit" data-i18n="inv_unit_pct_pts">% points increase</div>
             <div class="kpi-delta" id="kpi-re-abs">From 15% → —%</div>
           </div>
           <div class="kpi-card" style="border-top-color:#D85A30">
-            <div class="kpi-label">Carbon Revenue</div>
+            <div class="kpi-label" data-i18n="inv_kpi_carbon_rev">Carbon Revenue</div>
             <div class="kpi-val red" id="kpi-carbon-rev">—</div>
-            <div class="kpi-unit">B$/year at carbon price</div>
+            <div class="kpi-unit" data-i18n="inv_unit_busd_yr">B$/year at carbon price</div>
             <div class="kpi-delta" id="kpi-carbon-sub">Helps fund transition</div>
           </div>
         </div>
 
         <div class="charts-2col">
           <div class="chart-card">
-            <div class="chart-title">Investment by technology (B$)</div>
-            <div class="chart-sub">Total CAPEX breakdown</div>
+            <div class="chart-title" data-i18n="inv_capex_title">Investment by technology (B$)</div>
+            <div class="chart-sub" data-i18n="inv_capex_sub">Total CAPEX breakdown</div>
             <div class="chart-wrap"><canvas id="chartCapex"></canvas></div>
           </div>
           <div class="chart-card">
-            <div class="chart-title">Annual electricity generation (TWh)</div>
-            <div class="chart-sub">New capacity output per year</div>
+            <div class="chart-title" data-i18n="inv_gen_title">Annual electricity generation (TWh)</div>
+            <div class="chart-sub" data-i18n="inv_gen_sub">New capacity output per year</div>
             <div class="chart-wrap"><canvas id="chartGen"></canvas></div>
           </div>
         </div>
 
         <div class="chart-card">
-          <div class="chart-title">Payback analysis — Cumulative cash flow (B$)</div>
-          <div class="chart-sub">Investment outflow vs savings inflow over time</div>
+          <div class="chart-title" data-i18n="inv_payback_title">Payback analysis — Cumulative cash flow (B$)</div>
+          <div class="chart-sub" data-i18n="inv_payback_sub">Investment outflow vs savings inflow over time</div>
           <div class="chart-wrap"><canvas id="chartPayback"></canvas></div>
         </div>
 
         <div class="panel-card">
-          <div class="chart-title" style="margin-bottom:12px;">Technology breakdown</div>
+          <div class="chart-title" style="margin-bottom:12px;" data-i18n="inv_breakdown">Technology breakdown</div>
           <table class="payback-table">
             <thead>
-              <tr><th>Technology</th><th>Capacity</th><th>CAPEX (B$)</th><th>Generation (TWh/yr)</th><th>CO₂ avoided (Mt/yr)</th><th>Payback</th></tr>
+              <tr><th data-i18n="inv_col_tech">Technology</th><th data-i18n="inv_col_cap">Capacity</th><th data-i18n="inv_col_capex">CAPEX (B$)</th><th data-i18n="inv_col_gen">Generation (TWh/yr)</th><th data-i18n="inv_col_co2">CO₂ avoided (Mt/yr)</th><th data-i18n="inv_col_payback">Payback</th></tr>
             </thead>
             <tbody id="tech-table"></tbody>
           </table>
@@ -567,6 +578,8 @@ function calculate() {
 // Run on load
 calculate();
 </script>
+<script src="translations.js"></script>
+<script>document.addEventListener("DOMContentLoaded", applyTranslations);</script>
 <script src="ai-chat-widget.js"></script>
 </body>
 </html>

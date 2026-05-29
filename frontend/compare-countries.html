@@ -69,6 +69,12 @@
     .highlight { color:#1D9E75; font-weight:600; }
     .highlight-red { color:#D85A30; font-weight:600; }
   </style>
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
 </head>
 <body class="app-page">
 
@@ -77,27 +83,26 @@
       <div class="logo-sm">KZ</div>
       <div>
         <div class="logo-title">KZLEAP</div>
-        <div class="logo-sub">Energy Platform</div>
+        <div class="logo-sub" data-i18n="energy_platform">Energy Platform</div>
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
-      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> Upload Dataset</a>
-      <div class="nav-section">Scenarios</div>
-      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> Scenario Builder</a>
-      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
-      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
-      <div class="nav-section">Output</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
-      <div class="nav-section">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> LP Optimizer</a>
-      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
-      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
-      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span></a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">LP Optimizer</span></a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
-      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">◱</span> Country Comparison</a>
-      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> Investment Calc</a>
+      <a href="compare-countries.html" class="nav-item active"><span class="nav-icon">⊞</span> Country Comparison</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">--</div>
@@ -111,15 +116,20 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2>Country Comparison</h2>
-        <p>Kazakhstan vs peer countries — CO₂ emissions, renewables, energy intensity · Source: IEA, Our World in Data</p>
+        <h2 data-i18n="cc_title">Country Comparison</h2>
+        <p data-i18n="cc_sub">Kazakhstan vs peer countries — CO₂ emissions, renewables, energy intensity · Source: IEA, Our World in Data</p>
+      </div>
+      <div class="lang-switcher" style="margin-right:8px;">
+        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
       </div>
       <span class="badge" id="role-badge">Analyst</span>
     </div>
 
     <!-- Country toggle -->
     <div class="country-selector">
-      <span>Compare with:</span>
+      <span data-i18n="cc_compare_with">Compare with:</span>
       <button class="ctry-btn active" onclick="toggleCountry('KAZ',this)"><span class="ctry-flag">🇰🇿</span>Kazakhstan</button>
       <button class="ctry-btn active" onclick="toggleCountry('DEU',this)"><span class="ctry-flag">🇩🇪</span>Germany</button>
       <button class="ctry-btn active" onclick="toggleCountry('ARE',this)"><span class="ctry-flag">🇦🇪</span>UAE</button>
@@ -133,32 +143,32 @@
     <!-- Charts -->
     <div class="charts-grid">
       <div class="chart-card chart-card-full">
-        <div class="cc-title">CO₂ Emissions per Capita (t CO₂/person) — 2000–2023</div>
-        <div class="cc-sub">Higher = more carbon-intensive economy · Source: IEA, Our World in Data</div>
+        <div class="cc-title" data-i18n="cc_co2_percapita">CO₂ Emissions per Capita (t CO₂/person) — 2000–2023</div>
+        <div class="cc-sub" data-i18n="cc_co2_percapita_sub">Higher = more carbon-intensive economy · Source: IEA, Our World in Data</div>
         <div class="chart-wrap-tall"><canvas id="chartPerCapita"></canvas></div>
       </div>
 
       <div class="chart-card">
-        <div class="cc-title">Total CO₂ Emissions 2023 (Mt)</div>
-        <div class="cc-sub">Absolute emissions by country</div>
+        <div class="cc-title" data-i18n="cc_total_co2">Total CO₂ Emissions 2023 (Mt)</div>
+        <div class="cc-sub" data-i18n="cc_total_co2_sub">Absolute emissions by country</div>
         <div class="chart-wrap"><canvas id="chartTotal"></canvas></div>
       </div>
 
       <div class="chart-card">
-        <div class="cc-title">Renewables Share in Electricity 2023 (%)</div>
-        <div class="cc-sub">Wind + Solar + Hydro as % of total generation</div>
+        <div class="cc-title" data-i18n="cc_re_share">Renewables Share in Electricity 2023 (%)</div>
+        <div class="cc-sub" data-i18n="cc_re_share_sub">Wind + Solar + Hydro as % of total generation</div>
         <div class="chart-wrap"><canvas id="chartRE"></canvas></div>
       </div>
 
       <div class="chart-card">
-        <div class="cc-title">CO₂ Reduction vs 1990 (%)</div>
-        <div class="cc-sub">Progress toward decarbonization from 1990 baseline</div>
+        <div class="cc-title" data-i18n="cc_reduction">CO₂ Reduction vs 1990 (%)</div>
+        <div class="cc-sub" data-i18n="cc_reduction_sub">Progress toward decarbonization from 1990 baseline</div>
         <div class="chart-wrap"><canvas id="chartReduction"></canvas></div>
       </div>
 
       <div class="chart-card">
-        <div class="cc-title">Energy Intensity (MJ / USD GDP)</div>
-        <div class="cc-sub">Lower = more efficient economy · 2023</div>
+        <div class="cc-title" data-i18n="cc_intensity">Energy Intensity (MJ / USD GDP)</div>
+        <div class="cc-sub" data-i18n="cc_intensity_sub">Lower = more efficient economy · 2023</div>
         <div class="chart-wrap"><canvas id="chartIntensity"></canvas></div>
       </div>
     </div>
@@ -316,8 +326,8 @@ function renderKPICards() {
         <div class="mc-flag">${c.flag}</div>
         <div class="mc-name">${c.name}</div>
         <div class="mc-val">${c.co2_percapita_2023}</div>
-        <div class="mc-unit">t CO₂ / capita (2023)</div>
-        <div class="mc-unit" style="margin-top:6px;">Total: <b>${c.co2_2023} Mt</b></div>
+        <div class="mc-unit" data-i18n="cc_unit_percapita">t CO₂ / capita (2023)</div>
+        <div class="mc-unit" style="margin-top:6px;">' + (typeof t==="function"?t("cc_unit_total"):"Total:") + ' <b>${c.co2_2023} Mt</b></div>
         <div class="mc-unit">RE share: <b>${c.re_share}%</b></div>
         <div class="mc-unit">CO₂ change: <b>${reduction > 0 ? '-' : '+'}${Math.abs(reduction)}% vs 1990</b></div>
         <div class="mc-badge badge-${c.badge}">${c.badge_text}</div>
@@ -424,6 +434,8 @@ function renderAll() {
 
 renderAll();
 </script>
+<script src="translations.js"></script>
+<script>document.addEventListener("DOMContentLoaded", applyTranslations);</script>
 <script src="ai-chat-widget.js"></script>
 </body>
 </html>

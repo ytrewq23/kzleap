@@ -1,12 +1,10 @@
 // KZLEAP — What-If Analyzer JS
-// Real-time policy impact calculator
-
 const BACKEND = 'http://localhost:8000';
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const badgeStyles = {
-  analyst:     { bg: '#e1f5ee', color: '#085041', text: 'Energy Analyst' },
-  researcher:  { bg: '#eeedfe', color: '#3C3489', text: 'Researcher' },
-  policymaker: { bg: '#faece7', color: '#712B13', text: 'Policymaker' },
+  analyst:     { bg: '#e1f5ee', color: '#085041', get text(){ return typeof t==='function'?t('role_analyst'):'Energy Analyst'; } },
+  researcher:  { bg: '#eeedfe', color: '#3C3489', get text(){ return typeof t==='function'?t('role_researcher'):'Researcher'; } },
+  policymaker: { bg: '#faece7', color: '#712B13', get text(){ return typeof t==='function'?t('role_policymaker'):'Policymaker'; } },
 };
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 
@@ -19,7 +17,6 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
-// ── Kazakhstan coal plants data ──
 const COAL_PLANTS = [
   { id: 'ekibastuz1', name: 'Ekibastuz GRES-1', cap: 4000, co2: 28.0, region: 'Pavlodar' },
   { id: 'ekibastuz2', name: 'Ekibastuz GRES-2', cap: 1000, co2: 7.0,  region: 'Pavlodar' },
@@ -28,11 +25,13 @@ const COAL_PLANTS = [
   { id: 'aksu',       name: 'Aksu Power Plant',  cap: 2098, co2: 14.7, region: 'Pavlodar' },
 ];
 
-// Plant state: true = operational, false = closed
 const plantState = {};
 COAL_PLANTS.forEach(p => plantState[p.id] = true);
 
-// ── Render coal plants ──
+function _ (key, fallback) {
+  return typeof t === 'function' ? t(key) : fallback;
+}
+
 function renderPlants() {
   const list = document.getElementById('plant-list');
   list.innerHTML = '';
@@ -49,6 +48,54 @@ function renderPlants() {
     `;
     list.appendChild(div);
   });
+
+  // Update translated slider labels
+  const labels = document.querySelectorAll('.wi-slider-label');
+  const subs   = document.querySelectorAll('.wi-slider-sub');
+  const sliderKeys = [
+    ['wi_commissioning', 'Commissioning year'],
+    ['wi_num_units',     'Number of units'],
+    ['wi_res_tariff',    'Residential tariff'],
+    ['wi_ind_tariff',    'Industrial tariff'],
+    ['wi_re_invest',     'Annual RE investment'],
+    ['wi_grid',          'Grid modernization'],
+    ['wi_export_cn',     'Export to China'],
+    ['wi_import_kg',     'Import from Kyrgyzstan'],
+  ];
+  const subKeys = [
+    ['wi_npp_desc',        'Post-referendum NPP · 1.2 GW · Ulken site'],
+    ['wi_units_desc',      'Each unit = 1.2 GW · VVER-1200 technology'],
+    ['wi_res_tariff_desc', 'Current: ~21 KZT/kWh · Higher tariff = lower demand'],
+    ['wi_ind_tariff_desc', 'Price elasticity −0.3 for industry'],
+    ['wi_re_invest_desc',  'Billion USD/yr → new wind & solar capacity'],
+    ['wi_grid_desc',       'Billion USD/yr → enables more RE integration'],
+    ['wi_export_cn_desc',  'Clean energy corridor · reduces domestic coal use'],
+    ['wi_import_kg_desc',  'Hydropower import · zero-carbon'],
+  ];
+  labels.forEach((el, i) => { if (sliderKeys[i]) el.textContent = _(sliderKeys[i][0], sliderKeys[i][1]); });
+  subs.forEach((el, i)   => { if (subKeys[i])    el.textContent = _(subKeys[i][0],    subKeys[i][1]); });
+
+  // NDC legend
+  const legs = document.querySelectorAll('.ndc-leg-item');
+  if (legs[0]) legs[0].innerHTML = `<div class="ndc-leg-dot" style="background:#1D9E75"></div> ${_('wi_below_ndc15','Below NDC −15%')}`;
+  if (legs[1]) legs[1].innerHTML = `<div class="ndc-leg-dot" style="background:#F5A623"></div> ${_('wi_between','Between targets')}`;
+  if (legs[2]) legs[2].innerHTML = `<div class="ndc-leg-dot" style="background:#D85A30"></div> ${_('wi_above_ndc_leg','Above NDC target')}`;
+
+  // Investment table headers
+  const ths = document.querySelectorAll('.inv-table th');
+  const thKeys = [
+    ['wi_col_technology','Technology'],
+    ['wi_col_investment','Investment'],
+    ['wi_col_new_cap',   'New capacity'],
+    ['wi_col_share',     'Share'],
+  ];
+  ths.forEach((th, i) => { if (thKeys[i]) th.textContent = _(thKeys[i][0], thKeys[i][1]); });
+
+  // Info strip
+  const strip = document.querySelector('.info-strip div');
+  if (strip) {
+    strip.innerHTML = `<strong>KZLEAP What-If Analyzer</strong> — ${_('wi_kzleap_info', 'unlike standard LEAP, this tool calculates policy impacts in real-time without rerunning the full model. Results are based on LEAP-methodology energy accounting combined with LP optimization.')}`;
+  }
 }
 
 function togglePlant(id, toggleEl, e) {
@@ -60,7 +107,6 @@ function togglePlant(id, toggleEl, e) {
   recalc();
 }
 
-// ── Get all slider values ──
 function getSliders() {
   const sliders = document.querySelectorAll('input[type=range].wi');
   const vals = [...sliders].map(s => parseFloat(s.value));
@@ -76,7 +122,6 @@ function getSliders() {
   };
 }
 
-// ── Main calculation ──
 let wiChart = null;
 let currentChartType = 'co2';
 let lastResult = null;
@@ -84,158 +129,85 @@ let lastResult = null;
 function recalc() {
   const s = getSliders();
 
-  // Coal CO2 saved from closed plants
-  const coalCO2Saved = COAL_PLANTS
-    .filter(p => !plantState[p.id])
-    .reduce((sum, p) => sum + p.co2, 0);
-
-  const closedCapMW = COAL_PLANTS
-    .filter(p => !plantState[p.id])
-    .reduce((sum, p) => sum + p.cap, 0);
-
-  // Nuclear capacity
-  const nucGW = s.nucUnits * 1.2;
-
-  // RE capacity from investment (avg $1.2M/MW for wind/solar mix)
-  const reGW = s.reInvest / 1.2;
-
-  // Grid investment enables more RE integration
-  const gridBonus = s.gridInvest * 0.5; // extra GW enabled
-
-  // Tariff effect on demand (elasticity -0.3 residential, -0.3 industrial)
-  const resTariffEffect = -((s.resTariff - 21) / 21) * 0.3 * 0.4;  // 40% residential share
-  const indTariffEffect = -((s.indTariff - 18) / 18) * 0.3 * 0.45; // 45% industrial share
-  const demandReduction = (resTariffEffect + indTariffEffect) * 115; // TWh saved
-
-  // Export to China: forces more clean generation (less coal burn)
-  const exportCoalReplace = s.exportCN * 0.6; // 60% of export forces RE
-
-  // Import from Kyrgyzstan: directly replaces domestic coal
+  const coalCO2Saved = COAL_PLANTS.filter(p => !plantState[p.id]).reduce((sum, p) => sum + p.co2, 0);
+  const closedCapMW  = COAL_PLANTS.filter(p => !plantState[p.id]).reduce((sum, p) => sum + p.cap, 0);
+  const nucGW  = s.nucUnits * 1.2;
+  const reGW   = s.reInvest / 1.2;
+  const gridBonus = s.gridInvest * 0.5;
+  const resTariffEffect = -((s.resTariff - 21) / 21) * 0.3 * 0.4;
+  const indTariffEffect = -((s.indTariff - 18) / 18) * 0.3 * 0.45;
+  const demandReduction = (resTariffEffect + indTariffEffect) * 115;
+  const exportCoalReplace = s.exportCN * 0.6;
   const importCoalReplace = s.importKG;
 
-  // ── Year-by-year projection 2024–2060 ──
-  const years = [];
-  const co2BAU = [], co2WI = [];
-  const elecBAU = [], elecWI = [];
-  const investCumul = [];
-
-  const BASE_CO2  = 242;
-  const BASE_ELEC = 115;
+  const years = [], co2BAU = [], co2WI = [], elecBAU = [], elecWI = [], investCumul = [];
+  const BASE_CO2 = 242, BASE_ELEC = 115;
   let cumInvest = 0;
 
   for (let year = 2024; year <= 2060; year++) {
     years.push(year);
-    const t = year - 2023;
-
-    // BAU
-    const bauCO2  = BASE_CO2  * Math.pow(1.018, t);
-    const bauElec = BASE_ELEC * Math.pow(1.018, t);
+    const tt = year - 2023;
+    const bauCO2  = BASE_CO2  * Math.pow(1.018, tt);
+    const bauElec = BASE_ELEC * Math.pow(1.018, tt);
     co2BAU.push(Math.round(bauCO2 * 10) / 10);
     elecBAU.push(Math.round(bauElec * 10) / 10);
 
-    // What-If CO2 reductions
-    // Coal plants: full effect after closure (assume all closed now)
-    const coalEffect = coalCO2Saved;
+    const nucCoalReplace = year >= s.nucYear ? Math.min((year - s.nucYear) / 3, 1) * nucGW * 0.9 * 8.76 * 0.82 : 0;
+    const reEffect   = Math.min(tt / 5, 1) * reGW * 0.3 * 8.76 * 0.82;
+    const gridEffect = Math.min(tt / 5, 1) * gridBonus * 0.3 * 8.76 * 0.82;
+    const tariffCO2  = Math.min(tt / 3, 1) * demandReduction * 0.61 * 0.82;
+    const tradeCO2   = Math.min(tt / 4, 1) * (exportCoalReplace + importCoalReplace) * 0.82;
+    const totalReduction = coalCO2Saved + nucCoalReplace + reEffect + gridEffect + tariffCO2 + tradeCO2;
 
-    // Nuclear: ramps up from commissioning year
-    const nucEffect = year >= s.nucYear
-      ? Math.min((year - s.nucYear) / 3, 1) * nucGW * 0.9 * 8760 / 1000 * 0.0  // zero CO2
-      : 0;
-    // Nuclear replaces coal: each GW replaces ~0.82 Mt CO2/TWh * CF
-    const nucCoalReplace = year >= s.nucYear
-      ? Math.min((year - s.nucYear) / 3, 1) * nucGW * 0.9 * 8.76 * 0.82
-      : 0;
-
-    // RE investment effect (builds over time)
-    const reEffect = Math.min(t / 5, 1) * reGW * 0.3 * 8.76 * 0.82;
-    const gridEffect = Math.min(t / 5, 1) * gridBonus * 0.3 * 8.76 * 0.82;
-
-    // Tariff demand reduction → less coal burned
-    const tariffCO2 = Math.min(t / 3, 1) * demandReduction * 0.61 * 0.82;
-
-    // Trade effects
-    const tradeCO2 = Math.min(t / 4, 1) * (exportCoalReplace + importCoalReplace) * 0.82;
-
-    const totalReduction = coalEffect + nucCoalReplace + reEffect + gridEffect + tariffCO2 + tradeCO2;
-    const wiCO2 = Math.max(bauCO2 - totalReduction, 20);
-    co2WI.push(Math.round(wiCO2 * 10) / 10);
-
-    // Electricity
-    const wiElec = Math.max(bauElec + demandReduction * Math.min(t/3, 1) + s.importKG * Math.min(t/4, 1), 80);
-    elecWI.push(Math.round(wiElec * 10) / 10);
-
-    // Cumulative investment
+    co2WI.push(Math.round(Math.max(bauCO2 - totalReduction, 20) * 10) / 10);
+    elecWI.push(Math.round(Math.max(bauElec + demandReduction * Math.min(tt/3,1) + s.importKG * Math.min(tt/4,1), 80) * 10) / 10);
     cumInvest += (s.reInvest + s.gridInvest);
     investCumul.push(Math.round(cumInvest * 10) / 10);
   }
 
-  // ── Key metrics ──
   const idx2050 = years.indexOf(2050);
   const idx2030 = years.indexOf(2030);
-
   const avoided2050 = Math.round(co2BAU[idx2050] - co2WI[idx2050]);
-  const co22030     = co2WI[idx2030];
+  const co22030 = co2WI[idx2030];
   const totalInvest = Math.round(cumInvest);
+  const reShare = Math.min(5 + (reGW + gridBonus + (s.nucUnits > 0 ? nucGW : 0)) * 3 + s.importKG * 0.5, 75);
 
-  // RE share estimate
-  const reShare = Math.min(
-    5 + (reGW + gridBonus + (s.nucUnits > 0 ? nucGW : 0)) * 3 + s.importKG * 0.5,
-    75
-  );
-
-  // Update impact cards
   document.getElementById('wi-avoided').textContent = avoided2050 + ' Mt';
   document.getElementById('wi-avoided-sub').textContent = `vs BAU in 2050 · ${Math.round(avoided2050/co2BAU[idx2050]*100)}% reduction`;
   document.getElementById('wi-invest').textContent = totalInvest + ' B$';
-  document.getElementById('wi-invest-sub').textContent = `2024–2060 cumulative`;
+  document.getElementById('wi-invest-sub').textContent = _('wi_cumulative', '2024–2060 cumulative');
   document.getElementById('wi-re').textContent = Math.round(reShare) + '%';
-  document.getElementById('wi-re-sub').textContent = `wind + solar + hydro + nuclear`;
+  document.getElementById('wi-re-sub').textContent = _('wi_wind_solar_hydro', 'wind + solar + hydro + nuclear');
 
-  // NDC bar
-  const ndc15 = 246.5;
-  const ndc25 = 217.5;
-  const maxCO2 = 290; // 1990 base
+  const ndc15 = 246.5, ndc25 = 217.5, maxCO2 = 290;
   const barPct = Math.min(co22030 / maxCO2 * 100, 100);
   const bar = document.getElementById('ndc-bar');
   bar.style.width = barPct + '%';
-
-  if (co22030 <= ndc25) {
-    bar.style.background = '#1D9E75';
-  } else if (co22030 <= ndc15) {
-    bar.style.background = '#F5A623';
-  } else {
-    bar.style.background = '#D85A30';
-  }
-
+  bar.style.background = co22030 <= ndc25 ? '#1D9E75' : co22030 <= ndc15 ? '#F5A623' : '#D85A30';
   document.getElementById('ndc-bar-label').textContent = Math.round(co22030) + ' Mt';
   document.getElementById('ndc-co2-val').textContent = Math.round(co22030) + ' Mt CO₂';
   document.getElementById('ndc-status-wi').textContent =
-    co22030 <= ndc25 ? '✓ NDC −25% met' :
-    co22030 <= ndc15 ? '~ NDC −15% met' : '✗ Above NDC target';
+    co22030 <= ndc25 ? _('wi_ndc25_met', '✓ NDC −25% met') :
+    co22030 <= ndc15 ? _('wi_ndc15_met', '~ NDC −15% met') :
+                       _('wi_above_ndc', '✗ Above NDC target');
 
-  // Store for chart switching
   lastResult = { years, co2BAU, co2WI, elecBAU, elecWI, investCumul };
-
   renderChart(currentChartType);
-
-  // Investment table
   renderInvTable(s, nucGW, reGW, gridBonus, coalCO2Saved, closedCapMW);
 }
 
 function renderChart(type) {
   if (!lastResult) return;
   const { years, co2BAU, co2WI, elecBAU, elecWI, investCumul } = lastResult;
-
   const datasets = type === 'co2' ? [
-    { label: 'BAU', data: co2BAU, borderColor: '#D85A30', borderWidth: 2, pointRadius: 0, fill: false, borderDash: [5,4] },
-    { label: 'Your scenario', data: co2WI, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 2.5, pointRadius: 0, fill: true },
+    { label: 'BAU',           data: co2BAU,   borderColor: '#D85A30', borderWidth: 2, pointRadius: 0, fill: false, borderDash: [5,4] },
+    { label: _('whatif_vs_bau','Your scenario'), data: co2WI, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 2.5, pointRadius: 0, fill: true },
   ] : type === 'elec' ? [
-    { label: 'BAU', data: elecBAU, borderColor: '#378ADD', borderWidth: 2, pointRadius: 0, fill: false, borderDash: [5,4] },
-    { label: 'Your scenario', data: elecWI, borderColor: '#1D9E75', borderWidth: 2.5, pointRadius: 0, fill: false },
+    { label: 'BAU',           data: elecBAU,  borderColor: '#378ADD', borderWidth: 2, pointRadius: 0, fill: false, borderDash: [5,4] },
+    { label: _('whatif_vs_bau','Your scenario'), data: elecWI, borderColor: '#1D9E75', borderWidth: 2.5, pointRadius: 0, fill: false },
   ] : [
-    { label: 'Cumulative investment (B$)', data: investCumul, borderColor: '#F5A623', backgroundColor: 'rgba(245,166,35,0.1)', borderWidth: 2.5, pointRadius: 0, fill: true },
+    { label: _('whatif_invest_breakdown','Cumulative investment (B$)'), data: investCumul, borderColor: '#F5A623', backgroundColor: 'rgba(245,166,35,0.1)', borderWidth: 2.5, pointRadius: 0, fill: true },
   ];
-
   const yLabel = type === 'co2' ? 'Mt CO₂' : type === 'elec' ? 'TWh' : 'B$';
 
   if (wiChart) wiChart.destroy();
@@ -263,20 +235,20 @@ function switchChart(type, btn) {
 function renderInvTable(s, nucGW, reGW, gridBonus, coalCO2Saved, closedMW) {
   const total = (s.reInvest + s.gridInvest) * 37 + nucGW * 5 + closedMW * 0.001;
   const rows = [
-    { name: 'Wind & Solar', invest: s.reInvest * 37, cap: reGW.toFixed(1) + ' GW' },
-    { name: 'Grid upgrade',  invest: s.gridInvest * 37, cap: '+' + gridBonus.toFixed(1) + ' GW enabled' },
-    { name: 'Nuclear',       invest: nucGW * 5,  cap: nucGW.toFixed(1) + ' GW' },
-    { name: 'Coal phase-out costs', invest: closedMW * 0.1, cap: (closedMW/1000).toFixed(1) + ' GW retired' },
+    { key: 'wi_wind_solar',   name: 'Wind & Solar',        invest: s.reInvest * 37,   cap: reGW.toFixed(1) + ' GW' },
+    { key: 'wi_grid_upgrade', name: 'Grid upgrade',         invest: s.gridInvest * 37, cap: '+' + gridBonus.toFixed(1) + ' GW enabled' },
+    { key: 'wi_nuclear',      name: 'Nuclear',              invest: nucGW * 5,          cap: nucGW.toFixed(1) + ' GW' },
+    { key: 'wi_coal_phaseout',name: 'Coal phase-out costs', invest: closedMW * 0.1,    cap: (closedMW/1000).toFixed(1) + ' GW retired' },
   ];
 
   const tbody = document.getElementById('inv-tbody');
   tbody.innerHTML = '';
   rows.forEach(r => {
-    if (r.invest === 0 && r.name !== 'Coal phase-out costs') return;
+    if (r.invest === 0 && r.key !== 'wi_coal_phaseout') return;
     const pct = total > 0 ? Math.round(r.invest / total * 100) : 0;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="font-weight:500;">${r.name}</td>
+      <td style="font-weight:500;">${_(r.key, r.name)}</td>
       <td style="font-family:'JetBrains Mono',monospace;">${Math.round(r.invest)} B$</td>
       <td style="color:#6b7a8d;">${r.cap}</td>
       <td style="width:80px;"><div class="inv-bar" style="width:${pct}%"></div></td>
@@ -285,6 +257,20 @@ function renderInvTable(s, nucGW, reGW, gridBonus, coalCO2Saved, closedMW) {
   });
 }
 
-// ── Init ──
+// Init
 renderPlants();
 recalc();
+
+// Re-apply translations when language changes
+const _origSetLang = typeof setLang === 'function' ? setLang : null;
+document.addEventListener('DOMContentLoaded', () => {
+  // patch setLang to also re-render plants on lang change
+  const origSetLang = window.setLang;
+  if (origSetLang) {
+    window.setLang = function(lang) {
+      origSetLang(lang);
+      renderPlants();
+      recalc();
+    };
+  }
+});

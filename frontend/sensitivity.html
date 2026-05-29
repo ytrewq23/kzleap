@@ -8,28 +8,34 @@
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="results.css">
   <link rel="stylesheet" href="lp-optimizer.css">
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
 </head>
 <body class="app-page">
   <div class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-sm">KZ</div>
-      <div><div class="logo-title">KZLEAP</div><div class="logo-sub">Energy Platform</div></div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub" data-i18n="energy_platform">Energy Platform</div></div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
-      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> Upload Dataset</a>
-      <div class="nav-section">Scenarios</div>
-      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> Scenario Builder</a>
-      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
-      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
-      <div class="nav-section">Output</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
-      <div class="nav-section">Tools</div>
-       <a href="lp-optimizer.html" class="nav-item active"><span class="nav-icon">⚡</span> Mix Optimizer</a>
-      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> Smart Analysis</a>
-      <a href="sensitivity.html" class="nav-item active"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
-      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a href="upload.html" class="nav-item"><span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span></a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+       <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+      <a href="sensitivity.html" class="nav-item active"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
       <a href="compare-countries.html" class="nav-item"><span class="nav-icon">◱</span> Country Comparison</a>
       <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> Investment Calc</a>
@@ -46,8 +52,8 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2>Sensitivity Analysis</h2>
-        <p>Stress-test the optimal energy mix against changes in fuel prices, technology costs, demand, and carbon pricing</p>
+        <h2 data-i18n="sensitivity_title">Sensitivity Analysis</h2>
+        <p data-i18n="sensitivity_sub">Stress-test the optimal energy mix against changes in fuel prices, technology costs, demand, and carbon pricing</p>
       </div>
       <div class="topbar-right">
         <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
@@ -59,11 +65,11 @@
 
       <div class="lp-two-col" style="margin-bottom:16px;">
         <div class="card">
-          <div class="card-title">Base configuration</div>
-          <div class="card-sub">LP optimization runs under each shock relative to this baseline</div>
+          <div class="card-title" data-i18n="base_config_title" data-i18n="base_config_title">Base configuration</div>
+          <div class="card-sub" data-i18n="base_config_sub">LP optimization runs under each shock relative to this baseline</div>
           <div class="lp-controls-row" style="margin-top:14px;">
             <div class="lp-control-group">
-              <label class="lp-label">Scenario</label>
+              <label class="lp-label" data-i18n="lp_scenario_lbl">Scenario</label>
               <select id="sa-scenario" class="lp-select">
                 <option value="BAU">BAU — Business as Usual</option>
                 <option value="MT" selected>MT — Moderate Transition</option>
@@ -71,7 +77,7 @@
               </select>
             </div>
             <div class="lp-control-group">
-              <label class="lp-label">Target year</label>
+              <label class="lp-label" data-i18n="lp_year_lbl">Target year</label>
               <select id="sa-year" class="lp-select">
                 <option value="2030">2030</option>
                 <option value="2035" selected>2035</option>
@@ -83,18 +89,18 @@
         </div>
 
         <div class="card">
-          <div class="card-title">Parameter shocks</div>
-          <div class="card-sub">Each shock runs a separate LP — results show impact on cost, CO2, and RE share</div>
+          <div class="card-title" data-i18n="shocks_title" data-i18n="shocks_title">Parameter shocks</div>
+          <div class="card-sub" data-i18n="shocks_sub">Each shock runs a separate LP — results show impact on cost, CO2, and RE share</div>
           <div id="sa-shocks-list" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
-          <button onclick="addShock()" class="sa-add-btn" style="margin-top:10px;">+ Add shock</button>
+          <button onclick="addShock()" class="sa-add-btn" style="margin-top:10px;" data-i18n="btn_add_shock" data-i18n="btn_add_shock">+ Add shock</button>
         </div>
       </div>
 
       <div style="display:flex;gap:10px;margin-bottom:16px;">
-        <button onclick="runSensitivity()" id="sa-run-btn" class="lp-run-btn">Run sensitivity analysis</button>
-        <button onclick="loadPreset('price')" class="lp-explain-btn">Preset: fuel price shock</button>
-        <button onclick="loadPreset('tech')" class="lp-explain-btn">Preset: RE cost drop</button>
-        <button onclick="loadPreset('carbon')" class="lp-explain-btn">Preset: carbon tax</button>
+        <button onclick="runSensitivity()" id="sa-run-btn" class="lp-run-btn" data-i18n="btn_run_sensitivity" data-i18n="btn_run_sensitivity">Run sensitivity analysis</button>
+        <button onclick="loadPreset('price')" class="lp-explain-btn" data-i18n="preset_price" data-i18n="preset_price">Preset: fuel price shock</button>
+        <button onclick="loadPreset('tech')" class="lp-explain-btn" data-i18n="preset_tech" data-i18n="preset_tech">Preset: RE cost drop</button>
+        <button onclick="loadPreset('carbon')" class="lp-explain-btn" data-i18n="preset_carbon" data-i18n="preset_carbon">Preset: carbon tax</button>
       </div>
 
       <div id="sa-error" style="display:none;" class="lp-error-box"></div>
@@ -107,21 +113,21 @@
         <div class="metrics-grid" id="sa-baseline-cards" style="margin-bottom:16px;"></div>
 
         <div class="card" style="margin-bottom:16px;">
-          <div class="card-title">Shock impact summary</div>
-          <div class="card-sub">Change relative to baseline · positive = increase · negative = decrease</div>
+          <div class="card-title" data-i18n="shock_summary_title" data-i18n="shock_summary_title">Shock impact summary</div>
+          <div class="card-sub" data-i18n="shock_summary_sub">Change relative to baseline · positive = increase · negative = decrease</div>
           <div style="overflow-x:auto;margin-top:12px;">
             <table class="table">
               <thead>
                 <tr>
-                  <th>Shock</th>
-                  <th>System cost (B$/yr)</th>
-                  <th>Cost change</th>
-                  <th>CO2 (Mt)</th>
-                  <th>CO2 change</th>
-                  <th>RE share (%)</th>
-                  <th>RE change (pp)</th>
-                  <th>LCOE ($/MWh)</th>
-                  <th>LCOE change</th>
+                  <th data-i18n="col_shock">Shock</th>
+                  <th data-i18n="col_cost">System cost (B$/yr)</th>
+                  <th data-i18n="col_cost_chg">Cost change</th>
+                  <th data-i18n="col_co2">CO2 (Mt)</th>
+                  <th data-i18n="col_co2_chg">CO2 change</th>
+                  <th data-i18n="col_re">RE share (%)</th>
+                  <th data-i18n="col_re_chg">RE change (pp)</th>
+                  <th data-i18n="col_lcoe">LCOE ($/MWh)</th>
+                  <th data-i18n="col_lcoe_chg">LCOE change</th>
                 </tr>
               </thead>
               <tbody id="sa-table-body"></tbody>
@@ -131,18 +137,18 @@
 
         <div class="charts-row" style="margin-bottom:16px;">
           <div class="card" style="flex:1;">
-            <div class="card-title">Cost sensitivity</div>
-            <div class="card-sub">System cost B$/yr per shock</div>
+            <div class="card-title" data-i18n="chart_cost_title" data-i18n="chart_cost_title">Cost sensitivity</div>
+            <div class="card-sub" data-i18n="chart_cost_sub">System cost B$/yr per shock</div>
             <div style="height:240px;margin-top:8px;"><canvas id="sa-cost-chart"></canvas></div>
           </div>
           <div class="card" style="flex:1;">
-            <div class="card-title">CO2 sensitivity</div>
-            <div class="card-sub">Total CO2 Mt per shock</div>
+            <div class="card-title" data-i18n="chart_co2s_title" data-i18n="chart_co2s_title">CO2 sensitivity</div>
+            <div class="card-sub" data-i18n="chart_co2s_sub">Total CO2 Mt per shock</div>
             <div style="height:240px;margin-top:8px;"><canvas id="sa-co2-chart"></canvas></div>
           </div>
           <div class="card" style="flex:1;">
-            <div class="card-title">RE share sensitivity</div>
-            <div class="card-sub">Renewables share % per shock</div>
+            <div class="card-title" data-i18n="chart_res_title" data-i18n="chart_res_title">RE share sensitivity</div>
+            <div class="card-sub" data-i18n="chart_res_sub">Renewables share % per shock</div>
             <div style="height:240px;margin-top:8px;"><canvas id="sa-re-chart"></canvas></div>
           </div>
         </div>
@@ -150,10 +156,10 @@
         <div class="card" id="sa-ai-panel">
           <div class="lp-ai-panel-header">
             <div>
-              <div class="card-title">AI interpretation</div>
-              <div class="card-sub">Which shocks matter most and why — Claude</div>
+              <div class="card-title" data-i18n="ai_interp_title" data-i18n="ai_interp_title">AI interpretation</div>
+              <div class="card-sub" data-i18n="ai_interp_sub">Which shocks matter most and why — Claude</div>
             </div>
-            <button onclick="explainSensitivity()" id="sa-explain-btn" class="lp-explain-btn">Explain results</button>
+            <button onclick="explainSensitivity()" id="sa-explain-btn" class="lp-explain-btn" data-i18n="btn_explain" data-i18n="btn_explain">Explain results</button>
           </div>
           <div id="sa-ai-output" class="lp-ai-output">Click "Explain results" to get an AI interpretation of the sensitivity analysis.</div>
         </div>
@@ -179,5 +185,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="sensitivity.js"></script>
   <script src="ai-chat-widget.js"></script>
+  <script src="translations.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
 </body>
 </html>

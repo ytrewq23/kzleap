@@ -3,9 +3,9 @@ const BACKEND = 'http://localhost:8000';
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 const badgeStyles = {
-  analyst:     { bg: '#e1f5ee', color: '#085041', text: 'Energy Analyst' },
-  researcher:  { bg: '#eeedfe', color: '#3C3489', text: 'Researcher' },
-  policymaker: { bg: '#faece7', color: '#712B13', text: 'Policymaker' },
+  analyst:     { bg: '#e1f5ee', color: '#085041', get text(){ return typeof t==='function'?t('role_analyst'):'Energy Analyst'; } },
+  researcher:  { bg: '#eeedfe', color: '#3C3489', get text(){ return typeof t==='function'?t('role_researcher'):'Researcher'; } },
+  policymaker: { bg: '#faece7', color: '#712B13', get text(){ return typeof t==='function'?t('role_policymaker'):'Policymaker'; } },
 };
 document.getElementById('user-name').textContent = user.name;
 document.getElementById('user-role').textContent = badgeStyles[user.role].text;
@@ -19,7 +19,7 @@ badge.style.color = badgeStyles[user.role].color;
 function showBackendBadge(connected) {
   const el = document.getElementById('backend-badge');
   if (!el) return;
-  el.textContent = connected ? '● Backend connected' : '● Offline mode';
+  el.textContent = connected ? (typeof t==='function'?t('backend_connected'):'● Backend connected') : (typeof t==='function'?t('backend_offline'):'● Offline mode');
   el.style.color  = connected ? '#0F6E56' : '#B07C10';
 }
 

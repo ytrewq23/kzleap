@@ -30,12 +30,13 @@ roleBadge.style.color = badgeStyles[user.role].color;
 })();
 
 const SC_COLORS = { BAU: '#4a5568', MT: '#1D9E75', DD: '#534AB7' };
-const SC_NAMES  = { BAU: 'Business as Usual', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
+const SC_NAMES_KEY = { BAU: 'sc_bau', MT: 'sc_mt', DD: 'sc_dd' };
+const SC_NAMES = new Proxy({}, { get: (_, k) => (typeof t==='function' && SC_NAMES_KEY[k]) ? t(SC_NAMES_KEY[k]) : ({BAU:'Business as Usual',MT:'Moderate Transition',DD:'Deep Decarbonization'})[k] || k });
 let cbData = null;
 let complianceChart = null;
 
 function na(val, suffix = '') {
-  if (val === null || val === undefined) return 'Not achieved';
+  if (val === null || val === undefined) return typeof t==='function' ? t('cb_not_achieved') : 'Not achieved';
   return val + suffix;
 }
 
@@ -70,29 +71,29 @@ function renderSummaryCards() {
 
   cards.innerHTML = `
     <div class="metric-card">
-      <div class="metric-label">1990 baseline (NDC base)</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_1990_baseline"):"1990 baseline (NDC base)"}</div>
       <div class="metric-value" style="color:#1a2b4a;">${cbData.base_year_1990_mt} Mt</div>
-      <div class="metric-change neutral">CO2 reference year</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_co2_ref_year"):"CO2 reference year"}</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">NDC target 2030 (-15%)</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_ndc_target_15"):"NDC target 2030 (-15%)"}</div>
       <div class="metric-value" style="color:#D85A30;">${ndc} Mt</div>
-      <div class="metric-change neutral">Unconditional</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_unconditional"):"Unconditional"}</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">NDC conditional 2030 (-25%)</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_ndc_cond_25"):"NDC conditional 2030 (-25%)"}</div>
       <div class="metric-value" style="color:#D85A30;">${cond} Mt</div>
-      <div class="metric-change neutral">With intl. support</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_with_intl"):"With intl. support"}</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">KZ share 1.5C budget</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_kz_15c"):"KZ share 1.5C budget"}</div>
       <div class="metric-value" style="color:#534AB7;">${b15} Mt</div>
-      <div class="metric-change neutral">Cumulative 2024-2060 · ${cbData.ipcc_kz_share_pct}% of global</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_cumulative"):"Cumulative 2024-2060"} · ${cbData.ipcc_kz_share_pct}% of global</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">KZ share 2C budget</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_kz_2c"):"KZ share 2C budget"}</div>
       <div class="metric-value" style="color:#378ADD;">${b20} Mt</div>
-      <div class="metric-change neutral">Cumulative 2024-2060</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_cumulative"):"Cumulative 2024-2060"}</div>
     </div>
   `;
 }
@@ -228,7 +229,7 @@ async function explainBudget() {
   if (!cbData) return;
   const btn    = document.getElementById('cb-explain-btn');
   const output = document.getElementById('cb-ai-output');
-  btn.disabled = true; btn.textContent = 'Analyzing...';
+  btn.disabled = true; btn.textContent = typeof t==="function"?t("cb_analyzing"):"Analyzing...";
   output.textContent = '';
 
   const summary = Object.entries(cbData.scenarios).map(([sc, d]) =>
@@ -261,7 +262,7 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
     const response = await fetch(`${BACKEND}/api/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], system: 'You are an expert climate policy economist. Plain text only, no markdown, number each point.', max_tokens: 1500, stream: true }),
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], system: `You are an expert climate policy economist. IMPORTANT: Respond in ${({'en':'English','ru':'Russian','kk':'Kazakh'})[localStorage.getItem('kzleap_lang')||'en']||'English'}. Plain text only, no markdown, number each point.`, max_tokens: 1500, stream: true }),
     });
 
     const reader = response.body.getReader();
@@ -288,7 +289,7 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
     output.textContent = 'Analysis failed: ' + err.message;
   }
 
-  btn.disabled = false; btn.textContent = 'Explain results';
+  btn.disabled = false; btn.textContent = typeof t==="function"?t("btn_explain"):"Explain results";
 }
 
 loadCarbonBudget();
@@ -344,14 +345,14 @@ async function runCustomTarget() {
     renderCTTrajectoryChart(data);
     renderCTBudgetChart(data);
     renderCTGapsTable(data);
-    document.getElementById('ct-ai-output').textContent = 'Click "Assess feasibility" for an AI analysis of this target pathway.';
+    document.getElementById('ct-ai-output').textContent = typeof t==="function"?t("cb_click_assess"):"Click 'Assess feasibility' for an AI analysis.";
 
   } catch (err) {
     document.getElementById('ct-spinner').style.display = 'none';
     document.getElementById('ct-error').style.display   = 'block';
     document.getElementById('ct-error').textContent     = 'Failed: ' + err.message;
   }
-  btn.disabled = false; btn.textContent = 'Calculate';
+  btn.disabled = false; btn.textContent = typeof t==="function"?t("btn_calculate"):"Calculate";
 }
 
 function renderCTKPICards(data) {
@@ -362,34 +363,34 @@ function renderCTKPICards(data) {
 
   cards.innerHTML = `
     <div class="metric-card">
-      <div class="metric-label">Target 2030</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_target_2030"):"Target 2030"}</div>
       <div class="metric-value" style="color:#D85A30;">${data.target_2030_mt} Mt</div>
       <div class="metric-change neutral">−${data.reduction_pct_2030}% vs 1990</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">Target 2050</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_target_2050"):"Target 2050"}</div>
       <div class="metric-value" style="color:#B07C10;">${data.target_2050_mt} Mt</div>
       <div class="metric-change neutral">−${data.reduction_pct_2050}% vs 1990</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">Neutrality year</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_neutrality_year"):"Neutrality year"}</div>
       <div class="metric-value" style="color:#1a2b4a;">${data.neutrality_year}</div>
-      <div class="metric-change neutral">Zero emissions target</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_zero_target"):"Zero emissions target"}</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">1.5C budget used</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_15c_used"):"1.5C budget used"}</div>
       <div class="metric-value" style="color:${data.pct_budget_15c_used > 100 ? '#D85A30' : '#1D9E75'};">${data.pct_budget_15c_used}%</div>
-      <div class="metric-change neutral">${data.budget_15c_exhausted_yr ? 'Exhausted ' + data.budget_15c_exhausted_yr : 'Within budget'}</div>
+      <div class="metric-change neutral">${data.budget_15c_exhausted_yr ? (typeof t==="function"?t("cb_exhausted"):"Exhausted")+' '+data.budget_15c_exhausted_yr : (typeof t==="function"?t("cb_within_budget"):"Within budget")}</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">Required annual cut 2024–2030</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_req_cut"):"Required annual cut 2024–2030"}</div>
       <div class="metric-value" style="color:#534AB7;">${data.ann_reduction_rate_2030}%</div>
-      <div class="metric-change neutral">per year vs 1990 baseline</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_per_year"):"per year vs 1990 baseline"}</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">Compatible scenarios</div>
+      <div class="metric-label">${typeof t==="function"?t("cb_compat_sc"):"Compatible scenarios"}</div>
       <div class="metric-value" style="font-size:14px;color:#0F6E56;">${compat_list}</div>
-      <div class="metric-change neutral">Meet target at all milestones</div>
+      <div class="metric-change neutral">${typeof t==="function"?t("cb_meet_target"):"Meet target at all milestones"}</div>
     </div>
   `;
 }
@@ -471,8 +472,8 @@ function renderCTGapsTable(data) {
   Object.entries(data.scenario_gaps).forEach(([sc, info]) => {
     const tr = document.createElement('tr');
     const compat = info.compatible
-      ? '<span style="color:#1D9E75;font-weight:600;">✓ Compatible</span>'
-      : '<span style="color:#D85A30;font-weight:600;">✗ Exceeds target</span>';
+      `<span style="color:#1D9E75;font-weight:600;">${typeof t==="function"?t("cb_compatible"):"✓ Compatible"}</span>`
+      `<span style="color:#D85A30;font-weight:600;">${typeof t==="function"?t("cb_exceeds"):"✗ Exceeds target"}</span>`;
 
     const gapCell = (yr) => {
       const g = info.gaps[yr];
@@ -495,7 +496,7 @@ async function explainCustomTarget() {
   if (!data) return;
   const btn    = document.getElementById('ct-explain-btn');
   const output = document.getElementById('ct-ai-output');
-  btn.disabled = true; btn.textContent = 'Analyzing...';
+  btn.disabled = true; btn.textContent = typeof t==="function"?t("cb_analyzing"):"Analyzing...";
   output.textContent = '';
 
   const sc_names = { BAU: 'BAU', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
@@ -543,7 +544,7 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [{ role: 'user', content: prompt }],
-        system: 'You are an expert climate policy economist specializing in Kazakhstan. Plain text only, no markdown, number each point.',
+        system: `You are an expert climate policy economist specializing in Kazakhstan. IMPORTANT: Respond in ${({'en':'English','ru':'Russian','kk':'Kazakh'})[localStorage.getItem('kzleap_lang')||'en']||'English'}. Plain text only, no markdown, number each point.`,
         max_tokens: 1500,
         stream: true,
       }),
@@ -571,5 +572,5 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
   } catch (err) {
     output.textContent = 'Analysis failed: ' + err.message;
   }
-  btn.disabled = false; btn.textContent = 'Assess feasibility';
+  btn.disabled = false; btn.textContent = typeof t==="function"?t("btn_assess"):"Assess feasibility";
 }

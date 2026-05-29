@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="results.css">
   <link rel="stylesheet" href="lp-optimizer.css">
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
 </head>
 <body class="app-page">
 
@@ -16,24 +22,24 @@
       <div class="logo-sm">KZ</div>
       <div>
         <div class="logo-title">KZLEAP</div>
-        <div class="logo-sub">Energy Platform</div>
+        <div class="logo-sub" data-i18n="energy_platform">Energy Platform</div>
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> Dashboard</a>
-      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> Upload Dataset</a>
-      <div class="nav-section">Scenarios</div>
-      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> Scenario Builder</a>
-      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> Simulation Results</a>
-      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> What-If Analyzer</a>
-      <div class="nav-section">Output</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> Reports</a>
-      <div class="nav-section">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> Mix Optimizer</a>
-      <a href="scenario-ai.html" class="nav-item active"><span class="nav-icon">◎</span> Smart Analysis</a>
-          <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> Sensitivity Analysis</a>
-      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> Carbon Budget</a>
+      <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a href="upload.html" class="nav-item" id="nav-upload"><span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span></a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
+      <a href="scenario-ai.html" class="nav-item active"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+          <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
       <a href="compare-countries.html" class="nav-item"><span class="nav-icon">◱</span> Country Comparison</a>
       <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> Investment Calc</a>
@@ -57,8 +63,8 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2>Smart Scenario Analysis</h2>
-        <p>Describe a policy goal in plain English — AI runs LP optimizations and compares results</p>
+        <h2 data-i18n="smart_title">Smart Scenario Analysis</h2>
+        <p data-i18n="smart_sub">Describe a policy goal in plain English — AI runs LP optimizations and compares results</p>
       </div>
       <div class="topbar-right">
         <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
@@ -69,19 +75,19 @@
     <div class="content">
 
       <div class="card" style="margin-bottom:16px;">
-        <div class="card-title">Policy goal</div>
-        <div class="card-sub">Ask any question about Kazakhstan's energy system — the AI will select scenarios, run LP optimizations, and answer with data</div>
+        <div class="card-title" data-i18n="goal_title" data-i18n="goal_title">Policy goal</div>
+        <div class="card-sub" data-i18n="goal_sub" data-i18n="goal_sub">Ask any question about Kazakhstan's energy system — the AI will select scenarios, run LP optimizations, and answer with data</div>
         <div class="sai-input-area">
-          <textarea id="ai-goal-input" class="sai-textarea" placeholder="e.g. What is the cheapest way to reach 50% renewables by 2035?&#10;e.g. How much would it cost to cut CO2 by 40% by 2040?&#10;e.g. Compare BAU and Deep Decarbonization for 2050 electricity costs."></textarea>
+          <textarea id="ai-goal-input" class="sai-textarea" ></textarea>
           <div class="sai-actions">
             <div class="sai-examples">
-              <span class="sai-example-label">Try:</span>
-              <button class="sai-chip" onclick="setExample(this)">Cheapest path to 50% RE by 2035</button>
-              <button class="sai-chip" onclick="setExample(this)">Cut CO2 by 40% by 2040 — what does it cost?</button>
-              <button class="sai-chip" onclick="setExample(this)">Is nuclear worth it by 2050?</button>
-              <button class="sai-chip" onclick="setExample(this)">Compare all scenarios for 2060</button>
+              <span class="sai-example-label" data-i18n="sai_try">Try:</span>
+              <button class="sai-chip" onclick="setExample(this)" data-i18n="sai_example1">Cheapest path to 50% RE by 2035</button>
+              <button class="sai-chip" onclick="setExample(this)" data-i18n="sai_example2">Cut CO2 by 40% by 2040 — what does it cost?</button>
+              <button class="sai-chip" onclick="setExample(this)" data-i18n="sai_example3">Is nuclear worth it by 2050?</button>
+              <button class="sai-chip" onclick="setExample(this)" data-i18n="sai_example4">Compare all scenarios for 2060</button>
             </div>
-            <button onclick="runSmartAnalysis()" id="ai-run-btn" class="sai-run-btn">Run analysis</button>
+            <button onclick="runSmartAnalysis()" id="ai-run-btn" class="sai-run-btn" data-i18n="btn_run_analysis" data-i18n="btn_run_analysis">Run analysis</button>
           </div>
         </div>
       </div>
@@ -96,17 +102,17 @@
       </div>
 
       <div id="sai-runs-grid" style="display:none;">
-        <div class="card-title" style="margin-bottom:8px;">LP optimization runs</div>
+        <div class="card-title" style="margin-bottom:8px;" data-i18n="sai_lp_runs" data-i18n="sai_lp_runs">LP optimization runs</div>
         <div class="metrics-grid" id="sai-runs-metrics"></div>
       </div>
 
       <div id="sai-result-panel" style="display:none;" class="card" style="margin-top:16px;">
         <div class="sai-result-header">
           <div>
-            <div class="card-title">Analysis</div>
+            <div class="card-title" data-i18n="sai_analysis" data-i18n="sai_analysis">Analysis</div>
             <div class="card-sub" id="sai-result-sub">Claude · LP-backed</div>
           </div>
-          <button onclick="copySAIResult()" class="sai-copy-btn">Copy</button>
+          <button onclick="copySAIResult()" class="sai-copy-btn" data-i18n="btn_copy" data-i18n="btn_copy">Copy</button>
         </div>
         <div id="sai-result-output" class="lp-ai-output" style="min-height:80px;"></div>
       </div>
@@ -164,5 +170,7 @@
 
   <script src="scenario-ai.js"></script>
   <script src="ai-chat-widget.js"></script>
+  <script src="translations.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
 </body>
 </html>
