@@ -233,7 +233,7 @@ const TRANSLATIONS = {
 
     // What-If
     whatif_title:            'What-If Analyzer',
-    whatif_sub_hero:         'Real-time policy scenario modeling · Unique to KZLEAP · Not available in standard LEAP',
+    whatif_sub_hero:         'Real-time policy scenario modeling',
     whatif_live_badge:       'Live calculation engine',
     whatif_hero_title:       'Interactive What-If Policy Simulator',
     whatif_hero_sub:         'Adjust parameters and see CO₂ impact instantly · Kazakhstan energy system 2024–2060',
@@ -244,7 +244,7 @@ const TRANSLATIONS = {
     whatif_tariff:           'Electricity tariff',
     whatif_green_invest:     'Green investment',
     whatif_energy_trade:     'Energy trade (TWh/yr)',
-    whatif_recalc:           '⚡ Recalculate Now',
+    whatif_recalc:           'Recalculate Now',
     whatif_co2_avoided:      'CO₂ avoided by 2050',
     whatif_total_invest:     'Total investment needed',
     whatif_re_share:         'RE share by 2050',
@@ -259,7 +259,7 @@ const TRANSLATIONS = {
     goal_title:           'Policy goal',
     goal_sub:             "Ask any question about Kazakhstan's energy system — the AI will select scenarios, run LP optimizations, and answer with data",
     btn_run_analysis:     'Run analysis',
-    sai_lp_runs:          'LP optimization runs',
+    sai_lp_runs:          'Optimization runs',
     sai_analysis:         'Analysis',
 
     // LP Optimizer
@@ -365,7 +365,6 @@ const TRANSLATIONS = {
     wi_col_investment:    'Investment',
     wi_col_new_cap:       'New capacity',
     wi_col_share:         'Share',
-    wi_kzleap_info:       'KZLEAP What-If Analyzer — unlike standard LEAP, this tool calculates policy impacts in real-time without rerunning the full model.',
     bau_assumes_title:    'What BAU assumes:',
     bau_li1:              'Energy demand grows at historical rate (~2% per year)',
     bau_li2:              'Coal remains dominant (~60% of electricity generation)',
@@ -508,7 +507,7 @@ const TRANSLATIONS = {
     inv_coal_save_sub:  'Avoided fuel cost per MWh replaced by renewables',
     inv_period:         'Build period (years)',
     inv_period_sub:     'Investment spread over this many years',
-    inv_btn:            '⚡ Calculate Investment',
+    inv_btn:            'Calculate Investment',
     inv_kpi_total:      'Total Investment',
     inv_kpi_co2:        'CO₂ Avoided',
     inv_kpi_payback:    'Simple Payback',
@@ -796,7 +795,7 @@ const TRANSLATIONS = {
     upload_title:         'Загрузка данных',
     upload_sub:           'Добавьте новые файлы',
     upload_drag:          'Перетащите файл сюда',
-    upload_formats:       'KZLEAP Excel (.xlsx) или CSV — макс. 50 МБ',
+    upload_formats:       'Excel (.xlsx) или CSV — макс. 50 МБ',
     btn_browse:           'Выбрать файл',
     upload_template_msg:  'Заполните шаблон и загрузите.',
     btn_download_template:'Скачать шаблон XLSX',
@@ -815,7 +814,7 @@ const TRANSLATIONS = {
     col_gen_by:           'Сгенерировал',
 
     whatif_title:            'Анализ сценариев',
-    whatif_sub_hero:         'Моделирование сценариев в реальном времени · Уникально для KZLEAP',
+    whatif_sub_hero:         'Моделирование сценариев в реальном времени',
     whatif_live_badge:       'Движок вычислений в реальном времени',
     whatif_hero_title:       'Интерактивный симулятор сценариев',
     whatif_hero_sub:         'Изменяйте параметры и смотрите влияние на CO₂ мгновенно',
@@ -826,7 +825,7 @@ const TRANSLATIONS = {
     whatif_tariff:           'Электрический тариф',
     whatif_green_invest:     'Зелёные инвестиции',
     whatif_energy_trade:     'Обмен энергией (ТВт·ч/год)',
-    whatif_recalc:           '⚡ Пересчитать',
+    whatif_recalc:           'Пересчитать',
     whatif_co2_avoided:      'Сокращение CO₂ к 2050',
     whatif_total_invest:     'Общие инвестиции',
     whatif_re_share:         'Доля ВИЭ к 2050',
@@ -840,7 +839,7 @@ const TRANSLATIONS = {
     goal_title:           'Цель политики',
     goal_sub:             'Задайте любой вопрос об энергетике Казахстана',
     btn_run_analysis:     'Запустить анализ',
-    sai_lp_runs:          'Запуски LP оптимизации',
+    sai_lp_runs:          'Запуски оптимизации',
     sai_analysis:         'Анализ',
 
     lp_title:             'Оптимизатор энергобаланса',
@@ -944,7 +943,6 @@ const TRANSLATIONS = {
     wi_col_investment:    'Инвестиции',
     wi_col_new_cap:       'Новая мощность',
     wi_col_share:         'Доля',
-    wi_kzleap_info:       'KZLEAP What-If Analyzer — в отличие от стандартного LEAP, этот инструмент рассчитывает влияние политик в реальном времени.',
     bau_assumes_title:    'Допущения BAU:',
     bau_li1:              'Энергопотребление растёт на исторической скорости (~2% в год)',
     bau_li2:              'Уголь остаётся доминирующим (~60% выработки)',
@@ -1087,7 +1085,7 @@ const TRANSLATIONS = {
     inv_coal_save_sub:  'Избежанные затраты на топливо при замещении ВИЭ',
     inv_period:         'Период строительства (лет)',
     inv_period_sub:     'Инвестиции распределены на этот срок',
-    inv_btn:            '⚡ Рассчитать инвестиции',
+    inv_btn:            'Рассчитать инвестиции',
     inv_kpi_total:      'Общие инвестиции',
     inv_kpi_co2:        'Сокращение CO₂',
     inv_kpi_payback:    'Простой срок окупаемости',
@@ -1394,7 +1392,7 @@ const TRANSLATIONS = {
     col_gen_by:           'Жасаған',
 
     whatif_title:            'Шартты талдау',
-    whatif_sub_hero:         'Нақты уақытта сценарий модельдеуі · KZLEAP-қа тең',
+    whatif_sub_hero:         'Нақты уақытта сценарий модельдеуі',
     whatif_live_badge:       'Нақты уақытта есептеу қозғалтқышы',
     whatif_hero_title:       'Интерактивті сценарий симуляторы',
     whatif_hero_sub:         'Параметрлерді реттеп CO₂ әсерін бірден көріңіз',
@@ -1405,10 +1403,10 @@ const TRANSLATIONS = {
     whatif_tariff:           'Электр энергия тарифі',
     whatif_green_invest:     'Жасыл инвестиция',
     whatif_energy_trade:     'Энергетикалық сауда (ТВс·ағ/жыл)',
-    whatif_recalc:           '⚡ Қайта есептеу',
-    whatif_co2_avoided:      '2050жылға CO₂ азайту',
+    whatif_recalc:           'Қайта есептеу',
+    whatif_co2_avoided:      '2050 жылға қарай азаятын CO₂ мөлшері',
     whatif_total_invest:     'Жалпы инвестициялар',
-    whatif_re_share:         '2050жылға ЖЭК үлесі',
+    whatif_re_share:         '2050 жылға ЖЭК үлесі',
     whatif_ndc_tracker:      'NDC 2030 бақылау',
     whatif_co2_traj:         'CO₂ траекториясы 2024–2060',
     whatif_vs_bau:           'Сіздің сценарийыңыз BAU-мен',
@@ -1419,7 +1417,7 @@ const TRANSLATIONS = {
     goal_title:           'Саясат мақсаты',
     goal_sub:             'Қазақстан энергетикасы туралы кез сұрақтаңыз',
     btn_run_analysis:     'Талдауды іске қосу',
-    sai_lp_runs:          'LP оптимизация іске қосулары',
+    sai_lp_runs:          'Оптимизацияны іске қосу',
     sai_analysis:         'Талдау',
 
     lp_title:             'Энергетикалық баланс оптимизаторы',
@@ -1523,7 +1521,6 @@ const TRANSLATIONS = {
     wi_col_investment:    'Инвестиция',
     wi_col_new_cap:       'Жаңа қуат',
     wi_col_share:         'Үлес',
-    wi_kzleap_info:       'KZLEAP What-If Analyzer — стандартты LEAP-тен айырмашылығы, бұл құрал саясат әсерін нақты уақытта есептейді.',
     bau_assumes_title:    'BAU болжамдары:',
     bau_li1:              'Энергия тұтыну тарихи қарқынмен өседі (~жылына 2%)',
     bau_li2:              'Көмір басым болып қалады (~60% өндіріс)',
@@ -1535,7 +1532,7 @@ const TRANSLATIONS = {
     mt_li3:               'Энергия тиімділігі: −2%/жыл қарқындылық',
     mt_li4:               'Көміртек бағасы: 2030жылға $20/т → 2050жылға $50/т',
     mt_li5:               'Электр автомобильдер: 2050жылға 30% көлік',
-    dd_assumes_title:     'DD негізгі болжамдары:',
+    dd_assumes_title:     'Терең декарбонизация негізгі болжамдары:',
     dd_li1:               '2050жылға 70% ЖЭК (жел + күн)',
     dd_li2:               '2045жылға көмірді пайдаланудан шығару',
     dd_li3:               'Энергия тиімділігі: −3%/жыл қарқындылық',
@@ -1556,7 +1553,7 @@ const TRANSLATIONS = {
     param_co2_src:        'Дереккөз: IEA / BNS GHG',
     param_ndc_target:     '2030жылға NDC мақсаты',
     param_ndc_src:        '1990жылға −15% (шартсыз)',
-    param_bau_proj:       '2050жылға CO₂ болжамы (BAU)',
+    param_bau_proj:       '2050жылға CO₂ болжамы (Негізгі сценарий)',
     param_bau_sub:        '2023 базасына +29% · NDC мақсатынан жоғары',
     param_proj_2050:      '2050жылға CO₂ болжамы',
     sl_re_share:          '2050жылға ЖЭК үлесі',
@@ -1632,7 +1629,7 @@ const TRANSLATIONS = {
     map_type:           'Түрі:',
     map_capacity:       'Қуаты:',
     map_commissioned:   'Іске қосылды:',
-    map_new_badge:      '🆕 Жаңа / Жоспарланған',
+    map_new_badge:      'Жаңа / Жоспарланған',
     cc_title:           'Елдерді салыстыру',
     cc_sub:             'Қазақстан vs басқа елдер — CO₂, ЖЭК, энергия қарқындылығы · Дереккөз: IEA',
     cc_compare_with:    'Салыстыру:',
@@ -1666,7 +1663,7 @@ const TRANSLATIONS = {
     inv_coal_save_sub:  'ЖЭК-пен алмастырғандағы болдырмаған отын шығыны',
     inv_period:         'Салу кезеңі (жыл)',
     inv_period_sub:     'Инвестиция осы жылдарға таратылады',
-    inv_btn:            '⚡ Инвестицияны есептеу',
+    inv_btn:            'Инвестицияны есептеу',
     inv_kpi_total:      'Жалпы инвестиция',
     inv_kpi_co2:        'CO₂ азайту',
     inv_kpi_payback:    'Қарапайым өтелу',
@@ -1768,6 +1765,17 @@ function applyTranslations() {
   });
 }
 
+
+// Returns the language name for AI system prompts
+function getLangName() {
+  const lang = localStorage.getItem('kzleap_lang') || 'en';
+  return { en: 'English', ru: 'Russian', kk: 'Kazakh' }[lang] || 'English';
+}
+
+// Append to any system prompt to make AI respond in the interface language
+function getLangInstruction() {
+  return ' IMPORTANT: Respond in ' + getLangName() + '. Plain text only, no markdown, no bullet symbols, number each section.';
+}
 function setLang(lang) {
   localStorage.setItem('kzleap_lang', lang);
   applyTranslations();

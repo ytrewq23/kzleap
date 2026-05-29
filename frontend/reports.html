@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="reports.css">
+  <script src="translations.js"></script>
   <style>
     .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
     .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
@@ -28,17 +29,18 @@
       <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
       <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
       <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
-      <a href="whatif.html"     class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <a href="whatif.html" class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
       <div class="nav-section" data-i18n="nav_output">Output</div>
       <a href="reports.html" class="nav-item active"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
       <div class="nav-section" data-i18n="nav_tools">Tools</div>
       <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⌘</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
-          <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
-          <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+      <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
       <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
-<a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
-<a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
+      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
+    </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
       <div><div class="user-name" id="user-name">Ali B.</div><div class="user-role" id="user-role">Energy Analyst</div></div>
@@ -53,7 +55,7 @@
         <p data-i18n="reports_sub">Generate and download reports in PDF or Excel format</p>
       </div>
       <div class="topbar-right">
-         <div class="lang-switcher">
+        <div class="lang-switcher">
           <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
           <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
           <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
@@ -68,54 +70,54 @@
         <div class="report-type-card">
           <div class="report-icon pdf">PDF</div>
           <div class="report-info">
-            <div class="report-name" data-i18n="report_full_name" data-i18n="report_full_name">Full Scenario Report</div>
+            <div class="report-name" data-i18n="report_full_name">Full Scenario Report</div>
             <div class="report-desc" data-i18n="report_full_desc">BAU and Low Carbon · All 24 sectors · 2021–2050</div>
           </div>
-          <button class="btn-generate" onclick="generatePDF()" data-i18n="btn_generate" data-i18n="btn_generate">Generate PDF</button>
+          <button class="btn-generate" onclick="generatePDF()" data-i18n="btn_generate">Generate PDF</button>
         </div>
         <div class="report-type-card">
           <div class="report-icon excel">XLS</div>
           <div class="report-info">
-            <div class="report-name" data-i18n="report_export_name" data-i18n="report_export_name">Data Export</div>
+            <div class="report-name" data-i18n="report_export_name">Data Export</div>
             <div class="report-desc" data-i18n="report_export_desc">Raw simulation results · Year-by-year · All scenarios</div>
           </div>
-          <button class="btn-generate green" onclick="exportExcel()" data-i18n="btn_export_excel" data-i18n="btn_export_excel">Export Excel</button>
+          <button class="btn-generate green" onclick="exportExcel()" data-i18n="btn_export_excel">Export Excel</button>
         </div>
         <div class="report-type-card">
           <div class="report-icon summary">SUM</div>
           <div class="report-info">
-            <div class="report-name" data-i18n="report_summary_name" data-i18n="report_summary_name">Executive Summary</div>
+            <div class="report-name" data-i18n="report_summary_name">Executive Summary</div>
             <div class="report-desc" data-i18n="report_summary_desc">Key findings for policymakers · 2-page overview</div>
           </div>
-          <button class="btn-generate" onclick="generateSummary()" data-i18n="btn_generate" data-i18n="btn_generate">Generate PDF</button>
+          <button class="btn-generate" onclick="generateSummary()" data-i18n="btn_generate">Generate PDF</button>
         </div>
         <div class="report-type-card">
           <div class="report-icon sector">SEC</div>
           <div class="report-info">
-            <div class="report-name" data-i18n="report_sector_name" data-i18n="report_sector_name">Sector Analysis</div>
+            <div class="report-name" data-i18n="report_sector_name">Sector Analysis</div>
             <div class="report-desc" data-i18n="report_sector_desc">Energy breakdown · Iron and Steel · Detailed view</div>
           </div>
-          <button class="btn-generate" onclick="exportSummary()" data-i18n="btn_generate" data-i18n="btn_generate">Generate PDF</button>
+          <button class="btn-generate" onclick="exportSummary()" data-i18n="btn_generate">Generate PDF</button>
         </div>
         <div class="report-type-card">
           <div class="report-icon" style="background:#1a2b4a;color:#fff;">AI</div>
           <div class="report-info">
-            <div class="report-name" data-i18n="report_ai_name" data-i18n="report_ai_name">AI Analytical Report</div>
+            <div class="report-name" data-i18n="report_ai_name">AI Analytical Report</div>
             <div class="report-desc" data-i18n="report_ai_desc">Claude-generated narrative · All scenarios · Policy recommendations</div>
           </div>
-          <button class="btn-generate btn-ai-report" onclick="generateAIReport()" data-i18n="btn_gen_ai" data-i18n="btn_gen_ai">Generate</button>
+          <button class="btn-generate btn-ai-report" onclick="generateAIReport()" data-i18n="btn_gen_ai">Generate</button>
         </div>
       </div>
 
-      <div id="ai-report-panel" style="display:none;" class="card" style="margin-top:16px;">
+      <div id="ai-report-panel" style="display:none;" class="card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
           <div>
-            <div class="card-title" data-i18n="report_ai_name" data-i18n="report_ai_name">AI Analytical Report</div>
+            <div class="card-title" data-i18n="report_ai_name">AI Analytical Report</div>
             <div class="card-sub" id="ai-report-sub">Generating...</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button onclick="copyAIReport()" id="ai-copy-btn" style="padding:7px 16px;background:#f0f4f8;color:#1a2b4a;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" data-i18n="btn_copy_text" data-i18n="btn_copy_text">Copy text</button>
-            <button onclick="printAIReport()" style="padding:7px 16px;background:#1a2b4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" data-i18n="btn_print" data-i18n="btn_print">Print / Save PDF</button>
+            <button onclick="copyAIReport()" id="ai-copy-btn" style="padding:7px 16px;background:#f0f4f8;color:#1a2b4a;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" data-i18n="btn_copy_text">Copy text</button>
+            <button onclick="printAIReport()" style="padding:7px 16px;background:#1a2b4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" data-i18n="btn_print">Print / Save PDF</button>
           </div>
         </div>
         <div id="ai-report-output" style="font-size:13px;color:#333;line-height:1.8;white-space:pre-wrap;min-height:60px;"></div>
@@ -123,14 +125,13 @@
 
       <div class="card">
         <div class="card-header">
-          <div><div class="card-title" data-i18n="gen_reports_title" data-i18n="gen_reports_title">Generated reports</div><div class="card-sub" data-i18n="gen_reports_sub">Your recent exports</div></div>
+          <div><div class="card-title" data-i18n="gen_reports_title">Generated reports</div><div class="card-sub" data-i18n="gen_reports_sub">Your recent exports</div></div>
         </div>
         <table class="r-table">
           <thead>
-            <tr><th>File name</th><th>Type</th><th>Scenarios</th><th>Generated by</th><th>Date</th><th></th></tr>
+            <tr><th data-i18n="col_filename">File name</th><th data-i18n="col_type">Type</th><th data-i18n="col_scenarios">Scenarios</th><th data-i18n="col_gen_by">Generated by</th><th data-i18n="col_date">Date</th><th></th></tr>
           </thead>
-          <tbody id="reports-table">
-          </tbody>
+          <tbody id="reports-table"></tbody>
         </table>
       </div>
 
@@ -138,10 +139,10 @@
   </div>
 
   <div id="toast" class="toast"></div>
+
   <script src="reports.js"></script>
   <script src="ai-report.js"></script>
   <script src="ai-chat-widget.js"></script>
-  <script src="translations.js"></script>
   <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
 </body>
 </html>
