@@ -524,7 +524,127 @@ def delete_dataset(dataset_id: str):
     return {"message": "Dataset deleted"}
 
 import io, csv as csv_module
-
+CSV_HEADERS = {
+    'en': {
+        'year':     'Year',
+        'bau_co2':  'BAU_CO2_Mt',
+        'mt_co2':   'MT_CO2_Mt',
+        'dd_co2':   'DD_CO2_Mt',
+        'bau_elec': 'BAU_Electricity_TWh',
+        'mt_elec':  'MT_Electricity_TWh',
+        'dd_elec':  'DD_Electricity_TWh',
+        'bau_re':   'BAU_RE_Share_pct',
+        'mt_re':    'MT_RE_Share_pct',
+        'dd_re':    'DD_RE_Share_pct',
+        'bau_coal': 'BAU_Coal_Share_pct',
+        'mt_coal':  'MT_Coal_Share_pct',
+        'dd_coal':  'DD_Coal_Share_pct',
+        'ndc_unc':  'NDC_Unconditional_Mt',
+        'ndc_con':  'NDC_Conditional_Mt',
+        # summary
+        'dd_vs_bau':   'DD_vs_BAU_Mt',
+        'reduction':   'Reduction_pct',
+    },
+    'ru': {
+        'year':     'Год',
+        'bau_co2':  'BAU_CO2_Мт',
+        'mt_co2':   'МП_CO2_Мт',
+        'dd_co2':   'ГД_CO2_Мт',
+        'bau_elec': 'BAU_Электроэнергия_ТВтч',
+        'mt_elec':  'МП_Электроэнергия_ТВтч',
+        'dd_elec':  'ГД_Электроэнергия_ТВтч',
+        'bau_re':   'BAU_ВИЭ_доля_%',
+        'mt_re':    'МП_ВИЭ_доля_%',
+        'dd_re':    'ГД_ВИЭ_доля_%',
+        'bau_coal': 'BAU_Уголь_доля_%',
+        'mt_coal':  'МП_Уголь_доля_%',
+        'dd_coal':  'ГД_Уголь_доля_%',
+        'ndc_unc':  'НОО_Безусловная_Мт',
+        'ndc_con':  'НОО_Условная_Мт',
+        'dd_vs_bau': 'ГД_к_BAU_Мт',
+        'reduction': 'Снижение_%',
+    },
+    'kk': {
+        'year':     'Жыл',
+        'bau_co2':  'BAU_CO2_Мт',
+        'mt_co2':   'ОК_CO2_Мт',
+        'dd_co2':   'ТД_CO2_Мт',
+        'bau_elec': 'BAU_Электр_ТВтс',
+        'mt_elec':  'ОК_Электр_ТВтс',
+        'dd_elec':  'ТД_Электр_ТВтс',
+        'bau_re':   'BAU_ЖЭК_үлес_%',
+        'mt_re':    'ОК_ЖЭК_үлес_%',
+        'dd_re':    'ТД_ЖЭК_үлес_%',
+        'bau_coal': 'BAU_Көмір_үлес_%',
+        'mt_coal':  'ОК_Көмір_үлес_%',
+        'dd_coal':  'ТД_Көмір_үлес_%',
+        'ndc_unc':  'ҰАЖ_шартсыз_Мт',
+        'ndc_con':  'ҰАЖ_шартты_Мт',
+        'dd_vs_bau': 'ТД_BAU-ға_Мт',
+        'reduction': 'Азаю_%',
+    },
+}
+@app.get("/api/export/csv")
+def export_csv(lang: str = 'en'):
+    h = CSV_HEADERS.get(lang, CSV_HEADERS['en'])
+    data = compare_scenarios()
+    BAU, MT, DD = data['BAU'], data['MT'], data['DD']
+    years = BAU['years']
+    output = io.StringIO()
+    writer = csv_module.writer(output, delimiter=';')
+    writer.writerow([
+        h['year'],
+        h['bau_co2'], h['mt_co2'], h['dd_co2'],
+        h['bau_elec'], h['mt_elec'], h['dd_elec'],
+        h['bau_re'],  h['mt_re'],  h['dd_re'],
+        h['bau_coal'],h['mt_coal'],h['dd_coal'],
+        h['ndc_unc'], h['ndc_con'],
+    ])
+    ndc_unc = data['_targets']['ndc_unconditional_2030']
+    ndc_con = data['_targets']['ndc_conditional_2030']
+    for i, year in enumerate(years):
+        writer.writerow([
+            year,
+            round(BAU['co2'][i], 1), round(MT['co2'][i], 1), round(DD['co2'][i], 1),
+            round(BAU['electricity'][i], 1), round(MT['electricity'][i], 1), round(DD['electricity'][i], 1),
+            round(BAU['renewables_share'][i], 1), round(MT['renewables_share'][i], 1), round(DD['renewables_share'][i], 1),
+            round(BAU['coal_share'][i], 1), round(MT['coal_share'][i], 1), round(DD['coal_share'][i], 1),
+            ndc_unc if year == 2030 else '',
+            ndc_con if year == 2030 else '',
+        ])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type='text/csv; charset=utf-8',
+        headers={'Content-Disposition': 'attachment; filename="KZLEAP_Scenarios.csv"'}
+    )
+ 
+ 
+@app.get("/api/export/summary")
+def export_summary(lang: str = 'en'):
+    h = CSV_HEADERS.get(lang, CSV_HEADERS['en'])
+    data = compare_scenarios()
+    BAU, MT, DD = data['BAU'], data['MT'], data['DD']
+    years = BAU['years']
+    milestones = {2025, 2030, 2035, 2040, 2045, 2050, 2060}
+    output = io.StringIO()
+    writer = csv_module.writer(output, delimiter=';')
+    writer.writerow([
+        h['year'],
+        h['bau_co2'], h['mt_co2'], h['dd_co2'],
+        h['dd_vs_bau'], h['reduction'],
+    ])
+    for i, year in enumerate(years):
+        if year not in milestones:
+            continue
+        b, m, d = round(BAU['co2'][i], 1), round(MT['co2'][i], 1), round(DD['co2'][i], 1)
+        writer.writerow([year, b, m, d, round(b-d, 1), round((b-d)/b*100, 1)])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type='text/csv; charset=utf-8',
+        headers={'Content-Disposition': 'attachment; filename="KZLEAP_Summary.csv"'}
+    )
 
 @app.get("/api/config")
 def get_config():
