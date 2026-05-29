@@ -27,7 +27,15 @@ roleBadge.style.color = badgeStyles[user.role].color;
     el.textContent = '● Offline mode';
     el.style.color = '#B07C10';
   }
-})();
+})
+();
+function getLang() {
+  return localStorage.getItem('kzleap_lang') || 'en';
+}
+function getLangName() {
+  return ({ en: 'English', ru: 'Russian', kk: 'Kazakh' })[getLang()] || 'English';
+}
+ 
 
 const SC_COLORS = { BAU: '#4a5568', MT: '#1D9E75', DD: '#534AB7' };
 const SC_NAMES_KEY = { BAU: 'sc_bau', MT: 'sc_mt', DD: 'sc_dd' };
@@ -224,47 +232,71 @@ function showCompliance(sc) {
     }
   });
 }
-
+function aiHintText() {
+  const lang = getLang();
+  if (lang === 'ru') return 'Нажмите «Объяснить результаты» для AI-интерпретации.';
+  if (lang === 'kk') return 'AI түсіндірмесі үшін «Нәтижелерді түсіндіру» батырмасын басыңыз.';
+  return 'Click "Explain results" to get an AI interpretation.';
+}
+function aiAssessHintText() {
+  const lang = getLang();
+  if (lang === 'ru') return 'Нажмите «Оценить реалистичность» для AI-анализа.';
+  if (lang === 'kk') return 'AI талдауы үшін «Орындылықты бағалау» батырмасын басыңыз.';
+  return "Click 'Assess feasibility' for an AI analysis.";
+}
+function aiFailedText() {
+  const lang = getLang();
+  if (lang === 'ru') return 'Ошибка анализа: ';
+  if (lang === 'kk') return 'Талдау қатесі: ';
+  return 'Analysis failed: ';
+}
 async function explainBudget() {
   if (!cbData) return;
   const btn    = document.getElementById('cb-explain-btn');
   const output = document.getElementById('cb-ai-output');
   btn.disabled = true; btn.textContent = typeof t==="function"?t("cb_analyzing"):"Analyzing...";
   output.textContent = '';
-
+ 
   const summary = Object.entries(cbData.scenarios).map(([sc, d]) =>
     `${SC_NAMES[sc]}: CO2 in 2030=${d.co2_2030_mt}Mt, NDC-15% achieved=${na(d.ndc_achieved_year)}, NDC-25% achieved=${na(d.cond_ndc_achieved_year)}, neutrality=${na(d.neutrality_projected_yr)}, cumulative 2024-2060=${d.cumulative_2024_2060_mt}Mt, 1.5C budget used=${d.pct_budget_15c_used}%, 1.5C budget exhausted=${na(d.budget_15c_exhausted_yr)}`
   ).join('\n');
-
+ 
   const prompt = `You are a senior climate policy economist. Analyze Kazakhstan's carbon budget situation based on energy model results.
-
+ 
 Kazakhstan NDC: -15% CO2 by 2030 (unconditional), -25% conditional. 1990 baseline: 290 Mt. Carbon neutrality target: 2060.
 IPCC 1.5C budget for Kazakhstan: ${cbData.budget_15c_mt} Mt cumulative. 2C budget: ${cbData.budget_20c_mt} Mt.
-
+ 
 Scenario results:
 ${summary}
-
+ 
 Analyze — do not restate numbers, interpret them:
-
+ 
 1. NDC compliance gap: Which scenarios meet the 2030 NDC and which fail? What is the structural reason for the gap in the failing scenarios?
-
+ 
 2. Carbon budget alignment: How does Kazakhstan's cumulative emissions under each scenario compare to the IPCC 1.5C and 2C budgets? What does it mean to exhaust the 1.5C budget by a specific year?
-
+ 
 3. Neutrality feasibility: Is carbon neutrality by 2060 realistic under any scenario? What are the main barriers?
-
+ 
 4. International context: Kazakhstan contributes ${cbData.ipcc_kz_share_pct}% of the global IPCC budget. How does its per-capita effort compare to what a fair-share approach would require?
-
+ 
 5. Urgent recommendation: What single policy action would most improve Kazakhstan's carbon budget trajectory in the next five years?
-
-Keep each point to 2-3 sentences. Plain text only, no markdown, number each point.`;
-
+ 
+Keep each point to 2-3 sentences. Plain text only, no markdown, number each point.
+ 
+CRITICAL: Write your entire response in ${getLangName()}. Do not use English if the language is Russian or Kazakh.`;
+ 
   try {
     const response = await fetch(`${BACKEND}/api/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], system: `You are an expert climate policy economist. IMPORTANT: Respond in ${({'en':'English','ru':'Russian','kk':'Kazakh'})[localStorage.getItem('kzleap_lang')||'en']||'English'}. Plain text only, no markdown, number each point.`, max_tokens: 1500, stream: true }),
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }],
+        system: `You are an expert climate policy economist specializing in Kazakhstan. IMPORTANT: Respond in ${getLangName()}. Plain text only, no markdown, number each point.`,
+        max_tokens: 1500,
+        stream: true,
+      }),
     });
-
+ 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -286,16 +318,13 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
       }
     }
   } catch (err) {
-    output.textContent = 'Analysis failed: ' + err.message;
+    output.textContent = aiFailedText() + err.message;
   }
-
+ 
   btn.disabled = false; btn.textContent = typeof t==="function"?t("btn_explain"):"Explain results";
 }
 
 loadCarbonBudget();
-
-
-// ── Custom Target ──
 
 let ctCharts = {};
 
@@ -345,7 +374,7 @@ async function runCustomTarget() {
     renderCTTrajectoryChart(data);
     renderCTBudgetChart(data);
     renderCTGapsTable(data);
-    document.getElementById('ct-ai-output').textContent = typeof t==="function"?t("cb_click_assess"):"Click 'Assess feasibility' for an AI analysis.";
+    document.getElementById('ct-ai-output').textContent = typeof t==="function" ? t("cb_click_assess") : aiAssessHintText();
 
   } catch (err) {
     document.getElementById('ct-spinner').style.display = 'none';
@@ -498,53 +527,55 @@ async function explainCustomTarget() {
   const output = document.getElementById('ct-ai-output');
   btn.disabled = true; btn.textContent = typeof t==="function"?t("cb_analyzing"):"Analyzing...";
   output.textContent = '';
-
+ 
   const sc_names = { BAU: 'BAU', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
   const gapsSummary = Object.entries(data.scenario_gaps).map(([sc, info]) => {
     const g2030 = info.gaps[2030];
     const g2050 = info.gaps[2050];
     return `${sc_names[sc]}: compatible=${info.compatible}, gap 2030=${g2030 ? g2030.gap_mt + ' Mt' : '—'}, gap 2050=${g2050 ? g2050.gap_mt + ' Mt' : '—'}`;
   }).join('\n');
-
+ 
   const prompt = `You are a senior climate policy economist analyzing Kazakhstan's custom CO2 reduction target.
-
+ 
 Custom target parameters:
 - Neutrality year: ${data.neutrality_year}
 - Reduction by 2030: ${data.reduction_pct_2030}% vs 1990 baseline (target: ${data.target_2030_mt} Mt)
 - Reduction by 2050: ${data.reduction_pct_2050}% vs 1990 baseline (target: ${data.target_2050_mt} Mt)
 - Required annual reduction rate 2024-2030: ${data.ann_reduction_rate_2030}%/yr
 - Required annual reduction rate 2030-2050: ${data.ann_reduction_rate_2050}%/yr
-
+ 
 Carbon budget impact:
 - Cumulative emissions 2024-2060 under this path: ${data.cumulative_2024_2060_mt} Mt
 - Kazakhstan 1.5C budget: ${data.budget_15c_mt} Mt — ${data.pct_budget_15c_used}% used
 - 1.5C budget exhausted: ${data.budget_15c_exhausted_yr || 'Not exhausted'}
 - 2C budget exhausted: ${data.budget_20c_exhausted_yr || 'Not exhausted'}
-
+ 
 Scenario compatibility:
 ${gapsSummary}
-
+ 
 Analyze — do not restate numbers, interpret them:
-
+ 
 1. Feasibility: Is the required annual reduction rate of ${data.ann_reduction_rate_2030}%/yr achievable for Kazakhstan given its coal-heavy economy and current policy trajectory?
-
+ 
 2. IPCC alignment: Does this path keep Kazakhstan within its fair share of the 1.5C carbon budget? What does the gap or surplus mean in practice?
-
+ 
 3. Scenario match: Which of the three modeled scenarios (BAU, MT, DD) is most compatible with this target, and what additional policies would be needed to close any gaps?
-
+ 
 4. Structural barriers: What are the top two structural barriers Kazakhstan would face in meeting this specific trajectory?
-
+ 
 5. Recommendation: One concrete policy lever Kazakhstan should prioritize in the next three years to stay on this path.
-
-Keep each point to 2-3 sentences. Plain text only, no markdown, number each point.`;
-
+ 
+Keep each point to 2-3 sentences. Plain text only, no markdown, number each point.
+ 
+CRITICAL: Write your entire response in ${getLangName()}. Do not use English if the language is Russian or Kazakh.`;
+ 
   try {
     const response = await fetch(`${BACKEND}/api/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [{ role: 'user', content: prompt }],
-        system: `You are an expert climate policy economist specializing in Kazakhstan. IMPORTANT: Respond in ${({'en':'English','ru':'Russian','kk':'Kazakh'})[localStorage.getItem('kzleap_lang')||'en']||'English'}. Plain text only, no markdown, number each point.`,
+        system: `You are an expert climate policy economist specializing in Kazakhstan. IMPORTANT: Respond in ${getLangName()}. Plain text only, no markdown, number each point.`,
         max_tokens: 1500,
         stream: true,
       }),
@@ -570,7 +601,7 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
       }
     }
   } catch (err) {
-    output.textContent = 'Analysis failed: ' + err.message;
+    output.textContent = aiFailedText() + err.message;
   }
   btn.disabled = false; btn.textContent = typeof t==="function"?t("btn_assess"):"Assess feasibility";
 }

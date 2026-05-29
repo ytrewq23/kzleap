@@ -212,7 +212,7 @@ async function runSensitivity() {
 
     document.getElementById('sa-spinner').style.display  = 'none';
     document.getElementById('sa-results').style.display  = 'block';
-    document.getElementById('sa-ai-output').textContent  = typeof t==='function' ? t('click_explain') : 'Click "Explain results" to get an AI interpretation.';
+    document.getElementById('sa-ai-output').textContent  = typeof t==='function' ? t( ) : 'Click "Explain results" to get an AI interpretation.';
 
     const b = data.baseline;
     document.getElementById('sa-baseline-cards').innerHTML = `

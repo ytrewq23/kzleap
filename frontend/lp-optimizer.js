@@ -250,7 +250,7 @@ async function runLP() {
     });
 
     document.getElementById('lp-ai-panel').style.display = 'block';
-    document.getElementById('lp-ai-output').textContent  = typeof t==='function' ? t('click_explain') : 'Click "Explain results" to get an AI interpretation of this optimization.';
+    document.getElementById('lp-ai-output').textContent  = typeof t==='function' ? t( ) : 'Click "Explain results" to get an AI interpretation of this optimization.';
 
   } catch (err) {
     document.getElementById('lp-spinner').style.display = 'none';
