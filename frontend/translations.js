@@ -19,6 +19,9 @@ const TRANSLATIONS = {
     nav_sensitivity:      'Sensitivity Analysis',
     nav_carbon_budget:    'Carbon Budget',
     nav_investment:       'Investment Planner',
+    nav_energy_map: 'Energy Map',
+nav_country_comparison: 'Country Comparison',
+nav_investment: 'Investment Calc',
 
     // Dashboard
     dashboard_title:    'Dashboard',
@@ -607,6 +610,9 @@ const TRANSLATIONS = {
     nav_smart_analysis:   'Умный анализ',
     nav_sensitivity:      'Анализ чувствительности',
     nav_carbon_budget:    'Углеродный бюджет',
+     nav_energy_map: 'Энергетическая карта',
+nav_country_comparison: 'Сравнение стран',
+
     nav_investment:       'Инвестиционный планнер',
 
     dashboard_title:    'Дашборд',
@@ -1185,6 +1191,9 @@ const TRANSLATIONS = {
     nav_smart_analysis:   'Ақылды талдау',
     nav_sensitivity:      'Сезімталдық талдау',
     nav_carbon_budget:    'Көміртегі бюджеті',
+    nav_energy_map: 'Энергетикалық карта',
+nav_country_comparison: 'Елдерді салыстыру',
+
     nav_investment:       'Инвестициялық жоспарлаушы',
 
     dashboard_title:    'Басқару тақтасы',

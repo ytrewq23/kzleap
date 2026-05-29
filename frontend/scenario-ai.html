@@ -14,6 +14,7 @@
     .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
     .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
   </style>
+  <link rel="stylesheet" href="dark-mode.css">
 </head>
 <body class="app-page">
 
@@ -71,6 +72,15 @@
           <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
           <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
           <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+          <button id="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid #d1d5db;background:transparent;cursor:pointer;color:#374151;transition:all 0.2s;">
+  <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+  </svg>
+  <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
         </div>
         <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
         <span class="badge" id="role-badge">Energy Analyst</span>
@@ -177,5 +187,6 @@
   <script src="ai-chat-widget.js"></script>
   <script src="translations.js"></script>
   <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
+  <script src="dark-mode.js"></script>
 </body>
 </html>
