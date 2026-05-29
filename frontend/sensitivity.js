@@ -29,6 +29,14 @@ roleBadge.style.color = badgeStyles[user.role].color;
   }
 })();
 
+// Язык интерфейса
+function getLang() {
+  return localStorage.getItem('kzleap_lang') || 'en';
+}
+function getLangName() {
+  return ({ en: 'English', ru: 'Russian', kk: 'Kazakh' })[getLang()] || 'English';
+}
+
 const SHOCK_PARAMS = [
   { value: 'gas_fuel_cost',  label: 'Gas fuel cost' },
   { value: 'coal_fuel_cost', label: 'Coal fuel cost' },
@@ -204,7 +212,7 @@ async function runSensitivity() {
 
     document.getElementById('sa-spinner').style.display  = 'none';
     document.getElementById('sa-results').style.display  = 'block';
-    document.getElementById('sa-ai-output').textContent  = 'Click "Explain results" to get an AI interpretation.';
+    document.getElementById('sa-ai-output').textContent  = typeof t==='function' ? t('click_explain') : 'Click "Explain results" to get an AI interpretation.';
 
     const b = data.baseline;
     document.getElementById('sa-baseline-cards').innerHTML = `
@@ -258,7 +266,7 @@ async function explainSensitivity() {
   const btn    = document.getElementById('sa-explain-btn');
   const output = document.getElementById('sa-ai-output');
   btn.disabled = true;
-  btn.textContent = 'Analyzing...';
+  btn.textContent = typeof t==='function' ? t('cb_analyzing') : 'Analyzing...';
   output.textContent = '';
 
   const b = lastData.baseline;
@@ -291,7 +299,7 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [{ role: 'user', content: prompt }],
-        system: 'You are an expert energy economist specializing in Kazakhstan. Plain text only, no markdown, no bullet symbols, number each point.',
+        system: `You are an expert energy economist specializing in Kazakhstan. Plain text only, no markdown, no bullet symbols, number each point. IMPORTANT: Respond in ${getLangName()}.`,
         max_tokens: 1500,
         stream: true,
       }),
@@ -322,7 +330,7 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
   }
 
   btn.disabled = false;
-  btn.textContent = 'Explain results';
+  btn.textContent = typeof t==='function' ? t('btn_explain') : 'Explain results';
 }
 
 loadPreset('price');

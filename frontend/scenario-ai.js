@@ -34,6 +34,14 @@ const TECH_LABELS = {
   wind: 'Wind', solar: 'Solar PV', nuclear: 'Nuclear',
 };
 
+// Язык интерфейса
+function getLang() {
+  return localStorage.getItem('kzleap_lang') || 'en';
+}
+function getLangName() {
+  return ({ en: 'English', ru: 'Russian', kk: 'Kazakh' })[getLang()] || 'English';
+}
+
 function setExample(btn) {
   document.getElementById('ai-goal-input').value = btn.textContent.trim();
 }
@@ -92,15 +100,18 @@ async function runSmartAnalysis() {
 
   btn.disabled = true;
   btn.textContent = 'Running...';
-  errorBox.style.display   = 'none';
-  runsGrid.style.display   = 'none';
+  errorBox.style.display    = 'none';
+  runsGrid.style.display    = 'none';
   resultPanel.style.display = 'none';
-  runsMetrics.innerHTML    = '';
-  resultOutput.textContent = '';
+  runsMetrics.innerHTML     = '';
+  resultOutput.textContent  = '';
+
+  const langName = getLangName();
 
   try {
     setProgress('Translating goal into LP parameters...');
 
+    // Параметры извлекаем всегда на английском — это технический шаг
     const paramsRes = await fetch(`${BACKEND}/api/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -153,7 +164,7 @@ Example: {"scenarios":["BAU","MT","DD"],"years":[2035,2050],"interpretation":"Co
       const card = document.createElement('div');
       card.className = 'metric-card';
       const scenarioColors = { BAU: '#4a5568', MT: '#1D9E75', DD: '#534AB7' };
-      const scenarioNames = { BAU: 'Business as Usual', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
+      const scenarioNames  = { BAU: 'Business as Usual', MT: 'Moderate Transition', DD: 'Deep Decarbonization' };
       card.innerHTML = `
         <div class="metric-label" style="color:${scenarioColors[r.scenario] || '#333'};font-weight:700;">${scenarioNames[r.scenario] || r.scenario} · ${r.year}</div>
         <div style="margin-top:8px;font-size:12px;color:#555;line-height:1.8;">
@@ -172,12 +183,15 @@ Example: {"scenarios":["BAU","MT","DD"],"years":[2035,2050],"interpretation":"Co
 
     setProgress('Generating analysis...');
     resultPanel.style.display = 'block';
-    resultSub.textContent = `${params.interpretation} · Claude`;
+    resultSub.textContent = params.interpretation;
     resultOutput.textContent = '';
 
     await callClaudeStream(
-      [{ role: 'user', content: `A user asked: "${goal}"\n\nLP optimization results for Kazakhstan's electricity system:\n${runsSummary}\n\nProvide a direct answer to the user's question using these results. Compare the scenarios, identify the best option for their stated goal, and give a concrete recommendation with numbers. Keep it under 200 words. Plain text only, no markdown.` }],
-      'You are an expert energy economist specializing in Kazakhstan energy policy. Provide concise, data-driven analysis in English. Use plain text only — no markdown, no bullet symbols, no asterisks. Use short paragraphs separated by line breaks.',
+      [{
+        role: 'user',
+        content: `A user asked: "${goal}"\n\nLP optimization results for Kazakhstan's electricity system:\n${runsSummary}\n\nProvide a direct answer to the user's question using these results. Compare the scenarios, identify the best option for their stated goal, and give a concrete recommendation with numbers. Keep it under 200 words. Plain text only, no markdown.`,
+      }],
+      `You are an expert energy economist specializing in Kazakhstan energy policy. Provide concise, data-driven analysis. Use plain text only — no markdown, no bullet symbols, no asterisks. Use short paragraphs separated by line breaks. IMPORTANT: Respond in ${langName}.`,
       (chunk) => { resultOutput.textContent += chunk; }
     );
 

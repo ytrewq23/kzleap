@@ -41,6 +41,14 @@ const TECH_LABELS = {
   wind: 'Wind', solar: 'Solar PV', nuclear: 'Nuclear',
 };
 
+// Язык интерфейса
+function getLang() {
+  return localStorage.getItem('kzleap_lang') || 'en';
+}
+function getLangName() {
+  return ({ en: 'English', ru: 'Russian', kk: 'Kazakh' })[getLang()] || 'English';
+}
+
 let lpChart = null;
 let lastLPData = null;
 
@@ -51,7 +59,7 @@ async function callClaude(messages, onChunk, maxTokens = 1500) {
     body: JSON.stringify({
       max_tokens: maxTokens,
       stream: true,
-      system: 'You are an expert energy economist specializing in Kazakhstan energy policy and LP optimization models. You provide concise, data-driven analysis in English. Use plain text only — no markdown, no bullet symbols, no asterisks, no headers with hashes. Use short paragraphs separated by line breaks.',
+      system: `You are an expert energy economist specializing in Kazakhstan energy policy and LP optimization models. You provide concise, data-driven analysis. Use plain text only — no markdown, no bullet symbols, no asterisks, no headers with hashes. Use short paragraphs separated by line breaks. IMPORTANT: Respond in ${getLangName()}.`,
       messages,
     }),
   });
@@ -84,19 +92,19 @@ async function callClaude(messages, onChunk, maxTokens = 1500) {
 async function explainResults() {
   if (!lastLPData) return;
 
-  const btn = document.getElementById('lp-explain-btn');
+  const btn    = document.getElementById('lp-explain-btn');
   const output = document.getElementById('lp-ai-output');
-  const sub = document.getElementById('lp-ai-panel-sub');
+  const sub    = document.getElementById('lp-ai-panel-sub');
 
   btn.disabled = true;
-  btn.textContent = 'Analyzing...';
+  btn.textContent = typeof t==='function' ? t('cb_analyzing') : 'Analyzing...';
   output.textContent = '';
-  sub.textContent = `${lastLPData.scenario} · ${lastLPData.year} · Claude`;
+  sub.textContent = `${lastLPData.scenario} · ${lastLPData.year}`;
 
   const mix = lastLPData.mix;
   const mixLines = Object.entries(mix)
     .filter(([, v]) => v.generation_twh > 0)
-    .map(([t, v]) => `${TECH_LABELS[t]}: ${v.generation_twh} TWh (${v.share_pct}%), CO2 operational: ${v.co2_mt} Mt, CO2 lifecycle: ${v.co2_lifecycle_mt} Mt, new capacity: ${v.new_capacity_gw} GW`)
+    .map(([tech, v]) => `${TECH_LABELS[tech]}: ${v.generation_twh} TWh (${v.share_pct}%), CO2 operational: ${v.co2_mt} Mt, CO2 lifecycle: ${v.co2_lifecycle_mt} Mt, new capacity: ${v.new_capacity_gw} GW`)
     .join('\n');
 
   const SCENARIO_CONTEXT = {
@@ -120,91 +128,37 @@ RE share: ${lastLPData.re_share_pct}%
 Generation mix (technology: TWh, share, new capacity, CO2 operational, CO2 lifecycle):
 ${mixLines}
 
-You are an energy systems analyst interpreting the output of an automated electricity mix optimization model for Kazakhstan.
-
 Context:
-- The user selects:
-  1) a predefined scenario:
-     - Business as Usual (BAU)
-     - Moderate Transition (MT)
-     - Deep Decarbonization (DD)
-  2) a target year from a dropdown.
-- The LP optimizer then automatically calculates the optimal generation mix, capacity additions, costs, renewable share, and emissions.
-- The user does NOT manually edit technology values or constraints.
-- Your role is to interpret the optimizer’s result, not to imply that the user personally chose or tuned the numbers.
-
-Kazakhstan energy context:
-- Installed capacity today: ~23 GW
-- Current generation dominated by coal and gas
-- Electricity tariffs historically low by international standards
+- Installed capacity today: ~23 GW, dominated by coal and gas
 - Large solar and wind potential, especially in southern and central Kazakhstan
 - Grid has limited regional interconnection and balancing flexibility
-- National climate target (NDC):
-  -15% emissions by 2030 vs 1990 baseline unconditional
-  -25% conditional target
+- NDC: -15% emissions by 2030 vs 1990 baseline unconditional; -25% conditional
 
 Instructions:
-Write a concise but analytical explanation of the optimization outcome.
+Write a concise analytical explanation of the optimization outcome.
 Do NOT repeat raw numbers excessively.
-Do NOT describe the user as if they manually configured the energy mix.
-Avoid phrases like:
-- “you chose”
-- “your model forces”
-- “you set coal to”
-Instead use:
-- “the optimizer selected”
-- “the solution indicates”
-- “the model converged on”
-- “the LP result suggests”
+Use phrases like "the optimizer selected", "the solution indicates", "the model converged on".
 
-Analyze the result across these dimensions:
+Analyze across these dimensions:
 
 1. Binding constraints
-Identify which constraints appear active or near-active based on the optimization output.
-Examples:
-- coal generation minimum floor reached
-- renewable penetration ceiling reached
-- hydro expansion cap binding
-- nuclear build constraint binding
-Explain what this reveals about system flexibility and resource limits.
+Identify which constraints appear active based on the output. What does this reveal about system flexibility?
 
 2. Economic interpretation
-Explain why the optimizer selected this mix.
-Discuss:
-- trade-off between fuel cost and capital cost
-- why certain technologies dominate
-- whether renewables displaced fossil generation due to economics or constraints
-- whether estimated system cost/LCOE appears competitive for Kazakhstan.
+Why did the optimizer select this mix? Discuss trade-offs between fuel cost and capital cost.
 
 3. Decarbonization progress
-Interpret how significant the emissions reduction is relative to Kazakhstan’s climate ambitions.
-Discuss:
-- whether this pathway aligns with moderate transition or deep decarbonization
-- whether operational emissions remain structurally dependent on fossil backup
-- whether the result is likely sufficient for long-term climate commitments.
+How significant is the emissions reduction relative to Kazakhstan's climate ambitions?
 
 4. Structural risks
 Identify the single most important system-level vulnerability in this optimized mix.
-Possible themes:
-- grid balancing and intermittency
-- financing burden
-- dependence on gas backup
-- coal stranded asset risk
-- transmission bottlenecks
-- seasonal variability
 
 5. Policy recommendation
-Provide one realistic and actionable recommendation for Kazakhstan’s energy policymakers based specifically on this optimization outcome.
+One realistic recommendation for Kazakhstan's policymakers based on this outcome.
 
-Style requirements:
-- Professional and analytical
-- Clear and concise
-- No bullet spam
-- No dramatic language
-- No pretending the user manually tuned the system
-- Focus on interpretation, not restating table values
+Keep each point to 5-7 sentences. Plain text only, no markdown, number each point.
 
-Keep each point to 5-7 sentences. Plain text only, no markdown, no bullet symbols, number each point.`;
+CRITICAL: Write your entire response in ${getLangName()}. Do not use English if the language is Russian or Kazakh.`;
 
   try {
     await callClaude([{ role: 'user', content: prompt }], (chunk) => {
@@ -215,7 +169,7 @@ Keep each point to 5-7 sentences. Plain text only, no markdown, no bullet symbol
   }
 
   btn.disabled = false;
-  btn.textContent = 'Explain results';
+  btn.textContent = typeof t==='function' ? t('btn_explain') : 'Explain results';
 }
 
 async function runLP() {
@@ -223,8 +177,8 @@ async function runLP() {
   const year     = document.getElementById('lp-year').value;
   const btn      = document.getElementById('lp-run-btn');
 
-  document.getElementById('lp-spinner').style.display = 'flex';
-  document.getElementById('lp-error').style.display   = 'none';
+  document.getElementById('lp-spinner').style.display  = 'flex';
+  document.getElementById('lp-error').style.display    = 'none';
   document.getElementById('lp-ai-panel').style.display = 'none';
   btn.disabled    = true;
   btn.textContent = 'Running...';
@@ -255,8 +209,8 @@ async function runLP() {
       if (v.generation_twh === 0 && v.new_capacity_gw === 0) return;
       const tr  = document.createElement('tr');
       const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${TECH_COLORS[tech]};margin-right:6px;"></span>`;
-      const co2op  = v.co2_mt > 0           ? v.co2_mt.toFixed(2)           : '0';
-      const co2lca = v.co2_lifecycle_mt > 0  ? v.co2_lifecycle_mt.toFixed(4) : '0';
+      const co2op  = v.co2_mt > 0          ? v.co2_mt.toFixed(2)           : '0';
+      const co2lca = v.co2_lifecycle_mt > 0 ? v.co2_lifecycle_mt.toFixed(4) : '0';
       tr.innerHTML = `
         <td>${dot}${TECH_LABELS[tech]}</td>
         <td>${v.generation_twh.toFixed(1)}</td>
@@ -296,7 +250,7 @@ async function runLP() {
     });
 
     document.getElementById('lp-ai-panel').style.display = 'block';
-    document.getElementById('lp-ai-output').textContent = 'Click "Explain results" to get an AI interpretation of this optimization.';
+    document.getElementById('lp-ai-output').textContent  = typeof t==='function' ? t('click_explain') : 'Click "Explain results" to get an AI interpretation of this optimization.';
 
   } catch (err) {
     document.getElementById('lp-spinner').style.display = 'none';
