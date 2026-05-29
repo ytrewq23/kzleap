@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <!-- translations MUST load before any JS that calls t() -->
+  <script src="translations.js"></script>
   <style>
     .main { padding: 28px 32px; }
     .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
@@ -102,8 +104,8 @@
       <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
       <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
-<a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
-<a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
+      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calculator</span></a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">--</div>
@@ -120,11 +122,11 @@
         <h2 data-i18n="cc_title">Country Comparison</h2>
         <p data-i18n="cc_sub">Kazakhstan vs peer countries — CO₂ emissions, renewables, energy intensity · Source: IEA, Our World in Data</p>
       </div>
-       <div class="lang-switcher">
-          <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
-          <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
-          <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
-        </div>
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+      </div>
       <span class="badge" id="role-badge">Analyst</span>
     </div>
 
@@ -174,35 +176,32 @@
       </div>
     </div>
 
-    <!-- Insights -->
+    <!-- Insights — translated via data-i18n -->
     <div class="insights-row">
       <div class="insight-card">
         <div class="insight-icon">🏭</div>
-        <div class="insight-title">Kazakhstan vs Germany</div>
-        <div class="insight-text">
-          Kazakhstan emits <span class="highlight-red">~13.5 t CO₂/capita</span> vs Germany's
-          <span class="highlight">8.1 t</span>. Despite Germany's larger economy, its aggressive
-          Energiewende policy cut emissions by <span class="highlight">40%</span> since 1990.
-          Kazakhstan has only achieved <span class="highlight">16%</span>.
+        <div class="insight-title" data-i18n="cc_insight1_title">Kazakhstan vs Germany</div>
+        <div class="insight-text" data-i18n="cc_insight1_text">
+          Kazakhstan emits ~13.5 t CO₂/capita vs Germany's 8.1 t. Despite Germany's larger economy,
+          its aggressive Energiewende policy cut emissions by 40% since 1990.
+          Kazakhstan has only achieved 16%.
         </div>
       </div>
       <div class="insight-card">
         <div class="insight-icon">☀️</div>
-        <div class="insight-title">Renewables Gap</div>
-        <div class="insight-text">
-          Germany reached <span class="highlight">59% renewables</span> share in 2023.
-          UAE is rapidly scaling solar with <span class="highlight">15% RE</span> despite being
-          an oil state. Kazakhstan sits at <span class="highlight-red">~15%</span> — 
-          mostly old hydro, with wind and solar under 5%.
+        <div class="insight-title" data-i18n="cc_insight2_title">Renewables Gap</div>
+        <div class="insight-text" data-i18n="cc_insight2_text">
+          Germany reached 59% renewables share in 2023.
+          UAE is rapidly scaling solar with 15% RE despite being an oil state.
+          Kazakhstan sits at ~15% — mostly old hydro, with wind and solar under 5%.
         </div>
       </div>
       <div class="insight-card">
         <div class="insight-icon">📈</div>
-        <div class="insight-title">Regional Context</div>
-        <div class="insight-text">
-          Uzbekistan — Kazakhstan's neighbour — has <span class="highlight">similar intensity</span>
-          but lower per-capita emissions due to less industry.
-          Mongolia is <span class="highlight-red">more coal-dependent</span> (90%+).
+        <div class="insight-title" data-i18n="cc_insight3_title">Regional Context</div>
+        <div class="insight-text" data-i18n="cc_insight3_text">
+          Uzbekistan has similar intensity but lower per-capita emissions due to less industry.
+          Mongolia is more coal-dependent (90%+).
           Kazakhstan has the strongest institutional capacity in the region to lead transition.
         </div>
       </div>
@@ -229,81 +228,68 @@
 })();
 
 // ── Country data ─────────────────────────────────────────────────────────
-// Sources: IEA 2023, Our World in Data, World Bank
 const COUNTRIES = {
   KAZ: {
     name: 'Kazakhstan', flag: '🇰🇿', color: '#1D9E75',
-    co2_2023: 286,        // Mt — from our CSV (286174900 tonnes)
-    co2_1990: 267,        // Mt
-    co2_percapita_2023: 13.5, // t/person
-    population: 19.6,     // million
-    re_share: 15.0,       // % wind+solar+hydro
-    energy_intensity: 7.2,// MJ/USD
-    gdp_per_capita: 11900,// USD
-    ndc_target: -15,      // % vs 1990
-    // per capita time series 2000–2023
+    co2_2023: 286, co2_1990: 267,
+    co2_percapita_2023: 13.5, population: 19.6,
+    re_share: 15.0, energy_intensity: 7.2,
+    gdp_per_capita: 11900, ndc_target: -15,
     percapita_series: [9.1,8.8,9.9,10.9,11.4,11.9,13.0,12.8,12.6,12.4,13.8,13.1,13.3,13.6,15.9,15.9,15.7,16.5,16.9,14.8,14.4,12.5,13.9,13.5],
-    badge: 'amber', badge_text: 'NDC Risk',
+    badgeKey: 'cc_badge_ndc_risk',
   },
   DEU: {
     name: 'Germany', flag: '🇩🇪', color: '#378ADD',
-    co2_2023: 674,
-    co2_1990: 1251,
-    co2_percapita_2023: 8.1,
-    population: 84.1,
-    re_share: 59.0,
-    energy_intensity: 3.8,
-    gdp_per_capita: 51000,
-    ndc_target: -65,
+    co2_2023: 674, co2_1990: 1251,
+    co2_percapita_2023: 8.1, population: 84.1,
+    re_share: 59.0, energy_intensity: 3.8,
+    gdp_per_capita: 51000, ndc_target: -65,
     percapita_series: [10.6,10.4,10.4,10.3,10.1,10.0,10.0,10.0,9.8,9.4,9.8,9.5,9.5,9.7,9.5,9.0,8.9,8.9,9.1,8.5,7.9,8.1,8.5,8.1],
-    badge: 'green', badge_text: 'On Track',
+    badgeKey: 'cc_badge_on_track',
   },
   ARE: {
     name: 'UAE', flag: '🇦🇪', color: '#EF9F27',
-    co2_2023: 198,
-    co2_1990: 62,
-    co2_percapita_2023: 19.5,
-    population: 10.1,
-    re_share: 15.0,
-    energy_intensity: 5.1,
-    gdp_per_capita: 47400,
-    ndc_target: -19,
+    co2_2023: 198, co2_1990: 62,
+    co2_percapita_2023: 19.5, population: 10.1,
+    re_share: 15.0, energy_intensity: 5.1,
+    gdp_per_capita: 47400, ndc_target: -19,
     percapita_series: [24.5,25.1,26.8,25.2,25.6,26.2,27.8,26.1,24.8,22.4,23.1,22.0,22.4,23.2,22.5,22.9,22.1,21.8,22.0,21.5,20.8,20.1,19.8,19.5],
-    badge: 'amber', badge_text: 'Scaling RE',
+    badgeKey: 'cc_badge_scaling_re',
   },
   UZB: {
     name: 'Uzbekistan', flag: '🇺🇿', color: '#9F77DD',
-    co2_2023: 107,
-    co2_1990: 186,
-    co2_percapita_2023: 3.0,
-    population: 36.0,
-    re_share: 21.0,
-    energy_intensity: 8.9,
-    gdp_per_capita: 2400,
-    ndc_target: -35,
+    co2_2023: 107, co2_1990: 186,
+    co2_percapita_2023: 3.0, population: 36.0,
+    re_share: 21.0, energy_intensity: 8.9,
+    gdp_per_capita: 2400, ndc_target: -35,
     percapita_series: [4.7,4.5,4.2,4.0,3.9,3.8,3.8,3.8,3.8,3.7,3.7,3.6,3.5,3.4,3.4,3.3,3.3,3.3,3.3,3.2,3.1,3.0,3.0,3.0],
-    badge: 'green', badge_text: 'Low Intensity',
+    badgeKey: 'cc_badge_low_intensity',
   },
   MNG: {
     name: 'Mongolia', flag: '🇲🇳', color: '#D85A30',
-    co2_2023: 39,
-    co2_1990: 29,
-    co2_percapita_2023: 11.2,
-    population: 3.4,
-    re_share: 8.0,
-    energy_intensity: 12.1,
-    gdp_per_capita: 4700,
-    ndc_target: -22,
+    co2_2023: 39, co2_1990: 29,
+    co2_percapita_2023: 11.2, population: 3.4,
+    re_share: 8.0, energy_intensity: 12.1,
+    gdp_per_capita: 4700, ndc_target: -22,
     percapita_series: [5.1,5.3,5.4,5.5,5.8,6.0,6.5,7.0,7.5,7.8,8.2,8.5,8.8,9.0,9.5,9.8,10.0,10.2,10.5,10.1,9.8,10.2,11.0,11.2],
-    badge: 'red', badge_text: 'Coal Heavy',
+    badgeKey: 'cc_badge_coal_heavy',
   },
 };
 
-const YEARS = Array.from({length:24},(_,i)=>2000+i);
+// badge style mapping — badgeKey → CSS class
+const BADGE_CLASS = {
+  cc_badge_ndc_risk:      'badge-amber',
+  cc_badge_on_track:      'badge-green',
+  cc_badge_scaling_re:    'badge-amber',
+  cc_badge_low_intensity: 'badge-green',
+  cc_badge_coal_heavy:    'badge-red',
+};
+
+const YEARS = Array.from({length:24}, (_, i) => 2000 + i);
 let activeCountries = new Set(['KAZ','DEU','ARE','UZB','MNG']);
 let charts = {};
 
-// ── Toggle country ───────────────────────────────────────────────────────
+// ── Toggle country ────────────────────────────────────────────────────────
 function toggleCountry(code, btn) {
   if (activeCountries.has(code) && activeCountries.size > 1) {
     activeCountries.delete(code);
@@ -315,28 +301,37 @@ function toggleCountry(code, btn) {
   renderAll();
 }
 
-// ── KPI cards ────────────────────────────────────────────────────────────
+// ── KPI cards ─────────────────────────────────────────────────────────────
 function renderKPICards() {
   const el = document.getElementById('kpi-cards');
   el.innerHTML = '';
   Object.entries(COUNTRIES).forEach(([code, c]) => {
     if (!activeCountries.has(code)) return;
     const reduction = (((c.co2_1990 - c.co2_2023) / c.co2_1990) * 100).toFixed(1);
+    const sign = reduction >= 0 ? '-' : '+';
+    // Use the correct existing translation keys
+    const labelTotal  = t('cc_unit_total');   // "Total:" / "Всего:" / "Барлығы:"
+    const labelRE     = t('cc_unit_re');       // "RE share:" / "Доля ВИЭ:" / "ЖЭК үлесі:"
+    const labelChange = t('cc_unit_change');   // "CO₂ change:" / "Изм. CO₂:" / "CO₂ өзг.:"
+    const labelUnit   = t('cc_unit_percapita'); // "t CO₂ / capita (2023)"
+    const badgeText   = t(c.badgeKey);
+    const badgeClass  = BADGE_CLASS[c.badgeKey];
+
     el.innerHTML += `
       <div class="mc-card" style="border-top-color:${c.color}">
         <div class="mc-flag">${c.flag}</div>
         <div class="mc-name">${c.name}</div>
         <div class="mc-val">${c.co2_percapita_2023}</div>
-        <div class="mc-unit" data-i18n="cc_unit_percapita">t CO₂ / capita (2023)</div>
-        <div class="mc-unit" style="margin-top:6px;" data-i18n="cc_unit_total">Total: <b>${c.co2_2023} Mt</b></div>
-        <div class="mc-unit">${t('cc_re_share_label')} <b>${c.re_share}%</b></div>
-<div class="mc-unit">${t('cc_co2_change')} <b>${reduction > 0 ? '-' : '+'}${Math.abs(reduction)}% vs 1990</b></div>
-        <div class="mc-badge badge-${c.badge}">${c.badge_text}</div>
+        <div class="mc-unit">${labelUnit}</div>
+        <div class="mc-unit" style="margin-top:6px;">${labelTotal} <b>${c.co2_2023} Mt</b></div>
+        <div class="mc-unit">${labelRE} <b>${c.re_share}%</b></div>
+        <div class="mc-unit">${labelChange} <b>${sign}${Math.abs(reduction)}% vs 1990</b></div>
+        <div class="mc-badge ${badgeClass}">${badgeText}</div>
       </div>`;
   });
 }
 
-// ── Charts ───────────────────────────────────────────────────────────────
+// ── Charts ────────────────────────────────────────────────────────────────
 function destroyChart(id) {
   if (charts[id]) { charts[id].destroy(); delete charts[id]; }
 }
@@ -345,7 +340,7 @@ function renderPerCapita() {
   destroyChart('chartPerCapita');
   const datasets = Object.entries(COUNTRIES)
     .filter(([code]) => activeCountries.has(code))
-    .map(([code, c]) => ({
+    .map(([, c]) => ({
       label: c.flag + ' ' + c.name,
       data: c.percapita_series,
       borderColor: c.color,
@@ -357,42 +352,45 @@ function renderPerCapita() {
     type: 'line',
     data: { labels: YEARS, datasets },
     options: {
-      responsive:true, maintainAspectRatio:false,
+      responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { labels:{ font:{size:11}, boxWidth:14 } },
-        tooltip: { callbacks:{ label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' t CO₂' } }
+        legend: { labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' t CO₂' } }
       },
       scales: {
-        x: { ticks:{ font:{size:10} } },
-        y: { ticks:{ callback: v => v + ' t', font:{size:10} }, title:{ display:true, text:'t CO₂/capita', font:{size:11} } }
+        x: { ticks: { font: { size: 10 } } },
+        y: {
+          ticks: { callback: v => v + ' t', font: { size: 10 } },
+          title: { display: true, text: 't CO₂/capita', font: { size: 11 } }
+        }
       }
     }
   });
 }
 
-function renderBar(canvasId, labelFn, dataFn, unitSuffix) {
+function renderBar(canvasId, dataFn, unitSuffix) {
   destroyChart(canvasId);
-  const active = Object.entries(COUNTRIES).filter(([c]) => activeCountries.has(c));
+  const active = Object.entries(COUNTRIES).filter(([code]) => activeCountries.has(code));
   charts[canvasId] = new Chart(document.getElementById(canvasId), {
     type: 'bar',
     data: {
-      labels: active.map(([,c]) => c.flag + ' ' + c.name),
+      labels: active.map(([, c]) => c.flag + ' ' + c.name),
       datasets: [{
-        data: active.map(([code,c]) => dataFn(code,c)),
-        backgroundColor: active.map(([,c]) => c.color + 'CC'),
-        borderColor: active.map(([,c]) => c.color),
+        data: active.map(([code, c]) => dataFn(code, c)),
+        backgroundColor: active.map(([, c]) => c.color + 'CC'),
+        borderColor: active.map(([, c]) => c.color),
         borderWidth: 1.5, borderRadius: 6,
       }]
     },
     options: {
-      responsive:true, maintainAspectRatio:false,
+      responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend:{display:false},
-        tooltip:{ callbacks:{ label: ctx => ctx.parsed.y + unitSuffix } }
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y + unitSuffix } }
       },
       scales: {
-        x:{ ticks:{ font:{size:10} } },
-        y:{ ticks:{ callback: v => v + unitSuffix, font:{size:10} } }
+        x: { ticks: { font: { size: 10 } } },
+        y: { ticks: { callback: v => v + unitSuffix, font: { size: 10 } } }
       }
     }
   });
@@ -400,25 +398,28 @@ function renderBar(canvasId, labelFn, dataFn, unitSuffix) {
 
 function renderReduction() {
   destroyChart('chartReduction');
-  const active = Object.entries(COUNTRIES).filter(([c]) => activeCountries.has(c));
-  const values = active.map(([,c]) => +((((c.co2_1990-c.co2_2023)/c.co2_1990)*100)).toFixed(1));
+  const active = Object.entries(COUNTRIES).filter(([code]) => activeCountries.has(code));
+  const values = active.map(([, c]) => +(((c.co2_1990 - c.co2_2023) / c.co2_1990) * 100).toFixed(1));
   const colors = values.map(v => v > 20 ? '#1D9E75CC' : v > 0 ? '#EF9F27CC' : '#D85A30CC');
   charts['chartReduction'] = new Chart(document.getElementById('chartReduction'), {
     type: 'bar',
     data: {
-      labels: active.map(([,c]) => c.flag + ' ' + c.name),
+      labels: active.map(([, c]) => c.flag + ' ' + c.name),
       datasets: [{
-        label: 'CO₂ reduction vs 1990 (%)',
         data: values,
-        backgroundColor: colors, borderRadius: 6, borderWidth: 0,
+        backgroundColor: colors,
+        borderRadius: 6, borderWidth: 0,
       }]
     },
     options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ctx.parsed.y + '%' } } },
-      scales:{
-        x:{ ticks:{font:{size:10}} },
-        y:{ ticks:{ callback: v => v + '%', font:{size:10} } }
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } }
+      },
+      scales: {
+        x: { ticks: { font: { size: 10 } } },
+        y: { ticks: { callback: v => v + '%', font: { size: 10 } } }
       }
     }
   });
@@ -427,16 +428,18 @@ function renderReduction() {
 function renderAll() {
   renderKPICards();
   renderPerCapita();
-  renderBar('chartTotal',  null, (_,c) => c.co2_2023,      ' Mt');
-  renderBar('chartRE',     null, (_,c) => c.re_share,       '%');
-  renderBar('chartIntensity', null, (_,c) => c.energy_intensity, ' MJ/$');
+  renderBar('chartTotal',     (_, c) => c.co2_2023,         ' Mt');
+  renderBar('chartRE',        (_, c) => c.re_share,          '%');
+  renderBar('chartIntensity', (_, c) => c.energy_intensity,  ' MJ/$');
   renderReduction();
 }
 
-renderAll();
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  applyTranslations();
+  renderAll();
+});
 </script>
-<script src="translations.js"></script>
-<script>document.addEventListener("DOMContentLoaded", applyTranslations);</script>
 <script src="ai-chat-widget.js"></script>
 </body>
 </html>
