@@ -97,12 +97,13 @@
       <div class="nav-section" data-i18n="nav_output">Output</div>
       <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
       <div class="nav-section" data-i18n="nav_tools">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">LP Optimizer</span></a>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⌘</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
       <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
       <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
       <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
-      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
-      <a href="compare-countries.html" class="nav-item active"><span class="nav-icon">⊞</span> Country Comparison</a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
+<a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
+<a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">--</div>
@@ -119,11 +120,11 @@
         <h2 data-i18n="cc_title">Country Comparison</h2>
         <p data-i18n="cc_sub">Kazakhstan vs peer countries — CO₂ emissions, renewables, energy intensity · Source: IEA, Our World in Data</p>
       </div>
-      <div class="lang-switcher" style="margin-right:8px;">
-        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
-        <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
-        <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
-      </div>
+       <div class="lang-switcher">
+          <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+        </div>
       <span class="badge" id="role-badge">Analyst</span>
     </div>
 
@@ -327,9 +328,9 @@ function renderKPICards() {
         <div class="mc-name">${c.name}</div>
         <div class="mc-val">${c.co2_percapita_2023}</div>
         <div class="mc-unit" data-i18n="cc_unit_percapita">t CO₂ / capita (2023)</div>
-        <div class="mc-unit" style="margin-top:6px;">' + (typeof t==="function"?t("cc_unit_total"):"Total:") + ' <b>${c.co2_2023} Mt</b></div>
-        <div class="mc-unit">RE share: <b>${c.re_share}%</b></div>
-        <div class="mc-unit">CO₂ change: <b>${reduction > 0 ? '-' : '+'}${Math.abs(reduction)}% vs 1990</b></div>
+        <div class="mc-unit" style="margin-top:6px;" data-i18n="cc_unit_total">Total: <b>${c.co2_2023} Mt</b></div>
+        <div class="mc-unit">${t('cc_re_share_label')} <b>${c.re_share}%</b></div>
+<div class="mc-unit">${t('cc_co2_change')} <b>${reduction > 0 ? '-' : '+'}${Math.abs(reduction)}% vs 1990</b></div>
         <div class="mc-badge badge-${c.badge}">${c.badge_text}</div>
       </div>`;
   });

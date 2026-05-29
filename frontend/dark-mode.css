@@ -1,0 +1,39 @@
+body.dark {
+  background-color: #0f1117 !important;
+  color: #e2e8f0;
+}
+body.dark .sidebar, body.dark nav, body.dark header {
+  background-color: #1a1d27 !important;
+}
+body.dark .card, body.dark [class*="card"], body.dark [class*="widget"], body.dark [class*="panel"] {
+  background-color: #1e2230 !important;
+  border-color: #2d3748 !important;
+}
+body.dark input, body.dark select, body.dark textarea {
+  background-color: #2d3748 !important;
+  color: #e2e8f0 !important;
+}
+body.dark table { background-color: #1e2230 !important; }
+body.dark tr:hover { background-color: #2d3748 !important; }
+body.dark #dark-mode-btn {
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+body.dark #dark-mode-btn:hover { background: #1f2937; }
+#dark-mode-btn:hover { background: #f3f4f6; }
+body.dark,
+body.dark html {
+  background-color: #0f1117 !important;
+}
+
+body.dark .navbar,
+body.dark .topbar,
+body.dark .top-bar,
+body.dark .header,
+body.dark header,
+body.dark [class*="header"],
+body.dark [class*="navbar"],
+body.dark [class*="topbar"] {
+  background-color: #1a1d27 !important;
+  border-bottom-color: #2d3748 !important;
+}

@@ -122,13 +122,13 @@
       <div class="nav-section" data-i18n="nav_output">Output</div>
       <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
       <div class="nav-section" data-i18n="nav_tools">Tools</div>
-      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⚡</span> <span data-i18n="nav_mix_optimizer">LP Optimizer</span></a>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⌘</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
       <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
       <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
       <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
-      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> Energy Map</a>
-      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> Country Comparison</a>
-      <a href="investment-calculator.html" class="nav-item active"><span class="nav-icon">💰</span> Investment Calc</a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
+<a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
+<a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">--</div>
@@ -145,11 +145,11 @@
         <h2 data-i18n="inv_title">Investment Calculator</h2>
         <p data-i18n="inv_sub">Calculate total investment, payback period and CO₂ savings for Kazakhstan energy transition · CAPEX from IEA/IRENA 2023</p>
       </div>
-      <div class="lang-switcher" style="margin-right:8px;">
-        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
-        <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
-        <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
-      </div>
+       <div class="lang-switcher">
+          <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+        </div>
       <span class="badge" id="role-badge">Analyst</span>
     </div>
 
@@ -447,18 +447,17 @@ function calculate() {
   const homes = Math.round(totalGen * 1000 / 3.5); // avg 3.5 MWh/home/yr
 
   // ── Update KPIs ───────────────────────────────────────────────────────
-  document.getElementById('kpi-total').textContent   = totalCapex.toFixed(1);
-  document.getElementById('kpi-annual').textContent  = annualInvest.toFixed(1) + ' B$/yr over build period';
-  document.getElementById('kpi-co2').textContent     = totalCO2all.toFixed(2);
-  document.getElementById('kpi-co2-life').textContent= lifetimeCO2 + ' Mt over plant lifetime';
-  document.getElementById('kpi-payback').textContent = paybackYrs;
-  document.getElementById('kpi-irr').textContent     = '$' + costPerTon + '/t CO₂ abatement cost';
-  document.getElementById('kpi-elec').textContent    = totalGen.toFixed(1);
-  document.getElementById('kpi-homes').textContent   = 'Equivalent to ' + homes.toLocaleString() + ' homes';
-  document.getElementById('kpi-re').textContent      = '+' + reIncrease;
-  document.getElementById('kpi-re-abs').textContent  = 'From 15% → ' + newRE.toFixed(1) + '%';
-  document.getElementById('kpi-carbon-rev').textContent = carbonRev;
-  document.getElementById('kpi-carbon-sub').textContent = 'Helps offset ' + (carbonRev/annualInvest*100).toFixed(0) + '% of annual investment';
+ document.getElementById('kpi-annual').textContent  = annualInvest.toFixed(1) + ' ' + t('inv_annual_suffix');
+document.getElementById('kpi-co2').textContent     = totalCO2all.toFixed(2);
+document.getElementById('kpi-co2-life').textContent= lifetimeCO2 + ' ' + t('inv_lifetime_suffix');
+document.getElementById('kpi-payback').textContent = paybackYrs;
+document.getElementById('kpi-irr').textContent     = '$' + costPerTon + t('inv_abatement');
+document.getElementById('kpi-elec').textContent    = totalGen.toFixed(1);
+document.getElementById('kpi-homes').textContent   = t('inv_homes_prefix') + ' ' + homes.toLocaleString() + ' ' + t('inv_homes_suffix');
+document.getElementById('kpi-re').textContent      = '+' + reIncrease;
+document.getElementById('kpi-re-abs').textContent  = t('inv_re_from') + ' ' + newRE.toFixed(1) + '%';
+document.getElementById('kpi-carbon-rev').textContent = carbonRev;
+document.getElementById('kpi-carbon-sub').textContent = t('inv_offset_prefix') + ' ' + (carbonRev/annualInvest*100).toFixed(0) + t('inv_offset_suffix');
 
   // ── Tech table ────────────────────────────────────────────────────────
   const tbody = document.getElementById('tech-table');
