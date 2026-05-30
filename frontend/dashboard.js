@@ -21,11 +21,6 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
-['nav-upload', 'nav-scenario', 'nav-simulation'].forEach(id => {
-  const el = document.getElementById(id);
-  const access = { analyst: true, researcher: true, policymaker: false };
-  if (el && !access[user.role]) el.classList.add('locked');
-});
 
 async function loadDashboard() {
   await loadConfig();

@@ -82,10 +82,6 @@
   border-left-color: #5DCAA5;
 }
 
-.nav-item.locked {
-  opacity: 0.3;
-  pointer-events: none;
-}
 
 .nav-icon {
   font-size: 14px;

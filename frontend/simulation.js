@@ -15,11 +15,7 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
-const access = { analyst: ['nav-upload','nav-scenario','nav-simulation'], researcher: ['nav-upload','nav-scenario'], policymaker: [] };
-['nav-upload','nav-scenario','nav-simulation'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el && !access[user.role].includes(id)) el.classList.add('locked');
-});
+
 
 function startSimulation() {
   const btn = document.getElementById('run-btn');
