@@ -7,82 +7,92 @@
   <link rel="stylesheet" href="style.css">
   <style>
     .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
-    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #03193d;border-radius:4px;background:#7b98b4;color:#4a5568;cursor:pointer;transition:all 0.15s;}
     .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
     .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
   </style>
 </head>
 <body class="login-page">
 
+  <div style="position:fixed;top:12px;right:16px;z-index:100;" class="lang-switcher">
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+  </div>
+
   <div class="login-container">
     <div class="login-logo">
       <div class="logo-circle">KZ</div>
       <h1>KZLEAP</h1>
-      <p>Kazakhstan Energy Forecasting Platform</p>
+      <p data-i18n="login_platform_sub">Kazakhstan Energy Forecasting Platform</p>
     </div>
 
     <div class="login-card">
-      <h2>Sign in</h2>
-      <p class="login-sub">Choose your role and enter credentials</p>
+      <h2 data-i18n="login_title">Sign in</h2>
+      <p class="login-sub" data-i18n="login_sub">Choose your role and enter credentials</p>
 
       <div class="role-selector">
-        <button class="role-btn active" onclick="selectRole('analyst', this)">
+        <button class="role-btn active" onclick="selectRole('analyst', this)" data-i18n="login_role_analyst">
           Energy Analyst
         </button>
-        <button class="role-btn" onclick="selectRole('researcher', this)">
+        <button class="role-btn" onclick="selectRole('researcher', this)" data-i18n="login_role_researcher">
           Researcher
         </button>
-        <button class="role-btn" onclick="selectRole('policymaker', this)">
+        <button class="role-btn" onclick="selectRole('policymaker', this)" data-i18n="login_role_policymaker">
           Policymaker
         </button>
       </div>
 
       <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="email" placeholder="you@kzleap.kz" />
+        <label data-i18n="login_email_label">Email</label>
+        <input type="email" id="email"
+               data-i18n="login_email_ph"
+               data-i18n-attr="placeholder"
+               placeholder="you@kzleap.kz" />
       </div>
 
       <div class="form-group">
-        <label>Password</label>
+        <label data-i18n="login_password_label">Password</label>
         <input type="password" id="password" placeholder="••••••••" />
       </div>
 
-      <div id="error-msg" class="error-msg" style="display:none;">
+      <div id="error-msg" class="error-msg" style="display:none;" data-i18n="login_error_default">
         Invalid email or password. Please try again.
       </div>
 
-      <button class="login-btn" onclick="handleLogin()">Sign in</button>
-      <div style="text-align:center;margin-top:12px;font-size:13px;">
-  <a href="forgot-password.html" style="color:#0F6E56;text-decoration:none;">Forgot password?</a>
-</div>
-<div class="register-link" style="text-align:center;margin-top:16px;font-size:13px;color:#666;">
-  Don't have an account? <a href="register.html" style="color:#0F6E56;font-weight:600;text-decoration:none;">Register</a>
-</div>
+      <button class="login-btn" onclick="handleLogin()" data-i18n="login_btn">Sign in</button>
 
-<div style="margin-top:20px;padding-top:16px;border-top:1px solid #f0f0f0;text-align:center;">
-  <a href="kids.html" style="
-    display:inline-flex;align-items:center;gap:8px;
-    background:linear-gradient(135deg,#27AE60,#56CCF2);
-    color:#fff;font-weight:800;font-size:14px;
-    padding:11px 28px;border-radius:30px;text-decoration:none;
-    box-shadow:0 4px 18px rgba(39,174,96,0.4);
-    transition:transform 0.15s,box-shadow 0.15s;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  "
-  onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(39,174,96,0.5)'"
-  onmouseout="this.style.transform='';this.style.boxShadow='0 4px 18px rgba(39,174,96,0.4)'"
-  >
-    For Kids — EcoCity Game
-  </a>
-  <div style="margin-top:8px;font-size:11px;color:#aaa;">No registration required · For kids</div>
-</div>
-      
+      <div style="text-align:center;margin-top:12px;font-size:13px;">
+        <a href="forgot-password.html" style="color:#0F6E56;text-decoration:none;" data-i18n="login_forgot">Forgot password?</a>
+      </div>
+
+      <div class="register-link" style="text-align:center;margin-top:16px;font-size:13px;color:#666;">
+        <span data-i18n="login_no_account">Don't have an account?</span>
+        <a href="register.html" style="color:#0F6E56;font-weight:600;text-decoration:none;" data-i18n="login_register"> Register</a>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f0f0f0;text-align:center;">
+        <a href="kids.html" style="
+          display:inline-flex;align-items:center;gap:8px;
+          background:linear-gradient(135deg,#27AE60,#56CCF2);
+          color:#fff;font-weight:800;font-size:14px;
+          padding:11px 28px;border-radius:30px;text-decoration:none;
+          box-shadow:0 4px 18px rgba(39,174,96,0.4);
+          transition:transform 0.15s,box-shadow 0.15s;
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(39,174,96,0.5)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='0 4px 18px rgba(39,174,96,0.4)'"
+          data-i18n="login_kids_btn">
+          For Kids — EcoCity Game
+        </a>
+        <div style="margin-top:8px;font-size:11px;color:#aaa;" data-i18n="login_kids_sub">No registration required · For kids</div>
+      </div>
+
     </div>
   </div>
 
-  <script src="app.js"></script>
-  
   <script src="translations.js"></script>
+  <script src="app.js"></script>
   <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
 </body>
 </html>

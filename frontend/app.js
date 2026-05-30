@@ -30,7 +30,7 @@ async function handleLogin() {
     const data = await res.json();
 
     if (!res.ok) {
-      errorMsg.textContent = data.detail || 'Invalid email or password.';
+      errorMsg.textContent = data.detail || (typeof t === 'function' ? t('login_error_default') : 'Invalid email or password.');
       errorMsg.style.display = 'block';
       return;
     }
@@ -44,11 +44,15 @@ async function handleLogin() {
     }
 
   } catch {
-    errorMsg.textContent = 'Cannot connect to server.';
+    errorMsg.textContent = typeof t === 'function' ? t('login_error_default') : 'Cannot connect to server.';
     errorMsg.style.display = 'block';
   }
 }
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') handleLogin();
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof applyTranslations === 'function') applyTranslations();
 });
