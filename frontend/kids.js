@@ -502,11 +502,11 @@ function endSort() { showResult(sortScore, sortScore + sortErrors, 'kids_correct
 function cleanupSort() {}
 
 // ── SOLAR ─────────────────────────────────────────────────────────────────────
-let solarCharge=0, totalClouds=0, cloudInterval=null;
+let solarCharge=0, cloudsRemoved=0, cloudsTarget=0, cloudInterval=null;
 const PANEL_COUNT = 6;
 
 function initSolar() {
-  solarCharge=0; totalClouds=0;
+  solarCharge=0; cloudsRemoved=0; cloudsTarget=0;
   document.getElementById('gameSolar').style.display = 'block';
   document.getElementById('batteryFill').style.width = '0%';
   document.getElementById('batteryPct').textContent  = '0%';
@@ -518,9 +518,16 @@ function initSolar() {
     row.appendChild(p);
   }
   document.getElementById('cloudsLayer').innerHTML = '';
-  spawnClouds(6 + (level - 1) * 3);
+  const initialCount = 10 + (level - 1) * 4;
+  cloudsTarget = initialCount;  // total clouds to clear = win condition
+  spawnClouds(initialCount);
+  // respawn adds more target clouds to keep game going
   const respawnSec = Math.max(3000, 5000 - (level - 1) * 1000);
-  cloudInterval = setInterval(() => spawnClouds(2 + level), respawnSec);
+  cloudInterval = setInterval(() => {
+    const n = 2 + level;
+    cloudsTarget += n;
+    spawnClouds(n);
+  }, respawnSec);
   const sec = 35 - (level - 1) * 5;
   startTimer('solarTimer', sec, endSolar);
   speak(kidsT('kids_tap_clouds'));
@@ -530,7 +537,6 @@ function spawnClouds(n) {
   const layer = document.getElementById('cloudsLayer');
   if (!layer) return;
   for (let i = 0; i < n; i++) {
-    totalClouds++;
     const c = document.createElement('div');
     c.className = 'cloud-item'; c.textContent = '☁️';
     c.style.top  = (8  + Math.random() * 52) + '%';
@@ -540,23 +546,20 @@ function spawnClouds(n) {
     c.addEventListener('touchstart', () => removeCloud(c), { passive: true });
     layer.appendChild(c);
   }
-  recalcSolar();
+  // do NOT recalc here — spawning clouds must not lower the charge
 }
 
 function removeCloud(el) {
   if (el.classList.contains('vanish')) return;
   el.classList.add('vanish');
-  setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); recalcSolar(); }, 280);
+  cloudsRemoved++;
   recalcSolar();
+  setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 280);
 }
 
 function recalcSolar() {
-  const layer = document.getElementById('cloudsLayer');
-  if (!layer) return;
-  const remaining = layer.querySelectorAll('.cloud-item:not(.vanish)').length;
-  const total     = layer.querySelectorAll('.cloud-item').length;
-  const clarity   = total === 0 ? 1 : 1 - remaining / total;
-  solarCharge     = Math.round(clarity * 100);
+  // charge = how many clouds removed out of target, capped at 100
+  solarCharge = Math.min(Math.round((cloudsRemoved / cloudsTarget) * 100), 100);
   document.getElementById('batteryFill').style.width = solarCharge + '%';
   document.getElementById('batteryPct').textContent  = solarCharge + '%';
   const litCount = Math.round((solarCharge / 100) * PANEL_COUNT);
@@ -576,7 +579,7 @@ function endSolar() {
 }
 
 // ── MAZE ──────────────────────────────────────────────────────────────────────
-let mazeRAF=null, mazeDodged=0, mazeHits=0, mazeRunning=false;
+let mazeRAF=null, mazeDodged=0, mazeHits=0, mazeRunning=false, mazeFlashFrames=0;
 const LANE_COUNT = 3;
 let laneWidth, roadLeft, roadRight, canvasW, canvasH;
 let bikeX, bikeY, bikeLane;
@@ -588,7 +591,7 @@ function initMaze() {
   const canvas = document.getElementById('mazeCanvas');
   const ctx    = canvas.getContext('2d');
   canvasW=canvas.width; canvasH=canvas.height;
-  mazeDodged=0; mazeHits=0; mazeRunning=true; frame3=0; cars=[]; bikeLane=1;
+  mazeDodged=0; mazeHits=0; mazeRunning=true; frame3=0; cars=[]; bikeLane=1; mazeFlashFrames=0;
   bikeY = canvasH - 70;
   document.getElementById('mazeScore').textContent = '0';
   document.getElementById('mazeHits').textContent  = '0';
@@ -643,7 +646,7 @@ function mazeLoop(ctx) {
   for (let i=cars.length-1;i>=0;i--) {
     const c=cars[i]; c.y+=c.speed;
     if (!c.hit && c.lane===bikeLane && c.y+50>bikeY-20 && c.y<bikeY+20) {
-      c.hit=true; mazeHits++;
+      c.hit=true; mazeHits++; mazeFlashFrames=18;
       document.getElementById('mazeHits').textContent=mazeHits;
       speak(kidsT('kids_ouch'));
       if (mazeHits>=maxHits) { stopTimer(); setTimeout(endMaze,600); return; }
@@ -653,7 +656,10 @@ function mazeLoop(ctx) {
     if (c.y>canvasH+80) cars.splice(i,1);
   }
   ctx.font='36px serif'; ctx.textAlign='center'; ctx.fillText('🚲',bikeX,bikeY);
-  if (mazeHits>0 && frame3%20<6) { ctx.fillStyle='rgba(235,87,87,0.18)'; ctx.fillRect(0,0,canvasW,canvasH); }
+  if (mazeFlashFrames > 0) {
+    ctx.fillStyle='rgba(235,87,87,0.25)'; ctx.fillRect(0,0,canvasW,canvasH);
+    mazeFlashFrames--;
+  }
   mazeRAF=requestAnimationFrame(()=>mazeLoop(ctx));
 }
 

@@ -10,18 +10,16 @@
   <style>
     /* ── Kids language switcher ── */
     .kids-lang-bar {
-      position: fixed;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 999;
       display: flex;
       gap: 10px;
+      justify-content: center;
       background: rgba(255,255,255,0.18);
       backdrop-filter: blur(8px);
       border-radius: 50px;
       padding: 6px 14px;
       box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+      margin-bottom: 10px;
+      align-self: center;
     }
     .kids-lang-btn {
       font-family: 'Nunito', sans-serif;
@@ -52,13 +50,6 @@
   </style>
 </head>
 <body>
-
-  <!-- Language switcher -->
-  <div class="kids-lang-bar">
-    <button class="kids-lang-btn" data-lang="en" onclick="kidsSetLang('en')">🇬🇧 EN</button>
-    <button class="kids-lang-btn" data-lang="ru" onclick="kidsSetLang('ru')">🇷🇺 RU</button>
-    <button class="kids-lang-btn" data-lang="kk" onclick="kidsSetLang('kk')">🇰🇿 KK</button>
-  </div>
 
   <!-- Mascot -->
   <div class="mascot-wrap" id="mascotWrap">
@@ -97,6 +88,12 @@
     <!-- Game select -->
     <div class="game-select" id="gameSelect">
       <h2 class="pick-title" data-i18n="kids_pick">Choose a game!</h2>
+      <!-- Language switcher — only visible on game select screen -->
+      <div class="kids-lang-bar">
+        <button class="kids-lang-btn" data-lang="en" onclick="kidsSetLang('en')">🇬🇧 EN</button>
+        <button class="kids-lang-btn" data-lang="ru" onclick="kidsSetLang('ru')">🇷🇺 RU</button>
+        <button class="kids-lang-btn" data-lang="kk" onclick="kidsSetLang('kk')">🇰🇿 KK</button>
+      </div>
       <div class="mini-cards">
         <div class="mini-card card-quiz" onclick="startGame('quiz')">
           <div class="mini-card-icon">🤔</div>
