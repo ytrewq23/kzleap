@@ -7,24 +7,74 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="kids.css">
+  <style>
+    /* ── Kids language switcher ── */
+    .kids-lang-bar {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      gap: 10px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      border-radius: 50px;
+      padding: 6px 14px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+    }
+    .kids-lang-btn {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: 15px;
+      padding: 7px 18px;
+      border: 3px solid transparent;
+      border-radius: 50px;
+      background: rgba(255,255,255,0.35);
+      color: #1a5c38;
+      cursor: pointer;
+      transition: all 0.18s;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .kids-lang-btn:hover {
+      background: #fff;
+      transform: scale(1.08);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    }
+    .kids-lang-btn.active {
+      background: linear-gradient(135deg, #27AE60, #56CCF2);
+      color: #fff;
+      border-color: rgba(255,255,255,0.5);
+      transform: scale(1.12);
+      box-shadow: 0 4px 16px rgba(39,174,96,0.45);
+    }
+  </style>
 </head>
 <body>
 
-  
+  <!-- Language switcher -->
+  <div class="kids-lang-bar">
+    <button class="kids-lang-btn" data-lang="en" onclick="kidsSetLang('en')">🇬🇧 EN</button>
+    <button class="kids-lang-btn" data-lang="ru" onclick="kidsSetLang('ru')">🇷🇺 RU</button>
+    <button class="kids-lang-btn" data-lang="kk" onclick="kidsSetLang('kk')">🇰🇿 KK</button>
+  </div>
+
+  <!-- Mascot -->
   <div class="mascot-wrap" id="mascotWrap">
     <div class="speech-bubble" id="speechBubble">
-      <span id="speechText">Hi! I'm Arlan! 🐆 Help me build a green city!</span>
+      <span id="speechText" data-i18n="kids_greeting">Hi! I'm Arlan! 🐆 Help me build a green city!</span>
     </div>
     <div class="mascot" id="mascot">🐆</div>
   </div>
 
-  
+  <!-- Score bar -->
   <div class="score-bar">
     <div class="score-bar-left">
-      <button class="back-btn" onclick="window.location.href='index.html'">← Exit</button>
+      <button class="back-btn" onclick="window.location.href='index.html'" data-i18n="kids_exit">← Exit</button>
     </div>
     <div class="score-center">
-      <span class="score-label">⚡ Energy</span>
+      <span class="score-label" data-i18n="kids_energy">⚡ Energy</span>
       <div class="energy-bar-wrap">
         <div class="energy-bar" id="energyBar"></div>
       </div>
@@ -35,48 +85,48 @@
     </div>
   </div>
 
-  
+  <!-- Level badge -->
   <div class="level-badge-wrap">
     <div class="level-badge" id="levelBadge">🌱 Level 1</div>
-    <div class="level-hint" id="levelHint">Keep playing to level up!</div>
+    <div class="level-hint"  id="levelHint" data-i18n="kids_level_hint">Keep playing to level up!</div>
   </div>
 
-  
+  <!-- Game area -->
   <div class="game-wrap">
 
-    
+    <!-- Game select -->
     <div class="game-select" id="gameSelect">
-      <h2 class="pick-title">Choose a game!</h2>
+      <h2 class="pick-title" data-i18n="kids_pick">Choose a game!</h2>
       <div class="mini-cards">
         <div class="mini-card card-quiz" onclick="startGame('quiz')">
           <div class="mini-card-icon">🤔</div>
-          <div class="mini-card-name">What uses more?</div>
-          <div class="mini-card-desc">Guess which device eats more energy!</div>
+          <div class="mini-card-name"  data-i18n="kids_quiz_name">What uses more?</div>
+          <div class="mini-card-desc"  data-i18n="kids_quiz_desc">Guess which device eats more energy!</div>
         </div>
         <div class="mini-card card-sort" onclick="startGame('sort')">
           <div class="mini-card-icon">♻️</div>
-          <div class="mini-card-name">Sort the Energy</div>
-          <div class="mini-card-desc">Split clean and dirty energy sources</div>
+          <div class="mini-card-name"  data-i18n="kids_sort_name">Sort the Energy</div>
+          <div class="mini-card-desc"  data-i18n="kids_sort_desc">Split clean and dirty energy sources</div>
         </div>
         <div class="mini-card card-solar" onclick="startGame('solar')">
           <div class="mini-card-icon">☀️</div>
-          <div class="mini-card-name">Solar Charge!</div>
-          <div class="mini-card-desc">Clear the clouds — power the city!</div>
+          <div class="mini-card-name"  data-i18n="kids_solar_name">Solar Charge!</div>
+          <div class="mini-card-desc"  data-i18n="kids_solar_desc">Clear the clouds — power the city!</div>
         </div>
         <div class="mini-card card-maze" onclick="startGame('maze')">
           <div class="mini-card-icon">🚲</div>
-          <div class="mini-card-name">Bike to School</div>
-          <div class="mini-card-desc">Ride through the city, avoid cars!</div>
+          <div class="mini-card-name"  data-i18n="kids_maze_name">Bike to School</div>
+          <div class="mini-card-desc"  data-i18n="kids_maze_desc">Ride through the city, avoid cars!</div>
         </div>
       </div>
     </div>
 
-    
+    <!-- Quiz game -->
     <div class="game-screen" id="gameQuiz" style="display:none;">
       <div class="game-header">
-        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
-        <h2>🤔 What uses MORE energy?</h2>
-        <p>Tap the one that eats more electricity!</p>
+        <button class="quit-game-btn" onclick="showGameSelect()" data-i18n="kids_menu">← Menu</button>
+        <h2 data-i18n="kids_quiz_title">🤔 What uses MORE energy?</h2>
+        <p data-i18n="kids_quiz_sub">Tap the one that eats more electricity!</p>
         <div class="game-timer" id="quizTimer">⏱ 10</div>
       </div>
       <div class="quiz-arena">
@@ -91,15 +141,19 @@
         </div>
       </div>
       <div class="quiz-feedback" id="quizFeedback">&nbsp;</div>
-      <div class="game-score-line">Correct: <span id="quizScore">0</span> &nbsp;|&nbsp; Wrong: <span id="quizErrors">0</span></div>
+      <div class="game-score-line">
+        <span data-i18n="kids_correct">Correct</span>: <span id="quizScore">0</span>
+        &nbsp;|&nbsp;
+        <span data-i18n="kids_wrong">Wrong</span>: <span id="quizErrors">0</span>
+      </div>
     </div>
 
-    
+    <!-- Sort game -->
     <div class="game-screen" id="gameSort" style="display:none;">
       <div class="game-header">
-        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
-        <h2>♻️ Sort the Energy!</h2>
-        <p>Drag each icon to the right basket!</p>
+        <button class="quit-game-btn" onclick="showGameSelect()" data-i18n="kids_menu">← Menu</button>
+        <h2 data-i18n="kids_sort_title">♻️ Sort the Energy!</h2>
+        <p data-i18n="kids_sort_sub">Drag each icon to the right basket!</p>
         <div class="game-timer" id="sortTimer">⏱ 30</div>
       </div>
       <div class="sort-arena">
@@ -107,32 +161,36 @@
           <div class="sort-bin bin-green" id="binGreen"
                ondragover="allowDrop(event)" ondrop="dropToken(event,'green')">
             <div class="bin-icon">🌿</div>
-            <div class="bin-label">Clean Energy</div>
+            <div class="bin-label" data-i18n="kids_clean_energy">Clean Energy</div>
           </div>
           <div class="sort-bin bin-dirty" id="binDirty"
                ondragover="allowDrop(event)" ondrop="dropToken(event,'dirty')">
             <div class="bin-icon">🏭</div>
-            <div class="bin-label">Dirty Energy</div>
+            <div class="bin-label" data-i18n="kids_dirty_energy">Dirty Energy</div>
           </div>
         </div>
         <div class="falling-zone" id="fallingZone"></div>
       </div>
-      <div class="game-score-line">Correct: <span id="sortScore">0</span> &nbsp;|&nbsp; Wrong: <span id="sortErrors">0</span></div>
+      <div class="game-score-line">
+        <span data-i18n="kids_correct">Correct</span>: <span id="sortScore">0</span>
+        &nbsp;|&nbsp;
+        <span data-i18n="kids_wrong">Wrong</span>: <span id="sortErrors">0</span>
+      </div>
     </div>
 
-    
+    <!-- Solar game -->
     <div class="game-screen" id="gameSolar" style="display:none;">
       <div class="game-header">
-        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
-        <h2>☀️ Solar Charge!</h2>
-        <p>Tap clouds to clear the sky and charge the city!</p>
+        <button class="quit-game-btn" onclick="showGameSelect()" data-i18n="kids_menu">← Menu</button>
+        <h2 data-i18n="kids_solar_title">☀️ Solar Charge!</h2>
+        <p data-i18n="kids_solar_sub">Tap clouds to clear the sky and charge the city!</p>
         <div class="game-timer" id="solarTimer">⏱ 30</div>
       </div>
       <div class="solar-scene" id="solarScene">
         <div class="sun-row"><span class="sun-emoji" id="gameSun">☀️</span></div>
         <div class="solar-panels-row" id="solarPanels"></div>
         <div class="city-battery-row">
-          <span class="battery-label">🔋 City battery</span>
+          <span class="battery-label" data-i18n="kids_battery">🔋 City battery</span>
           <div class="battery-wrap">
             <div class="battery-fill" id="batteryFill"></div>
           </div>
@@ -142,38 +200,42 @@
       </div>
     </div>
 
-    
+    <!-- Maze game -->
     <div class="game-screen" id="gameMaze" style="display:none;">
       <div class="game-header">
-        <button class="quit-game-btn" onclick="showGameSelect()">← Menu</button>
-        <h2>🚲 Bike to School!</h2>
-        <p>Arrow keys or swipe — dodge the cars! 🚗</p>
+        <button class="quit-game-btn" onclick="showGameSelect()" data-i18n="kids_menu">← Menu</button>
+        <h2 data-i18n="kids_maze_title">🚲 Bike to School!</h2>
+        <p data-i18n="kids_maze_sub">Arrow keys or swipe — dodge the cars! 🚗</p>
         <div class="game-timer" id="mazeTimer">⏱ 30</div>
       </div>
       <div class="maze-wrap">
         <canvas id="mazeCanvas" width="340" height="320"></canvas>
       </div>
-      <div class="game-score-line">Dodged: <span id="mazeScore">0</span> cars &nbsp;|&nbsp; Hits: <span id="mazeHits">0</span></div>
+      <div class="game-score-line">
+        <span data-i18n="kids_dodged">Dodged</span>: <span id="mazeScore">0</span>
+        &nbsp;|&nbsp;
+        <span data-i18n="kids_hits">Hits</span>: <span id="mazeHits">0</span>
+      </div>
     </div>
 
-    
+    <!-- Result screen -->
     <div class="result-screen" id="resultScreen" style="display:none;">
       <div class="result-card">
         <div class="result-emoji" id="resultEmoji">🎉</div>
-        <h2 id="resultTitle">Awesome!</h2>
-        <p  id="resultText">You helped the city!</p>
+        <h2  id="resultTitle">Awesome!</h2>
+        <p   id="resultText">You helped the city!</p>
         <div class="result-stars" id="resultStars"></div>
         <div class="result-fact"  id="resultFact"></div>
         <div class="result-btns">
-          <button class="res-btn res-play" onclick="playAgain()">▶ Play Again</button>
-          <button class="res-btn res-home" onclick="showGameSelect()">🏠 Menu</button>
+          <button class="res-btn res-play" onclick="playAgain()" data-i18n="kids_play_again">▶ Play Again</button>
+          <button class="res-btn res-home" onclick="showGameSelect()" data-i18n="kids_menu_home">🏠 Menu</button>
         </div>
       </div>
     </div>
 
   </div>
 
-  
+  <!-- City progress -->
   <div class="city-progress">
     <div class="city-scene">
       <div class="ground"></div>
@@ -188,6 +250,225 @@
   </div>
 
   <canvas id="confettiCanvas"></canvas>
+
+  <script src="translations.js"></script>
+  <script>
+    // ── Kids i18n (shares localStorage with main app) ──────────────────────
+    const KIDS_STRINGS = {
+      en: {
+        kids_greeting:    "Hi! I'm Arlan! 🐆 Help me build a green city!",
+        kids_exit:        '← Exit',
+        kids_energy:      '⚡ Energy',
+        kids_level_hint:  'Keep playing to level up!',
+        kids_pick:        'Choose a game!',
+        kids_quiz_name:   'What uses more?',
+        kids_quiz_desc:   'Guess which device eats more energy!',
+        kids_sort_name:   'Sort the Energy',
+        kids_sort_desc:   'Split clean and dirty energy sources',
+        kids_solar_name:  'Solar Charge!',
+        kids_solar_desc:  'Clear the clouds — power the city!',
+        kids_maze_name:   'Bike to School',
+        kids_maze_desc:   'Ride through the city, avoid cars!',
+        kids_menu:        '← Menu',
+        kids_quiz_title:  '🤔 What uses MORE energy?',
+        kids_quiz_sub:    'Tap the one that eats more electricity!',
+        kids_correct:     'Correct',
+        kids_wrong:       'Wrong',
+        kids_sort_title:  '♻️ Sort the Energy!',
+        kids_sort_sub:    'Drag each icon to the right basket!',
+        kids_clean_energy:'Clean Energy',
+        kids_dirty_energy:'Dirty Energy',
+        kids_solar_title: '☀️ Solar Charge!',
+        kids_solar_sub:   'Tap clouds to clear the sky and charge the city!',
+        kids_battery:     '🔋 City battery',
+        kids_maze_title:  '🚲 Bike to School!',
+        kids_maze_sub:    'Arrow keys or swipe — dodge the cars! 🚗',
+        kids_dodged:      'Dodged',
+        kids_hits:        'Hits',
+        kids_play_again:  '▶ Play Again',
+        kids_menu_home:   '🏠 Menu',
+        // dynamic strings used in kids.js
+        kids_pick_game:   'Pick a game and help the city! 🏙️',
+        kids_which_more:  'Which one uses more power? Tap it! ⚡',
+        kids_drag_clean:  'Drag clean energy to 🌿, dirty to 🏭!',
+        kids_tap_clouds:  'Tap the clouds to let the sun shine! ☀️',
+        kids_arrows:      'Use arrows or tap sides to dodge cars! 🚲',
+        kids_correct_ans: '✅ Correct! Great thinking!',
+        kids_times_up:    "⏰ Time's up!",
+        kids_nope:        '❌ Nope! {emoji} uses more!',
+        kids_amazing_sort:'🌟 Amazing sorting!',
+        kids_correct_sort:'✅ Correct!',
+        kids_oops:        'Oops! Try again! 😅',
+        kids_battery_chg: '⚡ Battery charging!',
+        kids_ouch:        'Ouch! Watch out! 🚧',
+        kids_lvl2:        '🌿 Level 2 unlocked! Games get harder!',
+        kids_lvl3:        '🏆 Level 3 unlocked! You\'re amazing!',
+        kids_awesome:     'Awesome!',
+        kids_good_job:    'Good job!',
+        kids_keep_trying: 'Keep trying!',
+        kids_helped_city: 'You helped the city!',
+        kids_incredible:  'Incredible! You\'re a true legend! 🏆',
+        kids_dont_give_up:"Don't give up! 💪",
+        kids_correct_ans_label: 'Correct answers',
+        kids_correct_sorts_label: 'Correct sorts',
+        kids_battery_pct_label: 'Battery charge %',
+        kids_cars_dodged_label: 'Cars dodged',
+        kids_lvl1_hint:   'Keep playing to level up!',
+        kids_lvl2_hint:   'Almost there — keep going!',
+        kids_lvl3_hint:   "🏆 Max level — you're a legend!",
+      },
+      ru: {
+        kids_greeting:    'Привет! Я Арлан! 🐆 Помоги мне построить зелёный город!',
+        kids_exit:        '← Выйти',
+        kids_energy:      '⚡ Энергия',
+        kids_level_hint:  'Играй дальше, чтобы повысить уровень!',
+        kids_pick:        'Выбери игру!',
+        kids_quiz_name:   'Что потребляет больше?',
+        kids_quiz_desc:   'Угадай, какой прибор ест больше энергии!',
+        kids_sort_name:   'Сортируй энергию',
+        kids_sort_desc:   'Раздели чистую и грязную энергию',
+        kids_solar_name:  'Солнечная зарядка!',
+        kids_solar_desc:  'Разгони тучи — зарядь город!',
+        kids_maze_name:   'На велосипеде в школу',
+        kids_maze_desc:   'Езди по городу, избегай машин!',
+        kids_menu:        '← Меню',
+        kids_quiz_title:  '🤔 Что потребляет БОЛЬШЕ энергии?',
+        kids_quiz_sub:    'Нажми на тот, что ест больше электричества!',
+        kids_correct:     'Верно',
+        kids_wrong:       'Неверно',
+        kids_sort_title:  '♻️ Сортируй энергию!',
+        kids_sort_sub:    'Перетащи каждый значок в нужную корзину!',
+        kids_clean_energy:'Чистая энергия',
+        kids_dirty_energy:'Грязная энергия',
+        kids_solar_title: '☀️ Солнечная зарядка!',
+        kids_solar_sub:   'Нажимай на тучи, чтобы зарядить город!',
+        kids_battery:     '🔋 Батарея города',
+        kids_maze_title:  '🚲 На велосипеде в школу!',
+        kids_maze_sub:    'Стрелки или свайп — объезжай машины! 🚗',
+        kids_dodged:      'Объехано',
+        kids_hits:        'Столкновений',
+        kids_play_again:  '▶ Играть снова',
+        kids_menu_home:   '🏠 Меню',
+        kids_pick_game:   'Выбери игру и помоги городу! 🏙️',
+        kids_which_more:  'Что потребляет больше энергии? Нажми! ⚡',
+        kids_drag_clean:  'Перетащи чистую энергию в 🌿, грязную в 🏭!',
+        kids_tap_clouds:  'Нажимай на тучи, чтобы светило солнце! ☀️',
+        kids_arrows:      'Стрелки или нажми сторону — объезжай машины! 🚲',
+        kids_correct_ans: '✅ Правильно! Молодец!',
+        kids_times_up:    '⏰ Время вышло!',
+        kids_nope:        '❌ Нет! {emoji} потребляет больше!',
+        kids_amazing_sort:'🌟 Отличная сортировка!',
+        kids_correct_sort:'✅ Правильно!',
+        kids_oops:        'Упс! Попробуй снова! 😅',
+        kids_battery_chg: '⚡ Батарея заряжается!',
+        kids_ouch:        'Ай! Осторожно! 🚧',
+        kids_lvl2:        '🌿 Уровень 2 открыт! Игры сложнее!',
+        kids_lvl3:        '🏆 Уровень 3 открыт! Ты невероятный!',
+        kids_awesome:     'Великолепно!',
+        kids_good_job:    'Хорошая работа!',
+        kids_keep_trying: 'Не сдавайся!',
+        kids_helped_city: 'Ты помог городу!',
+        kids_incredible:  'Невероятно! Ты настоящая легенда! 🏆',
+        kids_dont_give_up:'Не сдавайся! 💪',
+        kids_correct_ans_label: 'Правильных ответов',
+        kids_correct_sorts_label: 'Правильных сортировок',
+        kids_battery_pct_label: 'Заряд батареи %',
+        kids_cars_dodged_label: 'Машин объехано',
+        kids_lvl1_hint:   'Играй дальше, чтобы повысить уровень!',
+        kids_lvl2_hint:   'Почти там — продолжай!',
+        kids_lvl3_hint:   '🏆 Максимальный уровень — ты легенда!',
+      },
+      kk: {
+        kids_greeting:    'Сәлем! Мен Арлан! 🐆 Маған жасыл қала салуға көмектес!',
+        kids_exit:        '← Шығу',
+        kids_energy:      '⚡ Энергия',
+        kids_level_hint:  'Деңгейді арттыру үшін ойнай бер!',
+        kids_pick:        'Ойын таңда!',
+        kids_quiz_name:   'Не көбірек тұтынады?',
+        kids_quiz_desc:   'Қай құрылғы көбірек энергия жейді деп ойлайсың?',
+        kids_sort_name:   'Энергияны сортта',
+        kids_sort_desc:   'Таза және лас энергияны бөл',
+        kids_solar_name:  'Күн зарядтауы!',
+        kids_solar_desc:  'Бұлттарды тарат — қаланы зарядта!',
+        kids_maze_name:   'Велосипедпен мектепке',
+        kids_maze_desc:   'Қалада жүр, машиналардан аулақ бол!',
+        kids_menu:        '← Мәзір',
+        kids_quiz_title:  '🤔 Не КӨП энергия тұтынады?',
+        kids_quiz_sub:    'Электр қуатын көбірек жейтінін бас!',
+        kids_correct:     'Дұрыс',
+        kids_wrong:       'Қате',
+        kids_sort_title:  '♻️ Энергияны сортта!',
+        kids_sort_sub:    'Әр белгішені дұрыс себетке апар!',
+        kids_clean_energy:'Таза энергия',
+        kids_dirty_energy:'Лас энергия',
+        kids_solar_title: '☀️ Күн зарядтауы!',
+        kids_solar_sub:   'Қаланы зарядтау үшін бұлттарды бас!',
+        kids_battery:     '🔋 Қала батареясы',
+        kids_maze_title:  '🚲 Велосипедпен мектепке!',
+        kids_maze_sub:    'Көрсеткілер немесе свайп — машиналардан аулақ бол! 🚗',
+        kids_dodged:      'Айналып өтті',
+        kids_hits:        'Соқтығу',
+        kids_play_again:  '▶ Қайта ойна',
+        kids_menu_home:   '🏠 Мәзір',
+        kids_pick_game:   'Ойын таңда және қалаға көмектес! 🏙️',
+        kids_which_more:  'Не көбірек қуат тұтынады? Бас! ⚡',
+        kids_drag_clean:  'Таза энергияны 🌿 жаққа, ласын 🏭 жаққа апар!',
+        kids_tap_clouds:  'Күн шығу үшін бұлттарды бас! ☀️',
+        kids_arrows:      'Көрсеткілер немесе жаққа бас — машиналардан аулақ бол! 🚲',
+        kids_correct_ans: '✅ Дұрыс! Керемет!',
+        kids_times_up:    '⏰ Уақыт бітті!',
+        kids_nope:        '❌ Жоқ! {emoji} көбірек тұтынады!',
+        kids_amazing_sort:'🌟 Тамаша сортировка!',
+        kids_correct_sort:'✅ Дұрыс!',
+        kids_oops:        'Ой! Қайта көр! 😅',
+        kids_battery_chg: '⚡ Батарея зарядталуда!',
+        kids_ouch:        'Ай! Абай бол! 🚧',
+        kids_lvl2:        '🌿 2-деңгей ашылды! Ойындар қиынырақ!',
+        kids_lvl3:        '🏆 3-деңгей ашылды! Сен керемет!',
+        kids_awesome:     'Тамаша!',
+        kids_good_job:    'Жақсы жұмыс!',
+        kids_keep_trying: 'Бас тартпа!',
+        kids_helped_city: 'Сен қалаға көмектестің!',
+        kids_incredible:  'Керемет! Сен шынайы аңызсың! 🏆',
+        kids_dont_give_up:'Бас тартпа! 💪',
+        kids_correct_ans_label: 'Дұрыс жауаптар',
+        kids_correct_sorts_label: 'Дұрыс сортировкалар',
+        kids_battery_pct_label: 'Батарея заряды %',
+        kids_cars_dodged_label: 'Машина айналды',
+        kids_lvl1_hint:   'Деңгейді арттыру үшін ойнай бер!',
+        kids_lvl2_hint:   'Мақсатқа жақынсың — жалғастыр!',
+        kids_lvl3_hint:   '🏆 Максималды деңгей — сен аңызсың!',
+      },
+    };
+
+    function kidsT(key) {
+      const lang = localStorage.getItem('kzleap_lang') || 'en';
+      return (KIDS_STRINGS[lang] && KIDS_STRINGS[lang][key]) || KIDS_STRINGS.en[key] || key;
+    }
+
+    function kidsApplyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key  = el.getAttribute('data-i18n');
+        const attr = el.getAttribute('data-i18n-attr');
+        if (attr) el.setAttribute(attr, kidsT(key));
+        else el.textContent = kidsT(key);
+      });
+      const lang = localStorage.getItem('kzleap_lang') || 'en';
+      document.querySelectorAll('.kids-lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+    }
+
+    function kidsSetLang(lang) {
+      localStorage.setItem('kzleap_lang', lang);
+      kidsApplyTranslations();
+    }
+
+    document.addEventListener('DOMContentLoaded', kidsApplyTranslations);
+
+    // Expose kidsT globally so kids.js can use it
+    window.kidsT = kidsT;
+  </script>
   <script src="kids.js"></script>
 </body>
 </html>
