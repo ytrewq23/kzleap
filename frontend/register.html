@@ -75,6 +75,7 @@
       <div id="success-msg" style="display:none;color:#0F6E56;font-size:13px;margin-bottom:12px;"></div>
 
       <button class="login-btn" onclick="handleRegister()" data-i18n="reg_btn">Create Account</button>
+      
 
       <div class="register-link">
         <span data-i18n="reg_have_account">Already have an account?</span>
@@ -145,7 +146,18 @@
         return;
       }
 
-      const name = `${firstname} ${lastname}`;
+      const blockedDomains = ['gmail.com', 'mail.ru', 'yandex.ru', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'bk.ru', 'list.ru', 'inbox.ru'];
+
+if (role === 'analyst' || role === 'policymaker') {
+  const corpDomain = corporate_email.split('@')[1]?.toLowerCase();
+  if (!corpDomain || blockedDomains.includes(corpDomain)) {
+    errorMsg.textContent = 'Please use a corporate or institutional email address (not Gmail, Mail.ru, etc.)';
+    errorMsg.style.display = 'block';
+    return;
+  }
+}
+
+const name = `${firstname} ${lastname}`;
       userEmail      = email;
       corporateEmail = corporate_email;
 
