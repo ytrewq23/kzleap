@@ -111,7 +111,6 @@ async function runSmartAnalysis() {
   try {
     setProgress('Translating goal into LP parameters...');
 
-    // Параметры извлекаем всегда на английском — это технический шаг
     const paramsRes = await fetch(`${BACKEND}/api/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
