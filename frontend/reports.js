@@ -591,7 +591,7 @@ async function callClaudeStream(messages, onChunk) {
       messages,
     }),
   });
-  if (!response.ok) throw new Error('Claude API error ' + response.status);
+  if (!response.ok) throw new Error(' API error ' + response.status);
 
   const reader  = response.body.getReader();
   const decoder = new TextDecoder();
