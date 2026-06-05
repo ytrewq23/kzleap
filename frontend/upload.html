@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZLEAP — Upload Dataset</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="upload.css">
+  <style>
+    .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+    .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
+    .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
+    .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+  </style>
+  <link rel="stylesheet" href="dark-mode.css">
+</head>
+<body class="app-page">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-sm">KZ</div>
+      <div><div class="logo-title">KZLEAP</div><div class="logo-sub" data-i18n="energy_platform">Energy Platform</div></div>
+    </div>
+    <nav class="sidebar-nav">
+            <div class="nav-section" data-i18n="nav_main">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">▦</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a href="upload.html" class="nav-item active" id="nav-upload"><span class="nav-icon">↑</span> <span data-i18n="nav_upload">Upload Dataset</span></a>
+      <div class="nav-section" data-i18n="nav_scenarios">Scenarios</div>
+      <a href="scenario.html" class="nav-item" id="nav-scenario"><span class="nav-icon">◈</span> <span data-i18n="nav_scenario_builder">Scenario Builder</span></a>
+      <a href="results.html" class="nav-item"><span class="nav-icon">▰</span> <span data-i18n="nav_sim_results">Simulation Results</span></a>
+      <a href="whatif.html"     class="nav-item"><span class="nav-icon">▶</span> <span data-i18n="nav_whatif">What-If Analyzer</span></a>
+      <div class="nav-section" data-i18n="nav_output">Output</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
+      <div class="nav-section" data-i18n="nav_tools">Tools</div>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⌘</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
+          <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
+          <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
+      <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
+      <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
+<a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
+<a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">AB</div>
+      <div style="flex:1;">
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
+      </div>
+      <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div><h2 data-i18n="upload_title">Upload Dataset</h2><p data-i18n="upload_sub">Add new energy data files for scenario modeling</p></div>
+      <div class="topbar-right"> <div class="lang-switcher">
+          <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+          <button id="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid #d1d5db;background:transparent;cursor:pointer;color:#374151;transition:all 0.2s;">
+  <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+  </svg>
+  <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+        </div><span class="badge" id="role-badge">Energy Analyst</span></div>
+    </div>
+
+    <div class="content">
+
+      <div class="upload-zone" id="upload-zone"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div class="upload-icon-wrap"><div class="upload-icon">↑</div></div>
+        <div class="upload-title" data-i18n="upload_drag" data-i18n="upload_drag">Drag and drop your file here</div>
+        <div class="upload-sub">Excel (.xlsx) or CSV — max 50 MB</div>
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none">
+        <button class="btn-browse" onclick="document.getElementById('file-input').click()" data-i18n="btn_browse" data-i18n="btn_browse">Browse files</button>
+      </div>
+
+      <div id="upload-result" style="display:none;"></div>
+
+      <div style="margin: 12px 0; padding: 12px 16px; background:#e8f5e9; border-radius:8px; font-size:13px; display:flex; align-items:center; gap:12px;">
+        <span data-i18n="upload_template_msg">Fill out the template with your data and upload it above.</span>
+        <button onclick="downloadTemplate()" style="margin-left:auto; padding:6px 14px; background:#1D6B48; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;" data-i18n="btn_download_template">Download XLSX Template</button>
+      </div>
+
+      <div class="card" id="upload-progress" style="display:none; margin-bottom:16px;">
+        <div class="card-title">Uploading file...</div>
+        <div class="up-file-row">
+          <div class="up-file-icon">XLS</div>
+          <div class="up-file-info">
+            <div class="up-file-name" id="up-filename">file.xlsx</div>
+            <div class="up-file-size" id="up-filesize">0 KB</div>
+          </div>
+          <div class="up-pct" id="up-pct">0%</div>
+        </div>
+        <div class="up-bar-wrap"><div class="up-bar" id="up-bar"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title" data-i18n="uploaded_title" data-i18n="uploaded_title">Uploaded datasets</div><div class="card-sub" data-i18n="uploaded_sub">Available for scenario modeling</div></div>
+        </div>
+        <table class="u-table">
+          <thead>
+            <tr><th data-i18n="col_filename">File name</th><th data-i18n="col_source">Source</th><th data-i18n="col_date">Date</th><th data-i18n="col_by">Uploaded by</th><th data-i18n="col_summary">Summary</th><th data-i18n="col_status">Status</th></tr>
+          </thead>
+          <tbody id="datasets-table">
+            <tr>
+              <td><div class="ds-name">LEAP_KZ_DEMAND.xlsx</div><div class="ds-sub">Kazakhstan energy demand data</div></td>
+              <td>24 sectors</td><td>2021–2023</td><td>93 KB</td><td>Ali B.</td>
+              <td><span class="ds-status active">● Active</span></td>
+              <td><button class="btn-sm" onclick="previewDataset(this)">Preview</button> <button class="btn-sm red" onclick="deleteDataset(this)">Delete</button></td>
+            </tr>
+            <tr>
+              <td><div class="ds-name">LEAP_KZ_ALL_SECTORS.xlsx</div><div class="ds-sub">All sectors combined</div></td>
+              <td>24 sectors</td><td>2021–2023</td><td>87 KB</td><td>Aliya S.</td>
+              <td><span class="ds-status archived">● Archived</span></td>
+              <td><button class="btn-sm" onclick="previewDataset(this)">Preview</button> <button class="btn-sm red" onclick="deleteDataset(this)">Delete</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card format-guide">
+        <div class="card-title" data-i18n="format_title" data-i18n="format_title">Expected file format</div>
+        <div class="card-sub" data-i18n="format_sub">Your Excel file must follow this structure for LEAP compatibility</div>
+        <table class="format-table">
+          <thead><tr><th>Column A</th><th>Column B</th><th>Column D</th><th>Column E</th><th>Column F</th></tr></thead>
+          <tbody>
+            <tr class="header-row"><td>Fuel</td><td>Unit</td><td>2021</td><td>2022</td><td>2023</td></tr>
+            <tr><td>Coking coal</td><td>Terajoule</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>Coal Sub bituminous</td><td>Terajoule</td><td>23709.8</td><td>32102.9</td><td>24124.7</td></tr>
+            <tr><td>Electricity</td><td>Terajoule</td><td>51677.0</td><td>47159.0</td><td>50411.6</td></tr>
+          </tbody>
+        </table>
+        <div class="format-note">Each sector must have its own sheet tab named exactly as in the LEAP model (e.g. <code>ironandsteel</code>, <code>chemical</code>, <code>nonferrous</code>)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="upload.js"></script>
+  <script src="ai-chat-widget.js"></script>
+  <script src="translations.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', applyTranslations);</script>
+  <script src="dark-mode.js"></script>
+  <script src="access-control.js"></script>
+</body>
+</html>
