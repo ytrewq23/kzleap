@@ -21,6 +21,44 @@ from datetime import datetime
 import httpx
  
 init_db()
+
+# ── Auto-migrate: add file_content column if missing ─────────────────────
+try:
+    from sqlalchemy import text
+    with SessionLocal() as _db:
+        _db.execute(text("ALTER TABLE datasets ADD COLUMN IF NOT EXISTS file_content TEXT"))
+        _db.commit()
+except Exception:
+    pass  # column already exists or DB doesn't support IF NOT EXISTS
+
+# ── On startup: reload all datasets from DB into memory ──────────────────
+def _reload_datasets_from_db():
+    import base64
+    try:
+        db = SessionLocal()
+        records = db.query(Dataset).all()
+        db.close()
+        for record in records:
+            if not record.file_content:
+                continue
+            fname = (record.filename or "").lower()
+            try:
+                if fname.endswith((".xlsx", ".xls")):
+                    file_bytes = base64.b64decode(record.file_content)
+                    parsed = parse_kzleap_excel(file_bytes, record.filename)
+                    if "error" not in parsed:
+                        uploaded_datasets[record.dataset_id] = parsed
+                        load_excel_data(parsed)
+                else:
+                    parsed = parse_csv_auto(record.file_content, record.filename)
+                    if "error" not in parsed:
+                        uploaded_datasets[record.dataset_id] = parsed
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+_reload_datasets_from_db()
  
 app = FastAPI(
     title="KZLEAP API",
@@ -368,29 +406,36 @@ async def upload_dataset(request: Request, file: UploadFile = File(...)):
         if "error" in parsed:
             raise HTTPException(422, parsed["error"])
 
-        # Сохраняем файл на диск
+        # Сохраняем файл на диск (для локальной работы) и в БД (для облака)
         dataset_id = filename.replace(" ", "_")
         file_path  = os.path.join(UPLOAD_DIR, dataset_id)
-        with open(file_path, "wb") as f:
-            f.write(file_bytes)
+        try:
+            with open(file_path, "wb") as f:
+                f.write(file_bytes)
+        except Exception:
+            file_path = dataset_id  # fallback if disk not writable
 
         # Загружаем данные в leap_model (заменяет встроенные константы)
         load_excel_data(parsed)
 
-        # Сохраняем в память и БД
+        # Сохраняем в память и БД (content хранится в БД как base64)
+        import base64
+        file_content_b64 = base64.b64encode(file_bytes).decode("utf-8")
         uploaded_datasets[dataset_id] = parsed
         db = SessionLocal()
         existing = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
         if existing:
-            existing.file_path = file_path
-            existing.source    = "kzleap_excel"
+            existing.file_path    = file_path
+            existing.source       = "kzleap_excel"
+            existing.file_content = file_content_b64
         else:
             db.add(Dataset(
-                dataset_id   = dataset_id,
-                filename     = filename,
-                source       = "kzleap_excel",
-                uploaded_by  = request.headers.get("x-user-email", "unknown"),
-                file_path    = file_path,
+                dataset_id    = dataset_id,
+                filename      = filename,
+                source        = "kzleap_excel",
+                uploaded_by   = request.headers.get("x-user-email", "unknown"),
+                file_path     = file_path,
+                file_content  = file_content_b64,
             ))
         db.commit()
         db.close()
@@ -422,21 +467,27 @@ async def upload_dataset(request: Request, file: UploadFile = File(...)):
 
         dataset_id = filename.replace(" ", "_")
         file_path  = os.path.join(UPLOAD_DIR, dataset_id)
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception:
+            file_path = dataset_id
 
         uploaded_datasets[dataset_id] = parsed
         db = SessionLocal()
         existing = db.query(Dataset).filter(Dataset.dataset_id == dataset_id).first()
         if not existing:
             db.add(Dataset(
-                dataset_id  = dataset_id,
-                filename    = filename,
-                source      = parsed.get("source"),
-                uploaded_by = request.headers.get("x-user-email", "unknown"),
-                file_path   = file_path,
+                dataset_id   = dataset_id,
+                filename     = filename,
+                source       = parsed.get("source"),
+                uploaded_by  = request.headers.get("x-user-email", "unknown"),
+                file_path    = file_path,
+                file_content = content,
             ))
-            db.commit()
+        else:
+            existing.file_content = content
+        db.commit()
         db.close()
 
         summary = {}
@@ -493,8 +544,25 @@ def get_dataset_co2(dataset_id: str):
     
     if not record:
         raise HTTPException(404, "Dataset not found")
-    
-    # Normalize path — handle Windows paths stored in DB when running on Mac/Linux
+
+    # ── Try loading from DB content first (works in cloud/Railway) ──────
+    if record.file_content:
+        filename_lower = (record.filename or "").lower()
+        if filename_lower.endswith((".xlsx", ".xls")):
+            import base64
+            file_bytes = base64.b64decode(record.file_content)
+            parsed = parse_kzleap_excel(file_bytes, record.filename)
+            if "error" not in parsed:
+                uploaded_datasets[dataset_id] = parsed
+                load_excel_data(parsed)
+                return parsed
+        else:
+            parsed = parse_csv_auto(record.file_content, record.filename)
+            if "error" not in parsed:
+                uploaded_datasets[dataset_id] = parsed
+                return parsed
+
+    # ── Fallback: try disk ───────────────────────────────────────────────
     file_path = record.file_path
     filename_only = os.path.basename(file_path.replace('\\', '/').replace('\\', os.sep))
     local_path = os.path.join(UPLOAD_DIR, filename_only)
@@ -502,7 +570,7 @@ def get_dataset_co2(dataset_id: str):
         file_path = local_path
 
     if not os.path.exists(file_path):
-        raise HTTPException(404, f"File not found on disk: {filename_only}. Please re-upload the dataset.")
+        raise HTTPException(404, f"File not found. Please re-upload the dataset.")
 
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()

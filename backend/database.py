@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, DateTime, Integer
+from sqlalchemy import create_engine, Column, String, DateTime, Integer, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -56,6 +56,7 @@ class Dataset(Base):
     uploaded_by = Column(String)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     file_path = Column(String)
+    file_content = Column(Text, nullable=True)  # stores file content in DB for cloud deployment
 
 def init_db():
     Base.metadata.create_all(bind=engine)
