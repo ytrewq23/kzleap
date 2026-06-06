@@ -13,6 +13,18 @@
     .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
     .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
     .lang-btn.active{background:#1a2b4a;color:#fff;border-color:#1a2b4a;}
+    .sa-add-btn{padding:6px 14px;background:#f0f4f8;color:#1a2b4a;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:background 0.15s;}
+    .sa-add-btn:hover{background:#e4eaf0;}
+    .sa-shock-row{display:flex;gap:8px;align-items:center;}
+    .sa-shock-select{font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;flex:1;}
+    .sa-shock-input{font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;width:80px;}
+    .sa-shock-remove{background:none;border:none;cursor:pointer;color:#aaa;font-size:16px;line-height:1;padding:0 4px;}
+    .sa-shock-remove:hover{color:#c0392b;}
+    .delta-pos{color:#c0392b;font-weight:600;}
+    .delta-neg{color:#1D9E75;font-weight:600;}
+    .delta-zero{color:#888;}
+    .oil-col{color:#C0632A;}
+    @keyframes lp-spin{to{transform:rotate(360deg);}}
   </style>
   <link rel="stylesheet" href="dark-mode.css">
 </head>
@@ -33,13 +45,13 @@
       <div class="nav-section" data-i18n="nav_output">Output</div>
       <a href="reports.html" class="nav-item"><span class="nav-icon">◻</span> <span data-i18n="nav_reports">Reports</span></a>
       <div class="nav-section" data-i18n="nav_tools">Tools</div>
-       <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⌘</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
+      <a href="lp-optimizer.html" class="nav-item"><span class="nav-icon">⌘</span> <span data-i18n="nav_mix_optimizer">Mix Optimizer</span></a>
       <a href="scenario-ai.html" class="nav-item"><span class="nav-icon">◎</span> <span data-i18n="nav_smart_analysis">Smart Analysis</span></a>
       <a href="sensitivity.html" class="nav-item active"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
       <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
-<a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
-<a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
+      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
+      <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
     </nav>
     <div class="sidebar-user">
       <div class="user-avatar" id="user-avatar">AB</div>
@@ -57,19 +69,14 @@
         <p data-i18n="sensitivity_sub">Stress-test the optimal energy mix against changes in fuel prices, technology costs, demand, and carbon pricing</p>
       </div>
       <div class="topbar-right">
-         <div class="lang-switcher">
+        <div class="lang-switcher">
           <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
           <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
           <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
           <button id="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid #d1d5db;background:transparent;cursor:pointer;color:#374151;transition:all 0.2s;">
-  <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="4"/>
-    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-  </svg>
-  <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-  </svg>
-</button>
+            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
         </div>
         <span id="backend-badge" style="font-size:12px;margin-right:8px;">● Loading...</span>
         <span class="badge" id="role-badge">Energy Analyst</span>
@@ -78,9 +85,10 @@
 
     <div class="content">
 
+      <!-- Настройки -->
       <div class="lp-two-col" style="margin-bottom:16px;">
         <div class="card">
-          <div class="card-title" data-i18n="base_config_title" data-i18n="base_config_title">Base configuration</div>
+          <div class="card-title" data-i18n="base_config_title">Base configuration</div>
           <div class="card-sub" data-i18n="base_config_sub">LP optimization runs under each shock relative to this baseline</div>
           <div class="lp-controls-row" style="margin-top:14px;">
             <div class="lp-control-group">
@@ -104,18 +112,20 @@
         </div>
 
         <div class="card">
-          <div class="card-title" data-i18n="shocks_title" data-i18n="shocks_title">Parameter shocks</div>
-          <div class="card-sub" data-i18n="shocks_sub">Each shock runs a separate LP — results show impact on cost, CO2, and RE share</div>
+          <div class="card-title" data-i18n="shocks_title">Parameter shocks</div>
+          <div class="card-sub" data-i18n="shocks_sub">Each shock runs a separate LP — results show impact on cost, CO₂, RE share, and oil share</div>
           <div id="sa-shocks-list" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
-          <button onclick="addShock()" class="sa-add-btn" style="margin-top:10px;" data-i18n="btn_add_shock" data-i18n="btn_add_shock">+ Add shock</button>
+          <button onclick="addShock()" class="sa-add-btn" style="margin-top:10px;" data-i18n="btn_add_shock">+ Add shock</button>
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;margin-bottom:16px;">
-        <button onclick="runSensitivity()" id="sa-run-btn" class="lp-run-btn" data-i18n="btn_run_sensitivity" data-i18n="btn_run_sensitivity">Run sensitivity analysis</button>
-        <button onclick="loadPreset('price')" class="lp-explain-btn" data-i18n="preset_price" data-i18n="preset_price">Preset: fuel price shock</button>
-        <button onclick="loadPreset('tech')" class="lp-explain-btn" data-i18n="preset_tech" data-i18n="preset_tech">Preset: RE cost drop</button>
-        <button onclick="loadPreset('carbon')" class="lp-explain-btn" data-i18n="preset_carbon" data-i18n="preset_carbon">Preset: carbon tax</button>
+      <!-- Кнопки запуска и пресетов -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <button onclick="runSensitivity()" id="sa-run-btn" class="lp-run-btn" data-i18n="btn_run_sensitivity">Run sensitivity analysis</button>
+        <button onclick="loadPreset('price')"  class="lp-explain-btn" data-i18n="preset_price">Preset: fuel price shock</button>
+        <button onclick="loadPreset('tech')"   class="lp-explain-btn" data-i18n="preset_tech">Preset: RE cost drop</button>
+        <button onclick="loadPreset('carbon')" class="lp-explain-btn" data-i18n="preset_carbon">Preset: carbon tax</button>
+        <button onclick="loadPreset('oil')"    class="lp-explain-btn" data-i18n="sa_oil_preset">Preset: oil price shocks</button>
       </div>
 
       <div id="sa-error" style="display:none;" class="lp-error-box"></div>
@@ -124,11 +134,15 @@
         <div class="lp-spinner-label">Running LP for each shock...</div>
       </div>
 
+      <!-- Результаты -->
       <div id="sa-results" style="display:none;">
+
+        <!-- Baseline карточки -->
         <div class="metrics-grid" id="sa-baseline-cards" style="margin-bottom:16px;"></div>
 
+        <!-- Таблица шоков -->
         <div class="card" style="margin-bottom:16px;">
-          <div class="card-title" data-i18n="shock_summary_title" data-i18n="shock_summary_title">Shock impact summary</div>
+          <div class="card-title" data-i18n="shock_summary_title">Shock impact summary</div>
           <div class="card-sub" data-i18n="shock_summary_sub">Change relative to baseline · positive = increase · negative = decrease</div>
           <div style="overflow-x:auto;margin-top:12px;">
             <table class="table">
@@ -136,13 +150,13 @@
                 <tr>
                   <th data-i18n="col_shock">Shock</th>
                   <th data-i18n="col_cost">System cost (B$/yr)</th>
-                  <th data-i18n="col_cost_chg">Cost change</th>
-                  <th data-i18n="col_co2">CO2 (Mt)</th>
-                  <th data-i18n="col_co2_chg">CO2 change</th>
+                  <th data-i18n="col_cost_chg">Cost Δ</th>
+                  <th data-i18n="col_co2">CO₂ (Mt)</th>
+                  <th data-i18n="col_co2_chg">CO₂ Δ</th>
                   <th data-i18n="col_re">RE share (%)</th>
-                  <th data-i18n="col_re_chg">RE change (pp)</th>
+                  <th data-i18n="col_re_chg">RE Δ (pp)</th>
                   <th data-i18n="col_lcoe">LCOE ($/MWh)</th>
-                  <th data-i18n="col_lcoe_chg">LCOE change</th>
+                  <th data-i18n="col_lcoe_chg">LCOE Δ</th>
                 </tr>
               </thead>
               <tbody id="sa-table-body"></tbody>
@@ -150,52 +164,40 @@
           </div>
         </div>
 
+        <!-- Графики -->
         <div class="charts-row" style="margin-bottom:16px;">
           <div class="card" style="flex:1;">
-            <div class="card-title" data-i18n="chart_cost_title" data-i18n="chart_cost_title">Cost sensitivity</div>
+            <div class="card-title" data-i18n="chart_cost_title">Cost sensitivity</div>
             <div class="card-sub" data-i18n="chart_cost_sub">System cost B$/yr per shock</div>
             <div style="height:240px;margin-top:8px;"><canvas id="sa-cost-chart"></canvas></div>
           </div>
           <div class="card" style="flex:1;">
-            <div class="card-title" data-i18n="chart_co2s_title" data-i18n="chart_co2s_title">CO2 sensitivity</div>
-            <div class="card-sub" data-i18n="chart_co2s_sub">Total CO2 Mt per shock</div>
+            <div class="card-title" data-i18n="chart_co2s_title">CO₂ sensitivity</div>
+            <div class="card-sub" data-i18n="chart_co2s_sub">Total CO₂ Mt per shock</div>
             <div style="height:240px;margin-top:8px;"><canvas id="sa-co2-chart"></canvas></div>
           </div>
           <div class="card" style="flex:1;">
-            <div class="card-title" data-i18n="chart_res_title" data-i18n="chart_res_title">RE share sensitivity</div>
+            <div class="card-title" data-i18n="chart_res_title">RE share sensitivity</div>
             <div class="card-sub" data-i18n="chart_res_sub">Renewables share % per shock</div>
             <div style="height:240px;margin-top:8px;"><canvas id="sa-re-chart"></canvas></div>
           </div>
         </div>
 
+        <!-- AI панель -->
         <div class="card" id="sa-ai-panel">
           <div class="lp-ai-panel-header">
             <div>
-              <div class="card-title" data-i18n="ai_interp_title" data-i18n="ai_interp_title">AI interpretation</div>
+              <div class="card-title" data-i18n="ai_interp_title">AI interpretation</div>
               <div class="card-sub" data-i18n="ai_interp_sub">Which shocks matter most and why</div>
             </div>
-            <button onclick="explainSensitivity()" id="sa-explain-btn" class="lp-explain-btn" data-i18n="btn_explain" data-i18n="btn_explain">Explain results</button>
+            <button onclick="explainSensitivity()" id="sa-explain-btn" class="lp-explain-btn" data-i18n="btn_explain">Explain results</button>
           </div>
-          <div id="sa-ai-output" class="lp-ai-output">Click "Explain results" to get an AI interpretation of the sensitivity analysis.</div>
+          <div id="sa-ai-output" class="lp-ai-output" data-i18n="lp_ai_hint">Click "Explain results" to get an AI interpretation of the sensitivity analysis.</div>
         </div>
-      </div>
 
+      </div>
     </div>
   </div>
-
-  <style>
-    @keyframes lp-spin { to { transform: rotate(360deg); } }
-    .sa-add-btn { padding:6px 14px;background:#f0f4f8;color:#1a2b4a;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:background 0.15s; }
-    .sa-add-btn:hover { background:#e4eaf0; }
-    .sa-shock-row { display:flex;gap:8px;align-items:center; }
-    .sa-shock-select { font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;flex:1; }
-    .sa-shock-input { font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;width:80px; }
-    .sa-shock-remove { background:none;border:none;cursor:pointer;color:#aaa;font-size:16px;line-height:1;padding:0 4px; }
-    .sa-shock-remove:hover { color:#c0392b; }
-    .delta-pos { color:#c0392b;font-weight:600; }
-    .delta-neg { color:#1D9E75;font-weight:600; }
-    .delta-zero { color:#888; }
-  </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="sensitivity.js"></script>

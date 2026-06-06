@@ -17,57 +17,62 @@ roleBadge.style.background = badgeStyles[user.role].bg;
 roleBadge.style.color = badgeStyles[user.role].color;
 
 (async function checkBackend() {
+  const el = document.getElementById('backend-badge');
   try {
     const r = await fetch(`${BACKEND}/api/config`);
-    const el = document.getElementById('backend-badge');
-    el.textContent = r.ok ? (typeof t==='function'?t('backend_connected'):'● Backend connected') : (typeof t==='function'?t('backend_offline'):'● Offline mode');
-    el.style.color  = r.ok ? '#0F6E56' : '#B07C10';
+    el.textContent = r.ok
+      ? (typeof t==='function' ? t('backend_connected') : '● Backend connected')
+      : (typeof t==='function' ? t('backend_offline')   : '● Offline mode');
+    el.style.color = r.ok ? '#0F6E56' : '#B07C10';
   } catch {
-    const el = document.getElementById('backend-badge');
-    el.textContent = typeof t==='function'?t('backend_offline'):'● Offline mode';
+    el.textContent = typeof t==='function' ? t('backend_offline') : '● Offline mode';
     el.style.color = '#B07C10';
   }
 })();
 
-// Язык интерфейса
-function getLang() {
-  return localStorage.getItem('kzleap_lang') || 'en';
-}
-function getLangName() {
-  return ({ en: 'English', ru: 'Russian', kk: 'Kazakh' })[getLang()] || 'English';
-}
+function getLang()     { return localStorage.getItem('kzleap_lang') || 'en'; }
+function getLangName() { return ({ en: 'English', ru: 'Russian', kk: 'Kazakh' })[getLang()] || 'English'; }
 
+// ── Параметры шоков — теперь включают нефть ────────────────────────────────
 const SHOCK_PARAMS = [
-  { value: 'gas_fuel_cost',  label: 'Gas fuel cost' },
-  { value: 'coal_fuel_cost', label: 'Coal fuel cost' },
-  { value: 'solar_capex',    label: 'Solar capex' },
-  { value: 'wind_capex',     label: 'Wind capex' },
-  { value: 'nuclear_capex',  label: 'Nuclear capex' },
-  { value: 'coal_capex',     label: 'Coal capex' },
-  { value: 'demand',         label: 'Electricity demand' },
-  { value: 'carbon_price',   label: 'Carbon price ($/t)' },
+  { value: 'gas_fuel_cost',  label: 'Gas fuel cost',         unit: '%' },
+  { value: 'coal_fuel_cost', label: 'Coal fuel cost',        unit: '%' },
+  { value: 'oil_fuel_cost',  label: 'Oil fuel cost',         unit: '%' },  // новый
+  { value: 'solar_capex',    label: 'Solar capex',           unit: '%' },
+  { value: 'wind_capex',     label: 'Wind capex',            unit: '%' },
+  { value: 'nuclear_capex',  label: 'Nuclear capex',         unit: '%' },
+  { value: 'coal_capex',     label: 'Coal capex',            unit: '%' },
+  { value: 'oil_capex',      label: 'Oil capex',             unit: '%' },  // новый
+  { value: 'demand',         label: 'Electricity demand',    unit: '%' },
+  { value: 'carbon_price',   label: 'Carbon price ($/t)',    unit: 'abs' },
 ];
 
-let shocks = [];
-let charts = {};
-let lastData = null;
+let shocks    = [];
+let charts    = {};
+let lastData  = null;
 
+// ── Рендер списка шоков ────────────────────────────────────────────────────
 function renderShockList() {
   const list = document.getElementById('sa-shocks-list');
   list.innerHTML = '';
   shocks.forEach((shock, i) => {
-    const row = document.createElement('div');
+    const param   = SHOCK_PARAMS.find(p => p.value === shock.param) || SHOCK_PARAMS[0];
+    const isAbs   = param.unit === 'abs';
+    const row     = document.createElement('div');
     row.className = 'sa-shock-row';
-    const isCarbon = shock.param === 'carbon_price';
     row.innerHTML = `
       <select class="sa-shock-select" onchange="updateShock(${i}, 'param', this.value)">
-        ${SHOCK_PARAMS.map(p => `<option value="${p.value}" ${p.value === shock.param ? 'selected' : ''}>${p.label}</option>`).join('')}
+        ${SHOCK_PARAMS.map(p =>
+          `<option value="${p.value}" ${p.value === shock.param ? 'selected' : ''}>${p.label}</option>`
+        ).join('')}
       </select>
-      <span style="font-size:11px;color:#888;white-space:nowrap;">${isCarbon ? 'Value ($/t):' : 'Change (%):'}</span>
+      <span style="font-size:11px;color:#888;white-space:nowrap;">
+        ${isAbs ? 'Value ($/t):' : 'Change (%):'}
+      </span>
       <input class="sa-shock-input" type="number"
-        value="${isCarbon ? (shock.value ?? 50) : (shock.delta_pct ?? 30)}"
-        onchange="updateShock(${i}, '${isCarbon ? 'value' : 'delta_pct'}', +this.value)"
-        placeholder="${isCarbon ? '50' : '+30'}">
+        value="${isAbs ? (shock.value ?? 50) : (shock.delta_pct ?? 30)}"
+        onchange="updateShock(${i}, '${isAbs ? 'value' : 'delta_pct'}', +this.value)"
+        placeholder="${isAbs ? '50' : '+30'}">
       <button class="sa-shock-remove" onclick="removeShock(${i})">✕</button>
     `;
     list.appendChild(row);
@@ -88,41 +93,55 @@ function updateShock(i, field, val) {
   shocks[i][field] = val;
   if (field === 'param') {
     shocks[i].delta_pct = 30;
-    shocks[i].value = null;
+    shocks[i].value     = null;
     renderShockList();
   }
   shocks[i].label = buildLabel(shocks[i]);
 }
 
 function buildLabel(shock) {
-  const name = SHOCK_PARAMS.find(p => p.value === shock.param)?.label || shock.param;
-  if (shock.param === 'carbon_price') return `Carbon price $${shock.value ?? 50}/t`;
-  return `${name} ${(shock.delta_pct ?? 0) > 0 ? '+' : ''}${shock.delta_pct ?? 0}%`;
+  const param = SHOCK_PARAMS.find(p => p.value === shock.param);
+  const name  = param?.label || shock.param;
+  if (param?.unit === 'abs') return `Carbon price $${shock.value ?? 50}/t`;
+  const sign  = (shock.delta_pct ?? 0) > 0 ? '+' : '';
+  return `${name} ${sign}${shock.delta_pct ?? 0}%`;
 }
 
+// ── Пресеты — исправлены, теперь каждый шок уникален ──────────────────────
 function loadPreset(type) {
   if (type === 'price') {
+    // Ценовые шоки: разные топлива, разные направления
     shocks = [
       { param: 'gas_fuel_cost',  delta_pct: +30, value: null, label: 'Gas fuel cost +30%' },
       { param: 'coal_fuel_cost', delta_pct: +20, value: null, label: 'Coal fuel cost +20%' },
-      { param: 'gas_fuel_cost',  delta_pct: -20, value: null, label: 'Gas fuel cost -20%' },
+      { param: 'oil_fuel_cost',  delta_pct: +50, value: null, label: 'Oil fuel cost +50%' },
     ];
   } else if (type === 'tech') {
+    // Технологические шоки: снижение CAPEX ВИЭ + рост ядерного
     shocks = [
-      { param: 'solar_capex', delta_pct: -30, value: null, label: 'Solar capex -30%' },
-      { param: 'wind_capex',  delta_pct: -25, value: null, label: 'Wind capex -25%' },
-      { param: 'solar_capex', delta_pct: -50, value: null, label: 'Solar capex -50%' },
+      { param: 'solar_capex',   delta_pct: -30, value: null, label: 'Solar capex −30%' },
+      { param: 'wind_capex',    delta_pct: -25, value: null, label: 'Wind capex −25%' },
+      { param: 'nuclear_capex', delta_pct: -15, value: null, label: 'Nuclear capex −15%' },
     ];
   } else if (type === 'carbon') {
+    // Три уровня углеродной цены
     shocks = [
       { param: 'carbon_price', delta_pct: 0, value: 20,  label: 'Carbon price $20/t' },
       { param: 'carbon_price', delta_pct: 0, value: 50,  label: 'Carbon price $50/t' },
       { param: 'carbon_price', delta_pct: 0, value: 100, label: 'Carbon price $100/t' },
     ];
+  } else if (type === 'oil') {
+    // Нефтяные шоки: влияние цены нефти на систему
+    shocks = [
+      { param: 'oil_fuel_cost', delta_pct: +30, value: null, label: 'Oil fuel cost +30%' },
+      { param: 'oil_fuel_cost', delta_pct: +80, value: null, label: 'Oil fuel cost +80%' },
+      { param: 'oil_fuel_cost', delta_pct: -30, value: null, label: 'Oil fuel cost −30%' },
+    ];
   }
   renderShockList();
 }
 
+// ── Утилиты ────────────────────────────────────────────────────────────────
 function deltaClass(val) {
   if (val === null || val === undefined) return 'delta-zero';
   if (val > 0) return 'delta-pos';
@@ -153,35 +172,37 @@ function buildBarChart(canvasId, labels, baselineVal, shockVals, label) {
       datasets: [{
         label,
         data: [baselineVal, ...shockVals],
-        backgroundColor: ['#c8d6e5', ...shockVals.map(v =>
-          v === null ? '#eee' : v > baselineVal ? '#e57373' : '#81c995'
-        )],
+        backgroundColor: [
+          '#c8d6e5',
+          ...shockVals.map(v => v === null ? '#eee' : v > baselineVal ? '#e57373' : '#81c995'),
+        ],
         borderRadius: 4,
-      }]
+      }],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: ctx => (ctx.parsed.y ?? '—') + ' ' + label } }
+        tooltip: { callbacks: { label: ctx => (ctx.parsed.y ?? '—') + ' ' + label } },
       },
       scales: {
         y: { min: Math.max(0, minVal - padding), max: maxVal + padding, ticks: { font: { size: 10 } } },
-        x: { ticks: { font: { size: 10 }, maxRotation: 30 }, grid: { display: false } }
-      }
-    }
+        x: { ticks: { font: { size: 10 }, maxRotation: 30 }, grid: { display: false } },
+      },
+    },
   });
 }
 
+// ── Основной запрос ────────────────────────────────────────────────────────
 async function runSensitivity() {
   if (shocks.length === 0) {
-    document.getElementById('sa-error').style.display = 'block';
-    document.getElementById('sa-error').textContent   = 'Add at least one shock before running.';
+    document.getElementById('sa-error').style.display  = 'block';
+    document.getElementById('sa-error').textContent    = 'Add at least one shock before running.';
     return;
   }
 
   const btn = document.getElementById('sa-run-btn');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = 'Running...';
   document.getElementById('sa-error').style.display   = 'none';
   document.getElementById('sa-results').style.display = 'none';
@@ -191,18 +212,21 @@ async function runSensitivity() {
     const payload = {
       scenario: document.getElementById('sa-scenario').value,
       year:     +document.getElementById('sa-year').value,
-      shocks:   shocks.map(s => ({
-        param:     s.param,
-        delta_pct: s.param === 'carbon_price' ? 0 : (s.delta_pct ?? 0),
-        value:     s.param === 'carbon_price' ? (s.value ?? 50) : null,
-        label:     buildLabel(s),
-      })),
+      shocks:   shocks.map(s => {
+        const param = SHOCK_PARAMS.find(p => p.value === s.param);
+        return {
+          param:     s.param,
+          delta_pct: param?.unit === 'abs' ? 0 : (s.delta_pct ?? 0),
+          value:     param?.unit === 'abs' ? (s.value ?? 50) : null,
+          label:     buildLabel(s),
+        };
+      }),
     };
 
     const res = await fetch(`${BACKEND}/api/sensitivity`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body:    JSON.stringify(payload),
     });
 
     if (!res.ok) throw new Error('Backend error ' + res.status);
@@ -212,22 +236,45 @@ async function runSensitivity() {
 
     document.getElementById('sa-spinner').style.display  = 'none';
     document.getElementById('sa-results').style.display  = 'block';
-    document.getElementById('sa-ai-output').textContent  = typeof t==='function' ? t( ) : 'Click "Explain results" to get an AI interpretation.';
+    document.getElementById('sa-ai-output').textContent  =
+      typeof t==='function' ? t('lp_ai_hint') : 'Click "Explain results" to get an AI interpretation.';
 
+    // ── Baseline карточки ──────────────────────────────────────────────
     const b = data.baseline;
+
+
     document.getElementById('sa-baseline-cards').innerHTML = `
-      <div class="metric-card"><div class="metric-label">Baseline cost</div><div class="metric-value" style="color:#0F6E56;">${b.total_cost_bn_usd} B$</div><div class="metric-change neutral">USD/yr</div></div>
-      <div class="metric-card"><div class="metric-label">Baseline CO2</div><div class="metric-value" style="color:#D85A30;">${b.total_co2_mt} Mt</div><div class="metric-change neutral">Operational</div></div>
-      <div class="metric-card"><div class="metric-label">Baseline RE share</div><div class="metric-value" style="color:#1D9E75;">${b.re_share_pct}%</div><div class="metric-change neutral">Of generation</div></div>
-      <div class="metric-card"><div class="metric-label">Baseline LCOE</div><div class="metric-value" style="color:#1a2b4a;">${b.lcoe_usd_mwh}</div><div class="metric-change neutral">USD/MWh</div></div>
+      <div class="metric-card">
+        <div class="metric-label">Baseline cost</div>
+        <div class="metric-value" style="color:#0F6E56;">${b.total_cost_bn_usd} B$</div>
+        <div class="metric-change neutral">USD/yr</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Baseline CO₂</div>
+        <div class="metric-value" style="color:#D85A30;">${b.total_co2_mt} Mt</div>
+        <div class="metric-change neutral">Operational</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Baseline RE share</div>
+        <div class="metric-value" style="color:#1D9E75;">${b.re_share_pct}%</div>
+        <div class="metric-change neutral">Of generation</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Baseline LCOE</div>
+        <div class="metric-value" style="color:#1a2b4a;">${b.lcoe_usd_mwh}</div>
+        <div class="metric-change neutral">USD/MWh</div>
+      </div>
     `;
 
+    // ── Таблица шоков ──────────────────────────────────────────────────
     const tbody = document.getElementById('sa-table-body');
     tbody.innerHTML = '';
     data.shocks.forEach(s => {
       const r   = s.result;
       const err = !!r.error;
       const tr  = document.createElement('tr');
+
+
       tr.innerHTML = `
         <td style="font-weight:600;">${s.label}</td>
         <td>${err ? '—' : r.total_cost_bn_usd}</td>
@@ -242,14 +289,24 @@ async function runSensitivity() {
       tbody.appendChild(tr);
     });
 
+    // ── Графики ────────────────────────────────────────────────────────
     const labels   = data.shocks.map(s => s.label);
     const costVals = data.shocks.map(s => s.result.error ? null : s.result.total_cost_bn_usd);
     const co2Vals  = data.shocks.map(s => s.result.error ? null : s.result.total_co2_mt);
     const reVals   = data.shocks.map(s => s.result.error ? null : s.result.re_share_pct);
+    const oilVals  = data.shocks.map(s =>
+      (!s.result.error && s.result.oil_share_pct !== undefined) ? s.result.oil_share_pct : null
+    );
 
     buildBarChart('sa-cost-chart', labels, b.total_cost_bn_usd, costVals, 'B$/yr');
     buildBarChart('sa-co2-chart',  labels, b.total_co2_mt,      co2Vals,  'Mt');
     buildBarChart('sa-re-chart',   labels, b.re_share_pct,      reVals,   '%');
+
+    // Нефтяной график — рендерим только если canvas существует
+    const oilCanvas = document.getElementById('sa-oil-chart');
+    if (oilCanvas && b.oil_share_pct !== undefined) {
+      buildBarChart('sa-oil-chart', labels, b.oil_share_pct, oilVals, '%');
+    }
 
   } catch (err) {
     document.getElementById('sa-spinner').style.display = 'none';
@@ -257,49 +314,62 @@ async function runSensitivity() {
     document.getElementById('sa-error').textContent     = 'Analysis failed: ' + err.message;
   }
 
-  btn.disabled = false;
+  btn.disabled    = false;
   btn.textContent = 'Run sensitivity analysis';
 }
 
+// ── AI объяснение ──────────────────────────────────────────────────────────
 async function explainSensitivity() {
   if (!lastData) return;
   const btn    = document.getElementById('sa-explain-btn');
   const output = document.getElementById('sa-ai-output');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = typeof t==='function' ? t('cb_analyzing') : 'Analyzing...';
   output.textContent = '';
 
   const b = lastData.baseline;
+  const oilBaseline = b.oil_share_pct !== undefined
+    ? `\nBaseline oil share: ${b.oil_share_pct}% (existing 1.2 GW, no new capacity allowed)`
+    : '';
+
   const shockSummary = lastData.shocks
     .filter(s => !s.result.error)
-    .map(s => `${s.label}: cost ${fmtDelta(s.cost_delta_pct)}, CO2 ${fmtDelta(s.co2_delta_pct)}, RE share ${fmtDelta(s.re_delta_ppt, ' pp')}, LCOE ${fmtDelta(s.lcoe_delta_pct)}`)
+    .map(s => {
+      const oilNote = s.result.oil_share_pct !== undefined && b.oil_share_pct !== undefined
+        ? `, oil share Δ${(s.result.oil_share_pct - b.oil_share_pct).toFixed(1)} pp`
+        : '';
+      return `${s.label}: cost ${fmtDelta(s.cost_delta_pct)}, CO₂ ${fmtDelta(s.co2_delta_pct)}, RE ${fmtDelta(s.re_delta_ppt, ' pp')}, LCOE ${fmtDelta(s.lcoe_delta_pct)}${oilNote}`;
+    })
     .join('\n');
 
-  const prompt = `You are a senior energy economist. Analyze a sensitivity analysis of LP optimization results for Kazakhstan's electricity system.
+  const hasOilShock = lastData.shocks.some(s => s.label?.includes('Oil') || s.label?.includes('oil'));
+
+  const prompt = `You are a senior energy economist analyzing sensitivity results for Kazakhstan's electricity system.
 
 Scenario: ${lastData.scenario}, Year: ${lastData.year}
-Baseline: cost=${b.total_cost_bn_usd} B$/yr, CO2=${b.total_co2_mt} Mt, RE share=${b.re_share_pct}%, LCOE=${b.lcoe_usd_mwh} $/MWh
+Baseline: cost=${b.total_cost_bn_usd} B$/yr, CO₂=${b.total_co2_mt} Mt, RE=${b.re_share_pct}%, LCOE=${b.lcoe_usd_mwh} $/MWh${oilBaseline}
 
-Shock results (change vs baseline):
+Shock results (Δ vs baseline):
 ${shockSummary}
 
-Analyze — do not restate numbers, interpret them:
+Kazakhstan context: major oil exporter, oil-fired generation in remote areas (1.2 GW existing, no new capacity by policy), coal dominant (61%), NDC −15%/−25% vs 1990.
 
-1. Most impactful shock: Which single parameter change has the largest effect on system cost and why?
-2. CO2 sensitivity: Which shocks significantly change CO2 emissions and why?
-3. Renewables response: Do RE technology cost reductions actually increase RE share, or are RE penetration caps limiting the response?
-4. Carbon price effectiveness: At what price level does carbon pricing start meaningfully changing the mix?
-5. Risk ranking: Rank the tested shocks from highest to lowest risk for Kazakhstan's energy planning.
+Analyze — interpret, do not restate numbers:
+1. Most impactful shock: which parameter change has the largest system-wide effect and why?
+2. CO₂ sensitivity: which shocks materially change emissions and through what mechanism?
+3. Renewables response: do RE cost reductions actually raise RE share, or are grid/policy caps binding?
+${hasOilShock ? '4. Oil dynamics: how does oil fuel price volatility affect dispatch and system cost — given oil is the most expensive fuel? Does higher oil price push the optimizer toward coal or RE?\n5.' : '4.'} Carbon price effectiveness: at what level does carbon pricing start changing the mix?
+${hasOilShock ? '6.' : '5.'} Risk ranking: rank shocks from highest to lowest risk for Kazakhstan energy planning.
 
-Keep each point to 2-3 sentences. Plain text only, no markdown, number each point.`;
+2-3 sentences per point. Plain text only, no markdown, number each point. Respond in ${getLangName()}.`;
 
   try {
     const response = await fetch(`${BACKEND}/api/claude`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [{ role: 'user', content: prompt }],
-        system: `You are an expert energy economist specializing in Kazakhstan. Plain text only, no markdown, no bullet symbols, number each point. IMPORTANT: Respond in ${getLangName()}.`,
+        system:   `Expert energy economist, Kazakhstan specialist. Plain text, no markdown, number points. Respond in ${getLangName()}.`,
         max_tokens: 1500,
         stream: true,
       }),
@@ -329,8 +399,9 @@ Keep each point to 2-3 sentences. Plain text only, no markdown, number each poin
     output.textContent = 'Analysis failed: ' + err.message;
   }
 
-  btn.disabled = false;
+  btn.disabled    = false;
   btn.textContent = typeof t==='function' ? t('btn_explain') : 'Explain results';
 }
 
+// ── Старт ──────────────────────────────────────────────────────────────────
 loadPreset('price');

@@ -233,6 +233,9 @@ const TRANSLATIONS = {
     btn_explain:          'Explain results',
     lp_scenario_lbl:      'Scenario',
     lp_year_lbl:          'Target year',
+    sa_oil_preset: "Oil price shocks",
+    sa_oil_share:  "Oil share",
+
 
     // Carbon budget
     cb_title:             'Carbon Budget Tracker',
@@ -901,6 +904,8 @@ const TRANSLATIONS = {
     btn_explain:          'Объяснить результаты',
     lp_scenario_lbl:      'Сценарий',
     lp_year_lbl:          'Целевой год',
+    sa_oil_preset: "Шоки цены нефти",
+    sa_oil_share:  "Доля нефти",
 
     cb_title:             'Углеродный бюджет',
     cb_sub:               'NDC · Маршрут IPCC 1.5C/2C · Исчерпание бюджета',
@@ -1562,6 +1567,8 @@ const TRANSLATIONS = {
     btn_explain:          'Нәтижелерді түсіндіру',
     lp_scenario_lbl:      'Сценарий',
     lp_year_lbl:          'Мақсат жылы',
+    sa_oil_preset: "Мұнай бағасы шоктары",
+    sa_oil_share:  "Мұнай үлесі",
 
     cb_title:             'Көміртегі бюджеті',
     cb_sub:               'NDC · IPCC 1.5C/2C маршруты · Бюджеттің таусылуы',
