@@ -15,7 +15,12 @@
       padding: 24px;
       min-height: 100vh;
       box-sizing: border-box;
-      width: calc(100% - 220px);
+
+      max-width: 1200px;
+      width: 100%;
+
+      margin-right: auto;
+      margin-left: auto;
     }
     #energy-map {
       width: 100%;
@@ -148,7 +153,7 @@
 
     <div class="map-controls" style="margin-top:16px;">
       <span class="section-label" data-i18n="map_scenario_lbl">Scenario:</span>
-      <button class="sc-btn active" onclick="setScenario('current',this)" data-i18n="map_current">Current (2023)</button>
+      <button class="sc-btn active" onclick="setScenario('current',this)" data-i18n="map_current">Current </button>
       <button class="sc-btn" onclick="setScenario('BAU',this)">BAU</button>
       <button class="sc-btn" onclick="setScenario('MT',this)" data-i18n="map_moderate">Moderate Transition</button>
       <button class="sc-btn" onclick="setScenario('DD',this)" data-i18n="map_deep">Deep Decarbonization</button>
@@ -353,7 +358,7 @@ setTimeout(() => map.invalidateSize(), 300);
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   applyTranslations();
-  // Re-render on lang change
+  
   const origSetLang = window.setLang;
   window.setLang = function(lang) {
     origSetLang(lang);
