@@ -3,12 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
+from pathlib import Path
 import json
 import os
 from dotenv import load_dotenv
-
+ 
 load_dotenv()
-
+ 
 from leap_model import run_scenario, get_historical_data, compare_scenarios, SCENARIOS
 from lp_optimizer import run_lp_optimization, TECHNOLOGIES, DISCOUNT_RATE
 from sensitivity import run_sensitivity_analysis
@@ -18,33 +19,44 @@ from database import init_db, SessionLocal, User, LoginLog, VerificationCode, Da
 from email_service import generate_code, send_verification_email
 from datetime import datetime
 import httpx
-
+ 
 init_db()
-
+ 
 app = FastAPI(
     title="KZLEAP API",
     description="Kazakhstan Energy Forecasting Platform — Backend API",
     version="1.0.0",
 )
-
+ 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+ 
+# ── uploads dir (нужен до регистрации what_if router) ────────────────────────
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+ 
+# ── What-If Analyzer router ───────────────────────────────────────────────────
+import what_if as _wi_module
+_wi_module.UPLOAD_DIR = Path(UPLOAD_DIR)   # синхронизируем путь с upload эндпоинтом
+from what_if import router as whatif_router
+app.include_router(whatif_router)
+# ─────────────────────────────────────────────────────────────────────────────
+ 
 from pydantic import BaseModel as PydanticBase
-
+ 
 class LoginRequest(PydanticBase):
     email: str
     password: str
-
+ 
 class ScenarioRunRequest(BaseModel):
     scenario: str = "BAU"
     start_year: int = 2024
     end_year: int = 2060
-
+ 
 class LPRequest(BaseModel):
     scenario: str = "MT"
     year: int = 2035
@@ -52,7 +64,7 @@ class LPRequest(BaseModel):
     renewables_target: float = 0.15
     co2_budget_mt: Optional[float] = None
     nuclear_available_gw: float = 0.0
-
+ 
 class CustomScenarioRequest(PydanticBase):
     name: str = "Custom"
     base: str = "MT"
@@ -69,7 +81,6 @@ class CustomScenarioRequest(PydanticBase):
     income_elasticity: float = 0.6
     start_year: int = 2024
     end_year: int = 2060
-
 @app.get("/health")
 def root():
     return {"platform": "KZLEAP", "version": "1.0", "status": "running"}
