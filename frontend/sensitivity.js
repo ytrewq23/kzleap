@@ -186,7 +186,7 @@ function buildBarChart(canvasId, labels, baselineVal, shockVals, label) {
         tooltip: { callbacks: { label: ctx => (ctx.parsed.y ?? '—') + ' ' + label } },
       },
       scales: {
-        y: { min: Math.max(0, minVal - padding), max: maxVal + padding, ticks: { font: { size: 10 } } },
+        y: { min: 0, max: maxVal + padding, ticks: { font: { size: 10 } } },
         x: { ticks: { font: { size: 10 }, maxRotation: 30 }, grid: { display: false } },
       },
     },
