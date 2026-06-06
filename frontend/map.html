@@ -24,8 +24,8 @@
     }
     #energy-map {
       width: 100%;
-      height: 62vh;
-      min-height: 440px;
+      height: 72vh;
+      min-height: 500px;
       border-radius: 12px;
       border: 1px solid #e0e4e8;
       margin-top: 12px;
@@ -78,6 +78,32 @@
       border-style: dashed;
       box-shadow: 0 0 0 3px rgba(255,255,255,.4), 0 2px 8px rgba(0,0,0,.2);
     }
+    .topbar {
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar h2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.topbar p {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
   </style>
   <style>
     .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
@@ -127,31 +153,31 @@
     </div>
   </div>
 
-  <div class="main-content">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-      <div class="lang-switcher">
-        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
-        <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
-        <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
-        <button id="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid #d1d5db;background:transparent;cursor:pointer;color:#374151;transition:all 0.2s;">
-  <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="4"/>
-    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-  </svg>
-  <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-  </svg>
-</button>
-      </div>
+  <div class="main">
+    <div class="topbar">
+  <div>
+    <h2 data-i18n="map_title">Kazakhstan Energy Map</h2>
+    <p data-i18n="map_sub">Interactive map of power plants — switch scenarios to see projected new capacity by 2035</p>
+  </div>
+  <div class="topbar-right">
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
+      <button id="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid #d1d5db;background:transparent;cursor:pointer;color:#374151;transition:all 0.2s;">
+        <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
     </div>
-    <div class="page-header">
-      <h1 style="margin:0 0 4px;" data-i18n="map_title">Kazakhstan Energy Map</h1>
-      <p style="color:#6b7a8d;margin:0;font-size:14px;">
-        <span data-i18n="map_sub">Interactive map of power plants — switch scenarios to see projected new capacity by 2035</span>
-      </p>
-    </div>
+  </div>
+</div>
 
-    <div class="map-controls" style="margin-top:16px;">
+    <div class="map-controls" style="margin-top:16px; padding-left:24px;">
       <span class="section-label" data-i18n="map_scenario_lbl">Scenario:</span>
       <button class="sc-btn active" onclick="setScenario('current',this)" data-i18n="map_current">Current </button>
       <button class="sc-btn" onclick="setScenario('BAU',this)">BAU</button>
@@ -159,7 +185,7 @@
       <button class="sc-btn" onclick="setScenario('DD',this)" data-i18n="map_deep">Deep Decarbonization</button>
     </div>
 
-    <div class="map-controls">
+    <div class="map-controls" style="padding-left:24px;">
       <span class="section-label" data-i18n="map_filter_lbl">Filter:</span>
       <button class="filt-btn active" onclick="toggleFilter('coal',this)"><span class="fdot" style="background:#4a4a4a"></span>Coal</button>
       <button class="filt-btn active" onclick="toggleFilter('gas',this)"><span class="fdot" style="background:#EF9F27"></span>Gas</button>
