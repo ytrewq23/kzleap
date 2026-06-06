@@ -28,7 +28,8 @@ def run_sensitivity_analysis(
         techs_local = copy.deepcopy(technologies)
         for key, val in tech_overrides.items():
             t, param = key.split(".", 1)
-            techs_local[t][param] = val
+            if t in techs_local:
+                techs_local[t][param] = val
 
         prob    = pulp.LpProblem(f"SA_{uid}", pulp.LpMinimize)
         techs   = list(techs_local.keys())
@@ -37,7 +38,7 @@ def run_sensitivity_analysis(
 
         cost_terms = []
         for t in techs:
-            p = techs_local[t]
+            p         = techs_local[t]
             var_cost  = (p["vopex_mwh"] + p["fuel_cost_gj"] * p["heat_rate_gj_mwh"] * 1000) * 1_000_000
             ann_capex = p["capex_mw"] * (discount_rate / (1 - (1 + discount_rate) ** -p["lifetime_yr"]))
             fix_cost  = (ann_capex + p["fopex_mw_yr"]) * 1000
@@ -64,6 +65,11 @@ def run_sensitivity_analysis(
             prob += cap_new["nuclear"] == 0, "No_Nuc_New"
             prob += gen["nuclear"]     == 0, "No_Nuc_Gen"
 
+        # Oil: только существующие мощности, новые не строятся
+        if "oil" in techs_local:
+            prob += cap_new["oil"] == 0,          "Oil_No_New"
+            prob += gen["oil"]     <= 0.08 * total, "Oil_Max"
+
         prob += gen["hydro"]   <= 0.15 * total, "Hydro_Max"
         prob += gen["nuclear"] <= 0.20 * total, "Nuclear_Max"
 
@@ -76,14 +82,14 @@ def run_sensitivity_analysis(
             prob += pulp.lpSum(gen[t] for t in re_techs) <= re_ceiling * total, "RE_Max"
             prob += gen["solar"] <= solar_ceil * total, "Solar_Max"
             prob += gen["wind"]  <= wind_ceil  * total, "Wind_Max"
-            prob += gen["coal"] >= coal_floor * total, "Coal_Min"
-            prob += gen["gas"]  >= gas_floor  * total, "Gas_Min"
+            prob += gen["coal"]  >= coal_floor * total, "Coal_Min"
+            prob += gen["gas"]   >= gas_floor  * total, "Gas_Min"
         else:
             prob += pulp.lpSum(gen[t] for t in re_techs) <= 0.70 * total, "RE_Max"
             prob += gen["solar"] <= 0.35 * total, "Solar_Max"
             prob += gen["wind"]  <= 0.25 * total, "Wind_Max"
-            prob += gen["coal"] >= 0.10 * total, "Coal_Min"
-            prob += gen["gas"]  >= 0.08 * total, "Gas_Min"
+            prob += gen["coal"]  >= 0.10 * total, "Coal_Min"
+            prob += gen["gas"]   >= 0.08 * total, "Gas_Min"
 
         prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
@@ -93,6 +99,12 @@ def run_sensitivity_analysis(
         tot     = sum(pulp.value(gen[t]) or 0 for t in techs)
         co2_tot = sum((pulp.value(gen[t]) or 0) * techs_local[t]["co2_factor_t_mwh"] for t in techs)
         re_gen  = sum((pulp.value(gen[t]) or 0) for t in re_techs)
+        oil_gen = (pulp.value(gen["oil"]) or 0) if "oil" in techs_local else 0.0
+        fossil_gen = sum(
+            (pulp.value(gen[t]) or 0)
+            for t in ("coal", "gas", "oil")
+            if t in techs_local
+        )
 
         mix = {}
         for t in techs:
@@ -107,25 +119,32 @@ def run_sensitivity_analysis(
         return {
             "total_cost_bn_usd": round(pulp.value(prob.objective) / 1e9, 3),
             "total_co2_mt":      round(co2_tot, 2),
-            "re_share_pct":      round(re_gen / tot * 100, 1) if tot > 0 else 0,
+            "re_share_pct":      round(re_gen    / tot * 100, 1) if tot > 0 else 0,
+            "oil_share_pct":     round(oil_gen   / tot * 100, 1) if tot > 0 else 0,
+            "fossil_share_pct":  round(fossil_gen / tot * 100, 1) if tot > 0 else 0,
             "lcoe_usd_mwh":      round(pulp.value(prob.objective) / (tot * 1e6), 2) if tot > 0 else 0,
             "total_gen_twh":     round(tot, 1),
             "mix":               mix,
         }
 
+    # ── Маппинг параметров шоков → (технология, поле) ──────────────────────
     PARAM_MAP = {
-        "gas_fuel_cost":  ("gas",   "fuel_cost_gj"),
-        "coal_fuel_cost": ("coal",  "fuel_cost_gj"),
-        "solar_capex":    ("solar", "capex_mw"),
-        "wind_capex":     ("wind",  "capex_mw"),
+        "gas_fuel_cost":  ("gas",     "fuel_cost_gj"),
+        "coal_fuel_cost": ("coal",    "fuel_cost_gj"),
+        "oil_fuel_cost":  ("oil",     "fuel_cost_gj"),   # нефть
+        "solar_capex":    ("solar",   "capex_mw"),
+        "wind_capex":     ("wind",    "capex_mw"),
         "nuclear_capex":  ("nuclear", "capex_mw"),
-        "coal_capex":     ("coal",  "capex_mw"),
+        "coal_capex":     ("coal",    "capex_mw"),
+        "oil_capex":      ("oil",     "capex_mw"),        # нефть
     }
 
+    # ── Baseline ────────────────────────────────────────────────────────────
     baseline = _solve({}, base_demand_twh)
     if baseline is None:
         return {"error": "Baseline LP infeasible"}
 
+    # ── Шоки ────────────────────────────────────────────────────────────────
     results = []
     for shock in shocks:
         param     = shock["param"]
@@ -146,6 +165,9 @@ def run_sensitivity_analysis(
 
         elif param in PARAM_MAP:
             t, field = PARAM_MAP[param]
+            # Если технологии нет в словаре (например, oil не добавлен) — пропускаем
+            if t not in technologies:
+                continue
             base_val = technologies[t][field]
             new_val  = base_val * (1 + delta_pct / 100)
             result   = _solve({f"{t}.{field}": new_val}, base_demand_twh, relax_fossil_floors=True)
@@ -156,16 +178,28 @@ def run_sensitivity_analysis(
         if result is None:
             result = {"error": "infeasible"}
 
-        co2_base = baseline["total_co2_mt"]
+        co2_base  = baseline["total_co2_mt"]
+        lcoe_base = baseline["lcoe_usd_mwh"]
+
+        # Дельта по нефти (pp)
+        oil_delta_ppt = None
+        if "error" not in result and "oil_share_pct" in result and "oil_share_pct" in baseline:
+            oil_delta_ppt = round(result["oil_share_pct"] - baseline["oil_share_pct"], 1)
+
         results.append({
-            "param":     param,
-            "delta_pct": delta_pct,
-            "label":     shock.get("label", f"{param} {delta_pct:+.0f}%"),
-            "result":    result,
-            "cost_delta_pct": round((result.get("total_cost_bn_usd", 0) / baseline["total_cost_bn_usd"] - 1) * 100, 1) if "error" not in result else None,
-            "co2_delta_pct":  round((result.get("total_co2_mt", 0) / co2_base - 1) * 100, 1) if "error" not in result and co2_base > 0 else None,
-            "re_delta_ppt":   round(result.get("re_share_pct", 0) - baseline["re_share_pct"], 1) if "error" not in result else None,
-            "lcoe_delta_pct": round((result.get("lcoe_usd_mwh", 0) / baseline["lcoe_usd_mwh"] - 1) * 100, 1) if "error" not in result and baseline["lcoe_usd_mwh"] > 0 else None,
+            "param":          param,
+            "delta_pct":      delta_pct,
+            "label":          shock.get("label", f"{param} {delta_pct:+.0f}%"),
+            "result":         result,
+            "cost_delta_pct": round((result.get("total_cost_bn_usd", 0) / baseline["total_cost_bn_usd"] - 1) * 100, 1)
+                              if "error" not in result else None,
+            "co2_delta_pct":  round((result.get("total_co2_mt", 0) / co2_base - 1) * 100, 1)
+                              if "error" not in result and co2_base > 0 else None,
+            "re_delta_ppt":   round(result.get("re_share_pct", 0) - baseline["re_share_pct"], 1)
+                              if "error" not in result else None,
+            "oil_delta_ppt":  oil_delta_ppt,
+            "lcoe_delta_pct": round((result.get("lcoe_usd_mwh", 0) / lcoe_base - 1) * 100, 1)
+                              if "error" not in result and lcoe_base > 0 else None,
         })
 
     return {
