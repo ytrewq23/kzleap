@@ -22,6 +22,8 @@ const TRANSLATIONS = {
     nav_energy_map: 'Energy Map',
     nav_country_comparison: 'Country Comparison',
     nav_investment: 'Investment Calc',
+    
+
 
     //login
     login_title:        'Sign in',
@@ -322,6 +324,10 @@ const TRANSLATIONS = {
     whatif_co2_traj:         'CO₂ trajectory 2024–2060',
     whatif_vs_bau:           'Your scenario vs BAU baseline',
     whatif_invest_breakdown: 'Investment breakdown (Billion USD)',
+    whatif_coal_free:   'Clean generation by 2050',
+    wi_coal_free_sub:   "share of non-coal electricity",
+    whatif_neutrality: "Neutrality target",
+    wi_neutrality_sub: "carbon neutrality target year",
 
     // Smart Analysis
     smart_title:          'Smart Scenario Analysis',
@@ -353,6 +359,15 @@ const TRANSLATIONS = {
     col_new_cap:          'New capacity (GW)',
     col_co2_ops:          'CO2 operational (Mt)',
     col_co2_lc:           'CO2 lifecycle (Mt)',
+    tech_coal:    "Coal",
+    tech_gas:     "Natural Gas",
+    tech_oil:     "Oil / Fuel Oil",
+    tech_hydro:   "Hydro",
+    tech_wind:    "Wind",
+    tech_solar:   "Solar PV",
+    tech_nuclear: "Nuclear",
+    lp_oil_share: "Oil share",
+    lp_ai_hint:   "Click \"Explain results\" to get an AI interpretation of this optimization.",
 
     // Common
     delete_title:         'Delete Account',
@@ -973,6 +988,10 @@ const TRANSLATIONS = {
     whatif_co2_traj:         'Траектория CO₂ 2024–2060',
     whatif_vs_bau:           'Ваш сценарий vs BAU',
     whatif_invest_breakdown: 'Распределение инвестиций (Млрд USD)',
+    whatif_coal_free:   "Чистая генерация к 2050",
+    wi_coal_free_sub:   "доля безугольной электроэнергии",
+    whatif_neutrality: "Цель нейтральности",
+    wi_neutrality_sub: "год углеродной нейтральности",
 
     smart_title:          'Умный анализ сценариев',
     smart_sub:            'Опишите цель на естественном языке — ИИ запустит LP оптимизации и сравнит результаты',
@@ -1002,6 +1021,17 @@ const TRANSLATIONS = {
     col_new_cap:          'Новая мощность (ГВт)',
     col_co2_ops:          'CO2 операц. (Мт)',
     col_co2_lc:           'CO2 жизн. цикл (Мт)',
+
+
+    tech_coal:    "Уголь",
+    tech_gas:     "Природный газ",
+    tech_oil:     "Нефть / Мазут",
+    tech_hydro:   "ГЭС",
+    tech_wind:    "Ветер",
+    tech_solar:   "Солнечная СЭС",
+    tech_nuclear: "Ядерная",
+    lp_oil_share: "Доля нефти",
+    lp_ai_hint:   "Нажмите «Объяснить результаты» для AI-интерпретации оптимизации.",
 
     delete_title:         'Удалить аккаунт',
     delete_desc:          'Это действие нельзя отменить. Введите пароль для подтверждения.',
@@ -1619,6 +1649,10 @@ const TRANSLATIONS = {
     whatif_co2_traj:         'CO₂ траекториясы 2024–2060',
     whatif_vs_bau:           'Сіздің сценарийыңыз BAU-мен',
     whatif_invest_breakdown: 'Инвестициялардың бөлінуі (Млрд USD)',
+    whatif_coal_free:   "Таза генерация 2050-ге",
+    wi_coal_free_sub:   "көмірсіз электр үлесі",
+    whatif_neutrality: "Бейтараптық мақсаты",
+    wi_neutrality_sub: "көміртек бейтараптығы жылы",
 
     smart_title:          'Ақылды сценарий талдауы',
     smart_sub:            'Мақсатты қарапайым тілінде жазыңыз — ЖИ LP оптимизациялар іске қосады',
@@ -1648,6 +1682,15 @@ const TRANSLATIONS = {
     col_new_cap:          'Жаңа қуат (ГВт)',
     col_co2_ops:          'CO2 операц. (Мт)',
     col_co2_lc:           'CO2 өм. цикл (Мт)',
+    tech_coal:    "Көмір",
+    tech_gas:     "Табиғи газ",
+    tech_oil:     "Мұнай / Мазут",
+    tech_hydro:   "СЭС",
+    tech_wind:    "Жел",
+    tech_solar:   "Күн электр станциясы",
+    tech_nuclear: "Ядролық",
+    lp_oil_share: "Мұнай үлесі",
+    lp_ai_hint:   "AI түсіндірмесін алу үшін «Нәтижелерді түсіндіру» батырмасын басыңыз.",
 
     delete_title:         'Жазбасанды жою',
     delete_desc:          'Бұл әрекетті болдырмау мүмкін емес. Растау үшін құпия сөзді енгізіңіз.',
