@@ -416,11 +416,6 @@ function renderCTKPICards(data) {
       <div class="metric-value" style="color:#534AB7;">${data.ann_reduction_rate_2030}%</div>
       <div class="metric-change neutral">${typeof t==="function"?t("cb_per_year"):"per year vs 1990 baseline"}</div>
     </div>
-    <div class="metric-card">
-      <div class="metric-label">${typeof t==="function"?t("cb_compat_sc"):"Compatible scenarios"}</div>
-      <div class="metric-value" style="font-size:14px;color:#0F6E56;">${compat_list}</div>
-      <div class="metric-change neutral">${typeof t==="function"?t("cb_meet_target"):"Meet target at all milestones"}</div>
-    </div>
   `;
 }
 
@@ -485,7 +480,11 @@ function renderCTBudgetChart(data) {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } },
       scales: {
-        y: { ticks: { callback: v => v + ' Mt', font: { size: 9 } } },
+        y: {
+          min: 0,
+          max: 8000,
+          ticks: { callback: v => v + ' Mt', font: { size: 9 } }
+        },
         x: { ticks: { font: { size: 10 } }, grid: { display: false } }
       }
     }
@@ -501,9 +500,8 @@ function renderCTGapsTable(data) {
   Object.entries(data.scenario_gaps).forEach(([sc, info]) => {
     const tr = document.createElement('tr');
     const compat = info.compatible
-      `<span style="color:#1D9E75;font-weight:600;">${typeof t==="function"?t("cb_compatible"):"✓ Compatible"}</span>`
-      `<span style="color:#D85A30;font-weight:600;">${typeof t==="function"?t("cb_exceeds"):"✗ Exceeds target"}</span>`;
-
+      ? `<span style="color:#1D9E75;font-weight:600;">${typeof t==="function"?t("cb_compatible"):"✓ Compatible"}</span>`
+      : `<span style="color:#D85A30;font-weight:600;">${typeof t==="function"?t("cb_exceeds"):"✗ Exceeds target"}</span>`;
     const gapCell = (yr) => {
       const g = info.gaps[yr];
       if (!g) return '<td style="color:#888;">—</td>';
