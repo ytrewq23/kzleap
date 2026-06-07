@@ -58,38 +58,38 @@ def run_sensitivity_analysis(
             prob += gen[t] <= (base + cap_new[t]) * p["cf"] * 8760 / 1000, f"Cap_{t}"
 
         re_techs = ["wind", "solar", "hydro"]
+        # RE minimum — scenario target
         prob += pulp.lpSum(gen[t] for t in re_techs) >= renewables_target * total, "RE_Min"
         prob += cap_new["hydro"] <= 1.0, "Hydro_Exp"
+        prob += gen["hydro"]   <= 0.15 * total, "Hydro_Max"
+        prob += gen["nuclear"] <= 0.20 * total, "Nuclear_Max"
 
         if nuclear_available_gw == 0.0:
             prob += cap_new["nuclear"] == 0, "No_Nuc_New"
             prob += gen["nuclear"]     == 0, "No_Nuc_Gen"
 
-        # Oil: только существующие мощности, новые не строятся
         if "oil" in techs_local:
-            prob += cap_new["oil"] == 0,          "Oil_No_New"
+            prob += cap_new["oil"] == 0,           "Oil_No_New"
             prob += gen["oil"]     <= 0.08 * total, "Oil_Max"
 
-        prob += gen["hydro"]   <= 0.15 * total, "Hydro_Max"
-        prob += gen["nuclear"] <= 0.20 * total, "Nuclear_Max"
-
         if relax_fossil_floors:
-            re_ceiling = min(0.85 + carbon_price_usd_t / 300, 0.92)
-            solar_ceil = min(0.50 + carbon_price_usd_t / 500, 0.60)
-            wind_ceil  = min(0.40 + carbon_price_usd_t / 600, 0.50)
+            # No single RE ceiling — let LP freely choose between solar/wind/nuclear
+            # based on their individual costs after the shock.
+            # Only limit each technology separately to realistic grid constraints.
+            prob += gen["solar"] <= 0.45 * total, "Solar_Max"
+            prob += gen["wind"]  <= 0.35 * total, "Wind_Max"
+            # Fossil floors — relax with carbon price
             coal_floor = max(0.05 - carbon_price_usd_t / 800,  0.01)
             gas_floor  = max(0.05 - carbon_price_usd_t / 1200, 0.01)
-            prob += pulp.lpSum(gen[t] for t in re_techs) <= re_ceiling * total, "RE_Max"
-            prob += gen["solar"] <= solar_ceil * total, "Solar_Max"
-            prob += gen["wind"]  <= wind_ceil  * total, "Wind_Max"
-            prob += gen["coal"]  >= coal_floor * total, "Coal_Min"
-            prob += gen["gas"]   >= gas_floor  * total, "Gas_Min"
+            prob += gen["coal"] >= coal_floor * total, "Coal_Min"
+            prob += gen["gas"]  >= gas_floor  * total, "Gas_Min"
         else:
-            prob += pulp.lpSum(gen[t] for t in re_techs) <= 0.70 * total, "RE_Max"
-            prob += gen["solar"] <= 0.35 * total, "Solar_Max"
-            prob += gen["wind"]  <= 0.25 * total, "Wind_Max"
-            prob += gen["coal"]  >= 0.10 * total, "Coal_Min"
-            prob += gen["gas"]   >= 0.08 * total, "Gas_Min"
+            # Standard run — cap total RE for baseline
+            prob += pulp.lpSum(gen[t] for t in re_techs) <= 0.85 * total, "RE_Max"
+            prob += gen["solar"] <= 0.45 * total, "Solar_Max"
+            prob += gen["wind"]  <= 0.35 * total, "Wind_Max"
+            prob += gen["coal"]  >= 0.05 * total, "Coal_Min"
+            prob += gen["gas"]   >= 0.05 * total, "Gas_Min"
 
         prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
@@ -131,16 +131,16 @@ def run_sensitivity_analysis(
     PARAM_MAP = {
         "gas_fuel_cost":  ("gas",     "fuel_cost_gj"),
         "coal_fuel_cost": ("coal",    "fuel_cost_gj"),
-        "oil_fuel_cost":  ("oil",     "fuel_cost_gj"),   # нефть
+        "oil_fuel_cost":  ("oil",     "fuel_cost_gj"),
         "solar_capex":    ("solar",   "capex_mw"),
         "wind_capex":     ("wind",    "capex_mw"),
         "nuclear_capex":  ("nuclear", "capex_mw"),
         "coal_capex":     ("coal",    "capex_mw"),
-        "oil_capex":      ("oil",     "capex_mw"),        # нефть
+        "oil_capex":      ("oil",     "capex_mw"),
     }
 
     # ── Baseline ────────────────────────────────────────────────────────────
-    baseline = _solve({}, base_demand_twh)
+    baseline = _solve({}, base_demand_twh, relax_fossil_floors=False)
     if baseline is None:
         return {"error": "Baseline LP infeasible"}
 
@@ -165,12 +165,15 @@ def run_sensitivity_analysis(
 
         elif param in PARAM_MAP:
             t, field = PARAM_MAP[param]
-            # Если технологии нет в словаре (например, oil не добавлен) — пропускаем
             if t not in technologies:
                 continue
             base_val = technologies[t][field]
             new_val  = base_val * (1 + delta_pct / 100)
-            result   = _solve({f"{t}.{field}": new_val}, base_demand_twh, relax_fossil_floors=True)
+            result   = _solve(
+                {f"{t}.{field}": new_val},
+                base_demand_twh,
+                relax_fossil_floors=True,
+            )
 
         else:
             continue
@@ -181,7 +184,6 @@ def run_sensitivity_analysis(
         co2_base  = baseline["total_co2_mt"]
         lcoe_base = baseline["lcoe_usd_mwh"]
 
-        # Дельта по нефти (pp)
         oil_delta_ppt = None
         if "error" not in result and "oil_share_pct" in result and "oil_share_pct" in baseline:
             oil_delta_ppt = round(result["oil_share_pct"] - baseline["oil_share_pct"], 1)
