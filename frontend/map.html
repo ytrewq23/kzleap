@@ -141,17 +141,30 @@
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
 <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
 <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calc</span></a>
-  </nav>
-    <div class="sidebar-user" style="background: #0c447c;">
-      <div class="user-avatar" id="user-avatar">--</div>
-      <div style="flex:1; overflow:hidden;">
-        <div class="user-name" id="user-name">Loading...</div>
-        <div class="user-role" id="user-role">—</div>
-      </div>
-      <button onclick="window.location.href='index.html'" title="Logout"
-        style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.5;font-size:16px;">↩</button>
-    </div>
+  
+    <<div class="sidebar-user">
+  <div class="user-avatar" id="user-avatar">AB</div>
+  <div style="flex:1;">
+    <div class="user-name" id="user-name">Ali B.</div>
+    <div class="user-role" id="user-role">Energy Analyst</div>
   </div>
+  <button onclick="confirmDelete()" title="Delete Account" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+      <path d="M10 11v6M14 11v6"></path>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+    </svg>
+  </button>
+  <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+      <polyline points="16 17 21 12 16 7"></polyline>
+      <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+  </a>
+</div>
+</div>
 
   <div class="main">
     <div class="topbar">
@@ -179,7 +192,7 @@
 
     <div class="map-controls" style="margin-top:16px; padding-left:24px;">
       <span class="section-label" data-i18n="map_scenario_lbl">Scenario:</span>
-      <button class="sc-btn active" onclick="setScenario('current',this)" data-i18n="map_current">Current </button>
+      <button class="sc-btn active" onclick="setScenario('current',this)" data-i18n="map_current">Current</button>
       <button class="sc-btn" onclick="setScenario('BAU',this)">BAU</button>
       <button class="sc-btn" onclick="setScenario('MT',this)" data-i18n="map_moderate">Moderate Transition</button>
       <button class="sc-btn" onclick="setScenario('DD',this)" data-i18n="map_deep">Deep Decarbonization</button>

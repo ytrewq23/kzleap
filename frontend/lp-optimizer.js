@@ -16,6 +16,27 @@ badge.textContent = badgeStyles[user.role].text;
 badge.style.background = badgeStyles[user.role].bg;
 badge.style.color = badgeStyles[user.role].color;
 
+function confirmDelete() {
+  document.getElementById('delete-modal').style.display = 'flex';
+  document.getElementById('delete-password').value = '';
+  document.getElementById('delete-error').style.display = 'none';
+}
+function closeDeleteModal() {
+  document.getElementById('delete-modal').style.display = 'none';
+}
+async function deleteAccount() {
+  const password = document.getElementById('delete-password').value.trim();
+  const error = document.getElementById('delete-error');
+  error.style.display = 'none';
+  if (!password) { error.textContent = 'Please enter your password.'; error.style.display = 'block'; return; }
+  try {
+    const res = await fetch(`${BACKEND}/api/delete-account`, { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: user.email, password }) });
+    const data = await res.json();
+    if (!res.ok) { error.textContent = data.detail || 'Failed.'; error.style.display = 'block'; return; }
+    sessionStorage.clear(); window.location.href = 'index.html';
+  } catch { error.textContent = 'Cannot connect to server.'; error.style.display = 'block'; }
+}
+
 function showBackendBadge(connected) {
   const el = document.getElementById('backend-badge');
   if (!el) return;

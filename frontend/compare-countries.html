@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dashboard.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-  <!-- translations MUST load before any JS that calls t() -->
   <script src="translations.js"></script>
   <style>
     .main { padding: 28px 32px; }
@@ -15,32 +14,15 @@
     .topbar h2 { margin:0 0 4px; font-size:22px; color:#1a2332; }
     .topbar p  { margin:0; font-size:13px; color:#6b7a8d; }
     .badge { padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; background:#e1f5ee; color:#085041; }
-
-    /* Country selector */
     .country-selector { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:24px; align-items:center; }
     .country-selector span { font-size:12px; font-weight:600; color:#6b7a8d; text-transform:uppercase; letter-spacing:.05em; }
-    .ctry-btn {
-      display:flex; align-items:center; gap:8px;
-      padding:7px 16px; border-radius:8px;
-      border:1.5px solid #e0e4e8; background:#fff;
-      cursor:pointer; font-size:13px; font-weight:500;
-      color:#444; transition:all .15s; font-family:inherit;
-    }
+    .ctry-btn { display:flex; align-items:center; gap:8px; padding:7px 16px; border-radius:8px; border:1.5px solid #e0e4e8; background:#fff; cursor:pointer; font-size:13px; font-weight:500; color:#444; transition:all .15s; font-family:inherit; }
     .ctry-btn:hover { border-color:#378ADD; color:#185FA5; }
     .ctry-btn.active { border-color:#1D9E75; background:#e1f5ee; color:#0F6E56; }
     .ctry-flag { font-size:18px; line-height:1; }
-
-    /* Metric cards row */
-    .metric-compare-grid {
-      display:grid; grid-template-columns: repeat(5,1fr);
-      gap:12px; margin-bottom:24px;
-    }
+    .metric-compare-grid { display:grid; grid-template-columns: repeat(5,1fr); gap:12px; margin-bottom:24px; }
     @media(max-width:1100px){ .metric-compare-grid{ grid-template-columns:repeat(3,1fr); } }
-    .mc-card {
-      background:#fff; border:1px solid #e8ecf0;
-      border-radius:12px; padding:14px 16px;
-      border-top:3px solid #e8ecf0;
-    }
+    .mc-card { background:#fff; border:1px solid #e8ecf0; border-radius:12px; padding:14px 16px; border-top:3px solid #e8ecf0; }
     .mc-flag  { font-size:22px; margin-bottom:6px; }
     .mc-name  { font-size:11px; font-weight:600; color:#6b7a8d; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
     .mc-val   { font-size:20px; font-weight:700; color:#1a2332; }
@@ -50,8 +32,6 @@
     .badge-amber { background:#fef3cd; color:#856404; }
     .badge-red   { background:#faece7; color:#993C1D; }
     .badge-blue  { background:#e6f1fb; color:#185FA5; }
-
-    /* Charts grid */
     .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:24px; }
     @media(max-width:900px){ .charts-grid{ grid-template-columns:1fr; } }
     .chart-card { background:#fff; border:1px solid #e8ecf0; border-radius:12px; padding:18px 20px; }
@@ -60,8 +40,6 @@
     .cc-sub   { font-size:12px; color:#6b7a8d; margin-bottom:14px; }
     .chart-wrap { height:240px; position:relative; }
     .chart-wrap-tall { height:300px; position:relative; }
-
-    /* Insight cards */
     .insights-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
     @media(max-width:900px){ .insights-row{ grid-template-columns:1fr; } }
     .insight-card { background:#fff; border:1px solid #e8ecf0; border-radius:12px; padding:16px 18px; }
@@ -70,8 +48,6 @@
     .insight-text  { font-size:13px; color:#6b7a8d; line-height:1.55; }
     .highlight { color:#1D9E75; font-weight:600; }
     .highlight-red { color:#D85A30; font-weight:600; }
-  </style>
-  <style>
     .lang-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
     .lang-btn{padding:3px 8px;font-size:11px;font-weight:600;border:1px solid #d0d7e2;border-radius:4px;background:transparent;color:#4a5568;cursor:pointer;transition:all 0.15s;}
     .lang-btn:hover{background:#f0f4f8;color:#1a2b4a;}
@@ -105,15 +81,31 @@
       <a href="sensitivity.html" class="nav-item"><span class="nav-icon">◬</span> <span data-i18n="nav_sensitivity">Sensitivity Analysis</span></a>
       <a href="carbon-budget.html" class="nav-item"><span class="nav-icon">◉</span> <span data-i18n="nav_carbon_budget">Carbon Budget</span></a>
       <a href="map.html" class="nav-item"><span class="nav-icon">🗺</span> <span data-i18n="nav_energy_map">Energy Map</span></a>
-      <a href="compare-countries.html" class="nav-item"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
+      <a href="compare-countries.html" class="nav-item active"><span class="nav-icon">⊞</span> <span data-i18n="nav_country_comparison">Country Comparison</span></a>
       <a href="investment-calculator.html" class="nav-item"><span class="nav-icon">⬡</span> <span data-i18n="nav_investment">Investment Calculator</span></a>
-    </nav>
+   
+
     <div class="sidebar-user">
-      <div class="user-avatar" id="user-avatar">--</div>
+      <div class="user-avatar" id="user-avatar">AB</div>
       <div style="flex:1;">
-        <div class="user-name" id="user-name">User</div>
-        <div class="user-role" id="user-role">—</div>
+        <div class="user-name" id="user-name">Ali B.</div>
+        <div class="user-role" id="user-role">Energy Analyst</div>
       </div>
+      <button onclick="confirmDelete()" title="Delete Account" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+          <path d="M10 11v6M14 11v6"></path>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+        </svg>
+      </button>
+      <a href="index.html" title="Logout" style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </a>
     </div>
   </div>
 
@@ -128,19 +120,18 @@
         <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
         <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KK</button>
         <button id="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid #d1d5db;background:transparent;cursor:pointer;color:#374151;transition:all 0.2s;">
-  <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="4"/>
-    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-  </svg>
-  <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-  </svg>
-</button>
+          <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+          <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
       </div>
       <span class="badge" id="role-badge">Analyst</span>
     </div>
 
-    <!-- Country toggle -->
     <div class="country-selector">
       <span data-i18n="cc_compare_with">Compare with:</span>
       <button class="ctry-btn active" onclick="toggleCountry('KAZ',this)"><span class="ctry-flag">🇰🇿</span>Kazakhstan</button>
@@ -150,35 +141,29 @@
       <button class="ctry-btn active" onclick="toggleCountry('MNG',this)"><span class="ctry-flag">🇲🇳</span>Mongolia</button>
     </div>
 
-    <!-- KPI cards per country -->
     <div class="metric-compare-grid" id="kpi-cards"></div>
 
-    <!-- Charts -->
     <div class="charts-grid">
       <div class="chart-card chart-card-full">
         <div class="cc-title" data-i18n="cc_co2_percapita">CO₂ Emissions per Capita (t CO₂/person) — 2000–2023</div>
         <div class="cc-sub" data-i18n="cc_co2_percapita_sub">Higher = more carbon-intensive economy · Source: IEA, Our World in Data</div>
         <div class="chart-wrap-tall"><canvas id="chartPerCapita"></canvas></div>
       </div>
-
       <div class="chart-card">
         <div class="cc-title" data-i18n="cc_total_co2">Total CO₂ Emissions 2023 (Mt)</div>
         <div class="cc-sub" data-i18n="cc_total_co2_sub">Absolute emissions by country</div>
         <div class="chart-wrap"><canvas id="chartTotal"></canvas></div>
       </div>
-
       <div class="chart-card">
         <div class="cc-title" data-i18n="cc_re_share">Renewables Share in Electricity 2023 (%)</div>
         <div class="cc-sub" data-i18n="cc_re_share_sub">Wind + Solar + Hydro as % of total generation</div>
         <div class="chart-wrap"><canvas id="chartRE"></canvas></div>
       </div>
-
       <div class="chart-card">
         <div class="cc-title" data-i18n="cc_reduction">CO₂ Reduction vs 1990 (%)</div>
         <div class="cc-sub" data-i18n="cc_reduction_sub">Progress toward decarbonization from 1990 baseline</div>
         <div class="chart-wrap"><canvas id="chartReduction"></canvas></div>
       </div>
-
       <div class="chart-card">
         <div class="cc-title" data-i18n="cc_intensity">Energy Intensity (MJ / USD GDP)</div>
         <div class="cc-sub" data-i18n="cc_intensity_sub">Lower = more efficient economy · 2023</div>
@@ -186,57 +171,48 @@
       </div>
     </div>
 
-    <!-- Insights — translated via data-i18n -->
     <div class="insights-row">
       <div class="insight-card">
-        <div class="insight-icon">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M2 20h20M5 20V8l6 4V8l6 4V4h3v16"/>
-  </svg>
-</div>
+        <div class="insight-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20V8l6 4V8l6 4V4h3v16"/></svg></div>
         <div class="insight-title" data-i18n="cc_insight1_title">Kazakhstan vs Germany</div>
-        <div class="insight-text" data-i18n="cc_insight1_text">
-          Kazakhstan emits ~13.5 t CO₂/capita vs Germany's 8.1 t. Despite Germany's larger economy,
-          its aggressive Energiewende policy cut emissions by 40% since 1990.
-          Kazakhstan has only achieved 16%.
-        </div>
+        <div class="insight-text" data-i18n="cc_insight1_text">Kazakhstan emits ~13.5 t CO₂/capita vs Germany's 8.1 t. Despite Germany's larger economy, its aggressive Energiewende policy cut emissions by 40% since 1990. Kazakhstan has only achieved 16%.</div>
       </div>
       <div class="insight-card">
-        <div class="insight-icon">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-  </svg>
-</div>
+        <div class="insight-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
         <div class="insight-title" data-i18n="cc_insight2_title">Renewables Gap</div>
-        <div class="insight-text" data-i18n="cc_insight2_text">
-          Germany reached 59% renewables share in 2023.
-          UAE is rapidly scaling solar with 15% RE despite being an oil state.
-          Kazakhstan sits at ~15% — mostly old hydro, with wind and solar under 5%.
-        </div>
+        <div class="insight-text" data-i18n="cc_insight2_text">Germany reached 59% renewables share in 2023. UAE is rapidly scaling solar with 15% RE despite being an oil state. Kazakhstan sits at ~15% — mostly old hydro, with wind and solar under 5%.</div>
       </div>
       <div class="insight-card">
-        <div class="insight-icon">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-    <polyline points="16 7 22 7 22 13"/>
-  </svg>
-</div>
+        <div class="insight-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
         <div class="insight-title" data-i18n="cc_insight3_title">Regional Context</div>
-        <div class="insight-text" data-i18n="cc_insight3_text">
-          Uzbekistan has similar intensity but lower per-capita emissions due to less industry.
-          Mongolia is more coal-dependent (90%+).
-          Kazakhstan has the strongest institutional capacity in the region to lead transition.
-        </div>
+        <div class="insight-text" data-i18n="cc_insight3_text">Uzbekistan has similar intensity but lower per-capita emissions due to less industry. Mongolia is more coal-dependent (90%+). Kazakhstan has the strongest institutional capacity in the region to lead transition.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div id="delete-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <h3 style="margin:0 0 8px;color:#1a2b4a;font-size:18px;">Delete Account</h3>
+      <p style="margin:0 0 20px;color:#666;font-size:14px;">This action cannot be undone. Please enter your password to confirm.</p>
+      <input type="password" id="delete-password" placeholder="Enter your password" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+      <div id="delete-error" style="display:none;color:#c0392b;font-size:13px;margin:12px 0;"></div>
+      <div style="display:flex;gap:12px;margin-top:16px;">
+        <button onclick="closeDeleteModal()" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;">Cancel</button>
+        <button onclick="deleteAccount()" style="flex:1;padding:10px;border:none;border-radius:8px;background:#c0392b;color:white;cursor:pointer;font-size:14px;font-weight:600;">Delete Account</button>
       </div>
     </div>
   </div>
 
 <script>
-// ── User ─────────────────────────────────────────────────────────────────
+const BACKEND = 'http://localhost:8000';
+
+// ── User ──────────────────────────────────────────────────────────────────
 (function(){
   const u = JSON.parse(sessionStorage.getItem('kzleap_user') || '{}');
   const name = u.name || 'User';
   const role = u.role || 'analyst';
+  const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
   const badgeStyles = {
     analyst:     { bg:'#e1f5ee', color:'#085041', text:'Energy Analyst' },
     researcher:  { bg:'#eeedfe', color:'#3C3489', text:'Researcher' },
@@ -245,86 +221,49 @@
   const bs = badgeStyles[role] || badgeStyles.analyst;
   document.getElementById('user-name').textContent = name;
   document.getElementById('user-role').textContent = bs.text;
-  document.getElementById('user-avatar').textContent = name.slice(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-avatar').style.background = avatarColors[role] || '#1D9E75';
   const b = document.getElementById('role-badge');
   b.textContent = bs.text; b.style.background = bs.bg; b.style.color = bs.color;
 })();
 
-// ── Country data ─────────────────────────────────────────────────────────
+// ── Delete account ────────────────────────────────────────────────────────
+const _user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{}');
+function confirmDelete() { document.getElementById('delete-modal').style.display='flex'; document.getElementById('delete-password').value=''; document.getElementById('delete-error').style.display='none'; }
+function closeDeleteModal() { document.getElementById('delete-modal').style.display='none'; }
+async function deleteAccount() {
+  const password = document.getElementById('delete-password').value.trim();
+  const error = document.getElementById('delete-error');
+  error.style.display = 'none';
+  if (!password) { error.textContent='Please enter your password.'; error.style.display='block'; return; }
+  try {
+    const res = await fetch(`${BACKEND}/api/delete-account`, { method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email:_user.email, password }) });
+    const data = await res.json();
+    if (!res.ok) { error.textContent=data.detail||'Failed.'; error.style.display='block'; return; }
+    sessionStorage.clear(); window.location.href='index.html';
+  } catch { error.textContent='Cannot connect to server.'; error.style.display='block'; }
+}
+
+// ── Country data ──────────────────────────────────────────────────────────
 const COUNTRIES = {
-  KAZ: {
-    name: 'Kazakhstan', flag: '🇰🇿', color: '#1D9E75',
-    co2_2023: 286, co2_1990: 267,
-    co2_percapita_2023: 13.5, population: 19.6,
-    re_share: 15.0, energy_intensity: 7.2,
-    gdp_per_capita: 11900, ndc_target: -15,
-    percapita_series: [9.1,8.8,9.9,10.9,11.4,11.9,13.0,12.8,12.6,12.4,13.8,13.1,13.3,13.6,15.9,15.9,15.7,16.5,16.9,14.8,14.4,12.5,13.9,13.5],
-    badgeKey: 'cc_badge_ndc_risk',
-  },
-  DEU: {
-    name: 'Germany', flag: '🇩🇪', color: '#378ADD',
-    co2_2023: 674, co2_1990: 1251,
-    co2_percapita_2023: 8.1, population: 84.1,
-    re_share: 59.0, energy_intensity: 3.8,
-    gdp_per_capita: 51000, ndc_target: -65,
-    percapita_series: [10.6,10.4,10.4,10.3,10.1,10.0,10.0,10.0,9.8,9.4,9.8,9.5,9.5,9.7,9.5,9.0,8.9,8.9,9.1,8.5,7.9,8.1,8.5,8.1],
-    badgeKey: 'cc_badge_on_track',
-  },
-  ARE: {
-    name: 'UAE', flag: '🇦🇪', color: '#EF9F27',
-    co2_2023: 198, co2_1990: 62,
-    co2_percapita_2023: 19.5, population: 10.1,
-    re_share: 15.0, energy_intensity: 5.1,
-    gdp_per_capita: 47400, ndc_target: -19,
-    percapita_series: [24.5,25.1,26.8,25.2,25.6,26.2,27.8,26.1,24.8,22.4,23.1,22.0,22.4,23.2,22.5,22.9,22.1,21.8,22.0,21.5,20.8,20.1,19.8,19.5],
-    badgeKey: 'cc_badge_scaling_re',
-  },
-  UZB: {
-    name: 'Uzbekistan', flag: '🇺🇿', color: '#9F77DD',
-    co2_2023: 107, co2_1990: 186,
-    co2_percapita_2023: 3.0, population: 36.0,
-    re_share: 21.0, energy_intensity: 8.9,
-    gdp_per_capita: 2400, ndc_target: -35,
-    percapita_series: [4.7,4.5,4.2,4.0,3.9,3.8,3.8,3.8,3.8,3.7,3.7,3.6,3.5,3.4,3.4,3.3,3.3,3.3,3.3,3.2,3.1,3.0,3.0,3.0],
-    badgeKey: 'cc_badge_low_intensity',
-  },
-  MNG: {
-    name: 'Mongolia', flag: '🇲🇳', color: '#D85A30',
-    co2_2023: 39, co2_1990: 29,
-    co2_percapita_2023: 11.2, population: 3.4,
-    re_share: 8.0, energy_intensity: 12.1,
-    gdp_per_capita: 4700, ndc_target: -22,
-    percapita_series: [5.1,5.3,5.4,5.5,5.8,6.0,6.5,7.0,7.5,7.8,8.2,8.5,8.8,9.0,9.5,9.8,10.0,10.2,10.5,10.1,9.8,10.2,11.0,11.2],
-    badgeKey: 'cc_badge_coal_heavy',
-  },
+  KAZ: { name:'Kazakhstan', flag:'🇰🇿', color:'#1D9E75', co2_2023:286, co2_1990:267, co2_percapita_2023:13.5, population:19.6, re_share:15.0, energy_intensity:7.2, gdp_per_capita:11900, ndc_target:-15, percapita_series:[9.1,8.8,9.9,10.9,11.4,11.9,13.0,12.8,12.6,12.4,13.8,13.1,13.3,13.6,15.9,15.9,15.7,16.5,16.9,14.8,14.4,12.5,13.9,13.5], badgeKey:'cc_badge_ndc_risk' },
+  DEU: { name:'Germany',    flag:'🇩🇪', color:'#378ADD', co2_2023:674, co2_1990:1251, co2_percapita_2023:8.1, population:84.1, re_share:59.0, energy_intensity:3.8, gdp_per_capita:51000, ndc_target:-65, percapita_series:[10.6,10.4,10.4,10.3,10.1,10.0,10.0,10.0,9.8,9.4,9.8,9.5,9.5,9.7,9.5,9.0,8.9,8.9,9.1,8.5,7.9,8.1,8.5,8.1], badgeKey:'cc_badge_on_track' },
+  ARE: { name:'UAE',        flag:'🇦🇪', color:'#EF9F27', co2_2023:198, co2_1990:62,   co2_percapita_2023:19.5, population:10.1, re_share:15.0, energy_intensity:5.1, gdp_per_capita:47400, ndc_target:-19, percapita_series:[24.5,25.1,26.8,25.2,25.6,26.2,27.8,26.1,24.8,22.4,23.1,22.0,22.4,23.2,22.5,22.9,22.1,21.8,22.0,21.5,20.8,20.1,19.8,19.5], badgeKey:'cc_badge_scaling_re' },
+  UZB: { name:'Uzbekistan', flag:'🇺🇿', color:'#9F77DD', co2_2023:107, co2_1990:186,  co2_percapita_2023:3.0, population:36.0, re_share:21.0, energy_intensity:8.9, gdp_per_capita:2400,  ndc_target:-35, percapita_series:[4.7,4.5,4.2,4.0,3.9,3.8,3.8,3.8,3.8,3.7,3.7,3.6,3.5,3.4,3.4,3.3,3.3,3.3,3.3,3.2,3.1,3.0,3.0,3.0], badgeKey:'cc_badge_low_intensity' },
+  MNG: { name:'Mongolia',   flag:'🇲🇳', color:'#D85A30', co2_2023:39,  co2_1990:29,   co2_percapita_2023:11.2, population:3.4, re_share:8.0, energy_intensity:12.1, gdp_per_capita:4700,  ndc_target:-22, percapita_series:[5.1,5.3,5.4,5.5,5.8,6.0,6.5,7.0,7.5,7.8,8.2,8.5,8.8,9.0,9.5,9.8,10.0,10.2,10.5,10.1,9.8,10.2,11.0,11.2], badgeKey:'cc_badge_coal_heavy' },
 };
 
-// badge style mapping — badgeKey → CSS class
-const BADGE_CLASS = {
-  cc_badge_ndc_risk:      'badge-amber',
-  cc_badge_on_track:      'badge-green',
-  cc_badge_scaling_re:    'badge-amber',
-  cc_badge_low_intensity: 'badge-green',
-  cc_badge_coal_heavy:    'badge-red',
-};
-
+const BADGE_CLASS = { cc_badge_ndc_risk:'badge-amber', cc_badge_on_track:'badge-green', cc_badge_scaling_re:'badge-amber', cc_badge_low_intensity:'badge-green', cc_badge_coal_heavy:'badge-red' };
 const YEARS = Array.from({length:24}, (_, i) => 2000 + i);
 let activeCountries = new Set(['KAZ','DEU','ARE','UZB','MNG']);
 let charts = {};
 
-// ── Toggle country ────────────────────────────────────────────────────────
 function toggleCountry(code, btn) {
-  if (activeCountries.has(code) && activeCountries.size > 1) {
-    activeCountries.delete(code);
-    btn.classList.remove('active');
-  } else {
-    activeCountries.add(code);
-    btn.classList.add('active');
-  }
+  if (activeCountries.has(code) && activeCountries.size > 1) { activeCountries.delete(code); btn.classList.remove('active'); }
+  else { activeCountries.add(code); btn.classList.add('active'); }
   renderAll();
 }
 
-// ── KPI cards ─────────────────────────────────────────────────────────────
 function renderKPICards() {
   const el = document.getElementById('kpi-cards');
   el.innerHTML = '';
@@ -332,132 +271,47 @@ function renderKPICards() {
     if (!activeCountries.has(code)) return;
     const reduction = (((c.co2_1990 - c.co2_2023) / c.co2_1990) * 100).toFixed(1);
     const sign = reduction >= 0 ? '-' : '+';
-    // Use the correct existing translation keys
-    const labelTotal  = t('cc_unit_total');   // "Total:" / "Всего:" / "Барлығы:"
-    const labelRE     = t('cc_unit_re');       // "RE share:" / "Доля ВИЭ:" / "ЖЭК үлесі:"
-    const labelChange = t('cc_unit_change');   // "CO₂ change:" / "Изм. CO₂:" / "CO₂ өзг.:"
-    const labelUnit   = t('cc_unit_percapita'); // "t CO₂ / capita (2023)"
+    const labelTotal  = t('cc_unit_total');
+    const labelRE     = t('cc_unit_re');
+    const labelChange = t('cc_unit_change');
+    const labelUnit   = t('cc_unit_percapita');
     const badgeText   = t(c.badgeKey);
     const badgeClass  = BADGE_CLASS[c.badgeKey];
-
-    el.innerHTML += `
-      <div class="mc-card" style="border-top-color:${c.color}">
-        <div class="mc-flag">${c.flag}</div>
-        <div class="mc-name">${c.name}</div>
-        <div class="mc-val">${c.co2_percapita_2023}</div>
-        <div class="mc-unit">${labelUnit}</div>
-        <div class="mc-unit" style="margin-top:6px;">${labelTotal} <b>${c.co2_2023} Mt</b></div>
-        <div class="mc-unit">${labelRE} <b>${c.re_share}%</b></div>
-        <div class="mc-unit">${labelChange} <b>${sign}${Math.abs(reduction)}% vs 1990</b></div>
-        <div class="mc-badge ${badgeClass}">${badgeText}</div>
-      </div>`;
+    el.innerHTML += `<div class="mc-card" style="border-top-color:${c.color}"><div class="mc-flag">${c.flag}</div><div class="mc-name">${c.name}</div><div class="mc-val">${c.co2_percapita_2023}</div><div class="mc-unit">${labelUnit}</div><div class="mc-unit" style="margin-top:6px;">${labelTotal} <b>${c.co2_2023} Mt</b></div><div class="mc-unit">${labelRE} <b>${c.re_share}%</b></div><div class="mc-unit">${labelChange} <b>${sign}${Math.abs(reduction)}% vs 1990</b></div><div class="mc-badge ${badgeClass}">${badgeText}</div></div>`;
   });
 }
 
-// ── Charts ────────────────────────────────────────────────────────────────
-function destroyChart(id) {
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-}
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
 function renderPerCapita() {
   destroyChart('chartPerCapita');
-  const datasets = Object.entries(COUNTRIES)
-    .filter(([code]) => activeCountries.has(code))
-    .map(([, c]) => ({
-      label: c.flag + ' ' + c.name,
-      data: c.percapita_series,
-      borderColor: c.color,
-      backgroundColor: c.color + '15',
-      tension: 0.35, borderWidth: 2.5,
-      pointRadius: 2, fill: false,
-    }));
-  charts['chartPerCapita'] = new Chart(document.getElementById('chartPerCapita'), {
-    type: 'line',
-    data: { labels: YEARS, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { font: { size: 11 }, boxWidth: 14 } },
-        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' t CO₂' } }
-      },
-      scales: {
-        x: { ticks: { font: { size: 10 } } },
-        y: {
-          ticks: { callback: v => v + ' t', font: { size: 10 } },
-          title: { display: true, text: 't CO₂/capita', font: { size: 11 } }
-        }
-      }
-    }
-  });
+  const datasets = Object.entries(COUNTRIES).filter(([code]) => activeCountries.has(code)).map(([, c]) => ({ label: c.flag+' '+c.name, data: c.percapita_series, borderColor: c.color, backgroundColor: c.color+'15', tension: 0.35, borderWidth: 2.5, pointRadius: 2, fill: false }));
+  charts['chartPerCapita'] = new Chart(document.getElementById('chartPerCapita'), { type:'line', data:{ labels:YEARS, datasets }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ font:{size:11}, boxWidth:14 } }, tooltip:{ callbacks:{ label: ctx => ctx.dataset.label+': '+ctx.parsed.y+' t CO₂' } } }, scales:{ x:{ ticks:{ font:{size:10} } }, y:{ ticks:{ callback: v => v+' t', font:{size:10} }, title:{ display:true, text:'t CO₂/capita', font:{size:11} } } } } });
 }
 
 function renderBar(canvasId, dataFn, unitSuffix) {
   destroyChart(canvasId);
   const active = Object.entries(COUNTRIES).filter(([code]) => activeCountries.has(code));
-  charts[canvasId] = new Chart(document.getElementById(canvasId), {
-    type: 'bar',
-    data: {
-      labels: active.map(([, c]) => c.flag + ' ' + c.name),
-      datasets: [{
-        data: active.map(([code, c]) => dataFn(code, c)),
-        backgroundColor: active.map(([, c]) => c.color + 'CC'),
-        borderColor: active.map(([, c]) => c.color),
-        borderWidth: 1.5, borderRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.parsed.y + unitSuffix } }
-      },
-      scales: {
-        x: { ticks: { font: { size: 10 } } },
-        y: { ticks: { callback: v => v + unitSuffix, font: { size: 10 } } }
-      }
-    }
-  });
+  charts[canvasId] = new Chart(document.getElementById(canvasId), { type:'bar', data:{ labels: active.map(([,c]) => c.flag+' '+c.name), datasets:[{ data: active.map(([code,c]) => dataFn(code,c)), backgroundColor: active.map(([,c]) => c.color+'CC'), borderColor: active.map(([,c]) => c.color), borderWidth:1.5, borderRadius:6 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ctx.parsed.y+unitSuffix } } }, scales:{ x:{ ticks:{font:{size:10}} }, y:{ ticks:{ callback: v => v+unitSuffix, font:{size:10} } } } } });
 }
 
 function renderReduction() {
   destroyChart('chartReduction');
   const active = Object.entries(COUNTRIES).filter(([code]) => activeCountries.has(code));
-  const values = active.map(([, c]) => +(((c.co2_1990 - c.co2_2023) / c.co2_1990) * 100).toFixed(1));
-  const colors = values.map(v => v > 20 ? '#1D9E75CC' : v > 0 ? '#EF9F27CC' : '#D85A30CC');
-  charts['chartReduction'] = new Chart(document.getElementById('chartReduction'), {
-    type: 'bar',
-    data: {
-      labels: active.map(([, c]) => c.flag + ' ' + c.name),
-      datasets: [{
-        data: values,
-        backgroundColor: colors,
-        borderRadius: 6, borderWidth: 0,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } }
-      },
-      scales: {
-        x: { ticks: { font: { size: 10 } } },
-        y: { ticks: { callback: v => v + '%', font: { size: 10 } } }
-      }
-    }
-  });
+  const values = active.map(([,c]) => +(((c.co2_1990-c.co2_2023)/c.co2_1990)*100).toFixed(1));
+  const colors = values.map(v => v>20?'#1D9E75CC':v>0?'#EF9F27CC':'#D85A30CC');
+  charts['chartReduction'] = new Chart(document.getElementById('chartReduction'), { type:'bar', data:{ labels: active.map(([,c]) => c.flag+' '+c.name), datasets:[{ data:values, backgroundColor:colors, borderRadius:6, borderWidth:0 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ctx.parsed.y+'%' } } }, scales:{ x:{ ticks:{font:{size:10}} }, y:{ ticks:{ callback: v => v+'%', font:{size:10} } } } } });
 }
 
 function renderAll() {
   renderKPICards();
   renderPerCapita();
-  renderBar('chartTotal',     (_, c) => c.co2_2023,         ' Mt');
-  renderBar('chartRE',        (_, c) => c.re_share,          '%');
-  renderBar('chartIntensity', (_, c) => c.energy_intensity,  ' MJ/$');
+  renderBar('chartTotal',     (_, c) => c.co2_2023,        ' Mt');
+  renderBar('chartRE',        (_, c) => c.re_share,         '%');
+  renderBar('chartIntensity', (_, c) => c.energy_intensity, ' MJ/$');
   renderReduction();
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   applyTranslations();
   renderAll();
