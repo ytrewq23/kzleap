@@ -1,6 +1,6 @@
 
 (function() {
-  const API_URL = 'http://localhost:8000/api/claude';
+  const API_URL = 'https://kzleap.onrender.com/api/claude';
 
   const style = document.createElement('style');
   style.textContent = `

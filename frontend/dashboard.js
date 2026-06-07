@@ -1,4 +1,4 @@
-const BACKEND = 'http://localhost:8000';
+const BACKEND = 'https://kzleap.onrender.com';
 
 let CFG = { base_co2: 242, base_elec: 115, base_tpes: 85, base_year: 2023, ndc_unconditional: 246.5, ndc_conditional: 217.5 };
 async function loadConfig() {

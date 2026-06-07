@@ -149,7 +149,7 @@ function renderCustomDemoCharts(data, years) {
 }
 
 
-const BACKEND = 'http://localhost:8000';
+const BACKEND = 'https://kzleap.onrender.com';
 
 let CFG = {
   base_co2: 242, base_elec: 115, base_tpes: 85,

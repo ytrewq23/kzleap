@@ -2,7 +2,7 @@
 // Отправляет параметры на /whatif/calculate, отображает ответ.
 // При недоступности бэкенда падает на локальный расчёт.
 
-const BACKEND = 'http://localhost:8000';
+const BACKEND = 'https://kzleap.onrender.com';
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const badgeStyles = {
   analyst:     { bg: '#e1f5ee', color: '#085041', get text(){ return typeof t==='function'?t('role_analyst'):'Energy Analyst'; } },

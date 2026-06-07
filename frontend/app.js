@@ -1,4 +1,4 @@
-const BACKEND = 'http://localhost:8000';
+const BACKEND = 'https://kzleap.onrender.com';
 
 let selectedRole = 'analyst';
 

@@ -1,4 +1,4 @@
-const BACKEND = 'http://localhost:8000';
+const BACKEND = 'https://kzleap.onrender.com';
 
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
