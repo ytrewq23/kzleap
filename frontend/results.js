@@ -1,4 +1,3 @@
-const BACKEND = 'https://kzleap.onrender.com';
 function showCustomResults(data, params, type) {
   const labels = { MT: 'Moderate Transition', DD: 'Deep Decarbonization', BAU: 'BAU' };
   const colors = { MT: '#B07C10', DD: '#1D9E75', BAU: '#378ADD' };
