@@ -9,14 +9,7 @@ NEUTRALITY_YEAR = 2060
 
 
 def compute_carbon_budget(scenarios_compare: Dict) -> Dict:
-    """
-    Given compare_scenarios() output, compute:
-    - Remaining carbon budget vs IPCC 1.5C / 2C pathways (Kazakhstan share)
-    - NDC compliance year-by-year
-    - Year each scenario crosses NDC thresholds
-    - Annual carbon deficit/surplus
-    - Budget exhaustion year per scenario
-    """
+
 
     IPCC_GLOBAL_15C_GT  = 400.0
     IPCC_GLOBAL_20C_GT  = 1150.0
