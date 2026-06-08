@@ -1,7 +1,3 @@
-// KZLEAP — What-If Analyzer  (backend-connected)
-// Отправляет параметры на /whatif/calculate, отображает ответ.
-// При недоступности бэкенда падает на локальный расчёт.
-
 const BACKEND = 'https://kzleap.onrender.com';
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const badgeStyles = {

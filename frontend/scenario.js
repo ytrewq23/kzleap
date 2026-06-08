@@ -1,4 +1,4 @@
-
+const BACKEND = 'https://kzleap.onrender.com';
 const user = JSON.parse(sessionStorage.getItem('kzleap_user') || '{"name":"Ali B.","role":"analyst"}');
 const avatarColors = { analyst: '#1D9E75', researcher: '#534AB7', policymaker: '#993C1D' };
 const badgeStyles = {
@@ -128,6 +128,10 @@ async function saveScenario(type) {
   if (r) r.textContent = '...';
   if (s) s.textContent = 'Running model on backend...';
 
+  console.log('[KZLEAP] saveScenario called, type:', type);
+  console.log('[KZLEAP] params:', params);
+  console.log('[KZLEAP] POST URL:', `${BACKEND}/api/run/custom`);
+
   try {
     const res = await fetch(`${BACKEND}/api/run/custom`, {
       method: 'POST',
@@ -135,8 +139,17 @@ async function saveScenario(type) {
       body: JSON.stringify(params),
     });
 
-    if (!res.ok) throw new Error('Backend error');
+    console.log('[KZLEAP] Response status:', res.status, res.statusText);
+
+    if (!res.ok) {
+      let errText = '';
+      try { errText = await res.text(); } catch (_) {}
+      console.error('[KZLEAP] Backend error body:', errText);
+      throw new Error(`HTTP ${res.status}: ${errText || res.statusText}`);
+    }
+
     const data = await res.json();
+    console.log('[KZLEAP] Response data:', data);
 
     const stored = JSON.parse(sessionStorage.getItem('kzleap_custom_results') || '{}');
     stored[type] = { params, results: data, saved_at: new Date().toISOString() };
@@ -154,10 +167,11 @@ async function saveScenario(type) {
     showToast(`✓ ${labels[type]} saved · CO2 2050: ${co2_2050}`);
 
   } catch (err) {
+    console.error('[KZLEAP] saveScenario catch error:', err);
     if (btn) { btn.textContent = `Save ${type} Scenario`; btn.disabled = false; }
     if (r) r.textContent = 'Error';
-    if (s) s.textContent = 'Backend not running';
-    showToast('Error: backend not running');
+    if (s) s.textContent = err.message || 'Unknown error';
+    showToast('Error: ' + (err.message || 'unknown'));
   }
 }
 
